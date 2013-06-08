@@ -39,7 +39,7 @@ class para;
 	{
 	public:
 		wait_any(paragroup & pg){}
-		wait_any(paragroup & pg){}
+		wait_any(paragroup && pg){}
 	};//end class wait_any
 	
 	
@@ -61,7 +61,7 @@ class para;
 		return internal::wait_or<T1, T2>(t1, t2);
 	}
 	template<class T1, class T2>
-	internal::wait_and<T1, T2>&& operator &&(T1 && t1, T2 && t2)
+	internal::wait_or<T1, T2>&& operator ||(T1 && t1, T2 && t2)
 	{
 		return internal::wait_or<T1, T2>(t1, t2);
 	}

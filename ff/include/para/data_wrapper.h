@@ -1,5 +1,5 @@
 #ifndef FF_PARA_DATA_WRAPPER_H_
-#define FF_PARA_DATA_WRAPPER_H_\
+#define FF_PARA_DATA_WRAPPER_H_
 #include "common/common.h"
 
 namespace ff
