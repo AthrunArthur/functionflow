@@ -5,5 +5,6 @@
 #include <functional>
 #include <atomic>
 #include <thread>
+#include <type_traits>
 
 #endif

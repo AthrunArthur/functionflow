@@ -1,11 +1,13 @@
 #ifndef FF_PARA_PARA_GROUND_H_
 #define FF_PARA_PARA_GROUND_H_
 #include "common/common.h"
+#include "para/para.h"
 
 namespace ff{
+	template<class RT>
 	class paragroup{
 	public:
-		void		push(const para & p){}
+		void		push(const para<RT> & p){}
 		template<class Iterator_t, class Functor_t>
 		paragroup & for_each(Iterator_t begin, Iterator_t end, Functor_t f){
 			Iterator_t t = begin;
