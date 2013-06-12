@@ -17,7 +17,9 @@ public:
             : m_refP(p){}
 
         template<class FT>
-        void  then(FT && f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
+        //void  then(FT && f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
+        auto  then(FT && f)
+		-> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
         {
             f(m_refP.get());
         }
@@ -94,7 +96,9 @@ public:
     public:
         para_accepted_call(para<void>& p)
             : m_refP(p){}
-
+		para_accepted_call(const para_accepted_call & ) = default;
+		para_accepted_call& operator = (const para_accepted_call &) = default;
+		
         template<class FT>
         void  then(FT && f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
         {
@@ -114,14 +118,14 @@ public:
 
     class para_accepted_wait
     {
-        para_accepted_wait(const para_accepted_wait &) = delete;
-        para_accepted_wait & operator = (const para_accepted_wait &) = delete;
     public:
+		para_accepted_wait(const para_accepted_wait &) = default;
+        para_accepted_wait & operator = (const para_accepted_wait &) = default;
         para_accepted_wait(para<void> & p)
             : m_refP(p)	{}
 
         template<class F>
-        auto		operator ()(F && f) -> para_accepted_call &&
+        auto		operator ()(F && f) -> para_accepted_call
         {
             return m_refP.exe(f);
         }
@@ -137,18 +141,18 @@ public:
     para() {};
 
     template <class WT>
-    para_accepted_wait && operator[](const WT & cond)
+    para_accepted_wait operator[](const WT & cond)
     {
         return para_accepted_wait(*this);
     }
     template<class F>
-    auto		exe(F && f) -> para_accepted_call &&
+    auto		exe(F && f) -> para_accepted_call
     {   
 		f();
         return para_accepted_call(*this);
     }
     template<class F>
-    auto		operator ()(F && f) -> para_accepted_call &&
+    auto		operator ()(F && f) -> para_accepted_call 
     {
         return exe(f);
     }

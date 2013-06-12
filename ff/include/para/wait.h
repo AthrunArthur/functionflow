@@ -22,7 +22,8 @@ public:
 	, m_2(t2){}
 
     template<class FT>
-    void  then(const FT & f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
+    auto  then(const FT & f)
+	-> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
 		bin_wait_func_deducer<T1, T2>::void_func_and(f, m_1, m_2);
     }
@@ -58,7 +59,8 @@ public:
 	}
 
     template<class FT>
-    void  then(const FT & f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
+    auto  then(const FT & f)
+	-> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
 		bin_wait_func_deducer<T1, T2>::void_func_or(f, m_1, m_2);
     }

@@ -20,7 +20,7 @@ struct bin_wait_func_deducer{
 	static void 	void_func_and( const FT & f, T1 & t1, T2 & t2){f(t1.get(), t2.get());}
 	template<class FT>
 	static auto	ret_func_and(const FT & f, T1 & t1, T2 & t2)
-	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type 
 	{return f(t1.get(), t2.get());}
 	
 	template<class FT>
