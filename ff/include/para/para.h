@@ -1,9 +1,10 @@
 #ifndef FF_PARA_PAEA_H_
 #define FF_PARA_PAEA_H_
 #include "common/common.h"
-#include "para/para_helper.h"
 #include "common/function_traits.h"
-#include <iostream>
+#include "para/para_helper.h"
+#include "para/exception.h"
+
 namespace ff {
 using namespace ff::utils;
 template<typename RT = void>
@@ -58,7 +59,8 @@ public:
     para(const para<RT> &) = delete;
     para<RT> & operator =(const para<RT> &) = delete;
     para() 
-	: m_oRet(*this){};
+	: m_oRet(*this)
+	, m_bIsUsed(false){};
 
     template <class WT>
     para_accepted_wait operator[](const WT & cond)
@@ -68,6 +70,8 @@ public:
     template<class F>
     auto		exe(F && f) -> para_accepted_call
     {
+		if(m_bIsUsed)
+			throw used_para_exception();
         m_oRet.set(f());
 		std::cout<<"exe: "<<m_oRet.get()<<std::endl;
         return para_accepted_call(*this);
@@ -75,6 +79,9 @@ public:
     template<class F>
     auto		operator ()(F && f) -> para_accepted_call
     {
+		if(m_bIsUsed)
+			throw used_para_exception();
+		m_bIsUsed = true;
         return exe(f);
     }
 
@@ -84,6 +91,7 @@ public:
 
 protected:
     internal::para_ret<RT>	m_oRet;
+	bool		m_bIsUsed;
 };//end class para;
 
 
@@ -138,11 +146,14 @@ public:
 public:
     para(const para<void> &) = delete;
     para<void> & operator =(const para<void> &) = delete;
-    para() {};
+    para() 
+		: m_bIsUsed(false){};
 
     template <class WT>
     para_accepted_wait operator[](const WT & cond)
     {
+		if(m_bIsUsed)
+			throw used_para_exception();
         return para_accepted_wait(*this);
     }
     template<class F>
@@ -154,8 +165,12 @@ public:
     template<class F>
     auto		operator ()(F && f) -> para_accepted_call 
     {
+		if(m_bIsUsed)
+			throw used_para_exception();
         return exe(f);
     }
+protected:
+	bool	m_bIsUsed; 
 };//end class para<void>
 
 }//end namespace ff

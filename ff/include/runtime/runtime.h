@@ -20,6 +20,7 @@ protected:
     runtime(const runtime &) = delete;
 
 public:
+    virtual ~runtime();
     static runtime_ptr	instance();
 
     //each thread run
@@ -27,9 +28,9 @@ public:
 protected:
     void			init();
 protected:
-    std::unique_ptr<task_queue>		m_oReadyTasks;
-    std::unique_ptr<task_queue>		m_oWaitTasks;
-    std::unique_ptr<threadpool>		m_oTP;
+    std::unique_ptr<task_queue>		m_pReadyTasks;
+    std::unique_ptr<task_queue>		m_pWaitTasks;
+    std::unique_ptr<threadpool>		m_pTP;
     static runtime_ptr s_pInstance;
 };//end class runtime
 }//end namespace rt
