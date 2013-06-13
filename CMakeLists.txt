@@ -8,8 +8,8 @@ SET(DEBUG_DEFS "")
 
 SET(INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/ff/include)
 
-SET(LIBS_LINK_DIRS "/home/athrun/boost_1_46_1/stage/lib")
-SET(LIBS_LINK_LIBS boost_date_time boost_thread log4cplus)
+#SET(LIBS_LINK_DIRS "/home/athrun/boost_1_46_1/stage/lib")
+#SET(LIBS_LINK_LIBS boost_date_time boost_thread log4cplus)
 
 add_subdirectory(libs)
 add_subdirectory(test)

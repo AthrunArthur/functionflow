@@ -73,15 +73,12 @@ public:
 		if(m_bIsUsed)
 			throw used_para_exception();
         m_oRet.set(f());
-		std::cout<<"exe: "<<m_oRet.get()<<std::endl;
-        return para_accepted_call(*this);
+        m_bIsUsed = true;
+	return para_accepted_call(*this);
     }
     template<class F>
     auto		operator ()(F && f) -> para_accepted_call
     {
-		if(m_bIsUsed)
-			throw used_para_exception();
-		m_bIsUsed = true;
         return exe(f);
     }
 
@@ -160,6 +157,7 @@ public:
     auto		exe(F && f) -> para_accepted_call
     {   
 		f();
+	m_bIsUsed = true;
         return para_accepted_call(*this);
     }
     template<class F>

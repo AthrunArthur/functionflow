@@ -9,7 +9,14 @@ namespace ff
 	{
 	public:
 		used_para_exception()
-			: std::exception("Error! A para or paragroup can be called only once.\n"){}
+			: std::exception()
+			, msg("Fatal error! Can't use a para or paragroup more than one time!"){}
+		virtual const char * what() const throw()
+		{
+			return msg;
+		}
+	protected:
+		const char * msg;
 	};//end class used_para_exception
 }//end namespace ff;
 
