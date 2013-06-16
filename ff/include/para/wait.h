@@ -7,40 +7,43 @@
 #include "para/bin_wait_func_deducer.h"
 
 namespace ff {
-	template<class RT>
-	class para;
+template<class RT>
+class para;
 namespace internal
 {
 template <class T1, class T2>
 class wait_and
 {
 public:
-	typedef typename bin_wait_func_deducer<T1, T2>::and_type ret_type;
+    typedef typename bin_wait_func_deducer<T1, T2>::and_type ret_type;
 public:
     wait_and(T1 && t1, T2 && t2)
-	: m_1(t1)
-	, m_2(t2){}
+        : m_1(t1)
+        , m_2(t2) {}
 
     template<class FT>
     auto  then(const FT & f)
-	-> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
-		bin_wait_func_deducer<T1, T2>::void_func_and(f, m_1, m_2);
+        bin_wait_func_deducer<T1, T2>::void_func_and(f, m_1, m_2);
     }
 
     template<class FT>
     auto  then(const FT & f ) ->
-    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+    typename std::enable_if<
+	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+	    >::type 
     {
-		return bin_wait_func_deducer<T1, T2>::ret_func_and(f, m_1, m_2);
+        return bin_wait_func_deducer<T1, T2>::ret_func_and(f, m_1, m_2);
     }
     auto get() -> typename bin_wait_func_deducer<T1, T2>::wrapper_type
-	{
-		return bin_wait_func_deducer<T1, T2>::wrap_ret_values(m_1, m_2);
-	}
+    {
+        return bin_wait_func_deducer<T1, T2>::wrap_ret_values(m_1, m_2);
+    }
 protected:
-	T1 & m_1;
-	T2 & m_2;
+    T1 & m_1;
+    T2 & m_2;
 };//end class wait_and
 
 
@@ -48,37 +51,40 @@ template <class T1, class T2>
 class wait_or
 {
 public:
-	typedef typename bin_wait_func_deducer<T1, T2>::or_type ret_type;
+    typedef typename bin_wait_func_deducer<T1, T2>::or_type ret_type;
 public:
     wait_or(T1 & t1, T2 & t2)
-	: m_1(t1)
-	, m_2(t2){}
-	wait_or(const wait_or<T1, T2>& w)
-	: m_1(w.m_1)
-	, m_2(w.m_2){
-	}
+        : m_1(t1)
+        , m_2(t2) {}
+    wait_or(const wait_or<T1, T2>& w)
+        : m_1(w.m_1)
+        , m_2(w.m_2) {
+    }
 
     template<class FT>
     auto  then(const FT & f)
-	-> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
-		bin_wait_func_deducer<T1, T2>::void_func_or(f, m_1, m_2);
+        bin_wait_func_deducer<T1, T2>::void_func_or(f, m_1, m_2);
     }
 
     template<class FT>
     auto  then(const FT & f ) ->
-    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+    typename std::enable_if<
+	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+	    >::type 
     {
-		return bin_wait_func_deducer<T1, T2>::ret_func_or(f, m_1, m_2);
+        return bin_wait_func_deducer<T1, T2>::ret_func_or(f, m_1, m_2);
     }
     auto get() -> typename bin_wait_func_deducer<T1, T2>::wrapper_type
-	{
-		return bin_wait_func_deducer<T1, T2>::wrap_ret_values(m_1, m_2);
-	}
-	
+    {
+        return bin_wait_func_deducer<T1, T2>::wrap_ret_values(m_1, m_2);
+    }
+
 protected:
-	T1 & m_1;
-	T2 & m_2;
+    T1 & m_1;
+    T2 & m_2;
 };//end class wait_or
 
 }//end namespace internal

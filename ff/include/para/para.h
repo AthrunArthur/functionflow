@@ -10,74 +10,30 @@ using namespace ff::utils;
 template<typename RT = void>
 class para {
 public:
-	typedef RT  ret_type;
-public:
-    class para_accepted_call {
-    public:
-        para_accepted_call(para<RT>& p)
-            : m_refP(p){}
-
-        template<class FT>
-        //void  then(FT && f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
-        auto  then(FT && f)
-		-> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
-        {
-            f(m_refP.get());
-        }
-        
-        template<class FT>
-        auto  then(FT && f ) ->  
-        typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
-        {
-            return f(m_refP.get());
-        }
-        
-    protected:
-        para<RT> & m_refP;
-    };//end class para_accepted_call
-
-    class para_accepted_wait
-    {
-        para_accepted_wait & operator = (const para_accepted_wait &) = delete;
-    public:
-		para_accepted_wait(const para_accepted_wait &) = default;
-        para_accepted_wait(para<RT> & p)
-            : m_refP(p)	{}
-
-        template<class F>
-        auto		operator ()(F && f) -> para_accepted_call
-        {
-            return m_refP.exe(f);
-        }
-
-    protected:
-        para<RT> & m_refP;
-    };//end class para_accepted_wait;
-
-
+    typedef RT  ret_type;
 public:
     para(const para<RT> &) = delete;
     para<RT> & operator =(const para<RT> &) = delete;
-    para() 
-	: m_oRet(*this)
-	, m_bIsUsed(false){};
+    para()
+        : m_oRet(*this)
+        , m_bIsUsed(false) {};
 
     template <class WT>
-    para_accepted_wait operator[](const WT & cond)
+    internal::para_accepted_wait<para<RT>> operator[](const WT & cond)
     {
-        return para_accepted_wait(*this);
+        return internal::para_accepted_wait<para<RT>>(*this);
     }
     template<class F>
-    auto		exe(F && f) -> para_accepted_call
+    auto		exe(F && f) -> internal::para_accepted_call<para<RT>, RT>
     {
-		if(m_bIsUsed)
-			throw used_para_exception();
+        if(m_bIsUsed)
+            throw used_para_exception();
         m_oRet.set(f());
         m_bIsUsed = true;
-	return para_accepted_call(*this);
+        return internal::para_accepted_call<para<RT>, RT>(*this);
     }
     template<class F>
-    auto		operator ()(F && f) -> para_accepted_call
+    auto		operator ()(F && f) -> internal::para_accepted_call<para<RT>, RT>
     {
         return exe(f);
     }
@@ -88,87 +44,43 @@ public:
 
 protected:
     internal::para_ret<RT>	m_oRet;
-	bool		m_bIsUsed;
+    bool		m_bIsUsed;
 };//end class para;
 
 
 template<>
 class para<void> {
 public:
-	typedef void ret_type;
-public:
-    class para_accepted_call {
-    public:
-        para_accepted_call(para<void>& p)
-            : m_refP(p){}
-		para_accepted_call(const para_accepted_call & ) = default;
-		para_accepted_call& operator = (const para_accepted_call &) = default;
-		
-        template<class FT>
-        void  then(FT && f, typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, bool>::type * p = nullptr)
-        {
-            f();
-        }
-        
-        template<class FT>
-        auto  then(FT && f ) ->  
-        typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
-        {
-            return f();
-        }
-        
-    protected:
-        para<void> & m_refP;
-    };//end class para_accepted_call
-
-    class para_accepted_wait
-    {
-    public:
-		para_accepted_wait(const para_accepted_wait &) = default;
-        para_accepted_wait & operator = (const para_accepted_wait &) = default;
-        para_accepted_wait(para<void> & p)
-            : m_refP(p)	{}
-
-        template<class F>
-        auto		operator ()(F && f) -> para_accepted_call
-        {
-            return m_refP.exe(f);
-        }
-
-    protected:
-        para<void> & m_refP;
-    };//end class para_accepted_wait;
-
-
+    typedef void ret_type;
 public:
     para(const para<void> &) = delete;
     para<void> & operator =(const para<void> &) = delete;
-    para() 
-		: m_bIsUsed(false){};
+    para()
+        : m_bIsUsed(false) {};
 
     template <class WT>
-    para_accepted_wait operator[](const WT & cond)
+    internal::para_accepted_wait<para<void>> operator[](const WT & cond)
     {
-		if(m_bIsUsed)
-			throw used_para_exception();
-        return para_accepted_wait(*this);
+        if(m_bIsUsed)
+            throw used_para_exception();
+        return internal::para_accepted_wait<para<void>>(*this);
     }
     template<class F>
-    auto		exe(F && f) -> para_accepted_call
-    {   
-		f();
-	m_bIsUsed = true;
-        return para_accepted_call(*this);
+    auto		exe(F && f) -> internal::para_accepted_call<para<void>, void>
+    {
+        f();
+        m_bIsUsed = true;
+        return internal::para_accepted_call<para<void>, void>(*this);
     }
     template<class F>
-    auto		operator ()(F && f) -> para_accepted_call 
+    auto		operator ()(F && f) -> internal::para_accepted_call<para<void>, void>
     {
-		if(m_bIsUsed)
-			throw used_para_exception();
+        if(m_bIsUsed)
+            throw used_para_exception();
         return exe(f);
     }
 protected:
-	bool	m_bIsUsed; 
+    bool	m_bIsUsed;
 };//end class para<void>
 
 }//end namespace ff

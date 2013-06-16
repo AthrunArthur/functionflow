@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "ff.h"
 
 using namespace ff;
@@ -53,5 +54,16 @@ int main(int argc, char *argv[])
 	(f3 && f4).then([](double x){std::cout<<"f3&&f4.then "<<x<<std::endl;});
 	
 	
+	std::vector<int> s;
+	s.push_back(10);
+	s.push_back(11);
+	s.push_back(15);
+	s.push_back(9);
+	ff::paragroup<void> pg, pg1;
+	pg.for_each(s.begin(), s.end(), [](int x){std::cout<<"para group: "<<x<<std::endl;});
+	//pg1.for_each<ff::auto_partition>(s.begin(), s.end(), [](int x){std::cout<<"pg1: "<<x<<std::endl;});
+	
+	//ff::paragroup<void> pg2, pg3;
+	//pg3.for_each(s.begin(), s.end(), pg2.pipeline(f1, f2, f3, f4));
 	return 0;
 }
