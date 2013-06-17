@@ -59,11 +59,19 @@ int main(int argc, char *argv[])
 	s.push_back(11);
 	s.push_back(15);
 	s.push_back(9);
-	ff::paragroup<void> pg, pg1;
+	ff::paragroup<void> pg;
 	pg.for_each(s.begin(), s.end(), [](int x){std::cout<<"para group: "<<x<<std::endl;});
-	//pg1.for_each<ff::auto_partition>(s.begin(), s.end(), [](int x){std::cout<<"pg1: "<<x<<std::endl;});
 	
-	//ff::paragroup<void> pg2, pg3;
-	//pg3.for_each(s.begin(), s.end(), pg2.pipeline(f1, f2, f3, f4));
+	ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
+	ff::paragroup<void> pg1;
+	pg1.for_each(s.begin(), s.end(), [&sum](int x){
+	  sum.increase(x);
+	});
+	std::cout<<"pg1 sum: "<<sum.get()<<std::endl;
+	
+	ff::paragroup<void> pg2;
+	ff::single_assign<int> first;
+	pg2.for_each(s.begin(), s.end(), [&first](int x){first = x;});
+	std::cout<<"pg2 first: "<<first.get()<<std::endl;
 	return 0;
 }

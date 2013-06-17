@@ -10,12 +10,20 @@ namespace ff
 		accumulator(const accumulator<T> & ) = delete;
 		accumulator<T> & operator = (const accumulator<T> &) = delete;
 	public:
-		typedef std::function<T && (T&, T&)> Functor_t;
-		accumulator(T & value, const Functor_t& functor)
+		typedef std::function<T (const T&, const T&)> Functor_t;
+		template<class FT>
+		accumulator(const T & value, const FT& functor)
 		: m_oValue(value)
 		, Functor(functor){}
 		
-		accumulator<T> increase(T & value){return *this;}
+		template<class FT>
+		accumulator(const FT& functor)
+		: m_oValue()
+		, Functor(functor){}
+		
+		accumulator<T>& increase(const T & value){
+		  m_oValue = Functor(m_oValue, value);
+		}
 		
 		T & get(){return m_oValue;}
 	protected:
@@ -38,13 +46,14 @@ namespace ff
 		
 		single_assign<T> & operator =(const T & v)
 		{
-			if(!m_bIsAssigned)
+			if(m_bIsAssigned)
 				return *this;
 			m_bIsAssigned = true;
 			m_oValue = v;
 			return *this;
 		}
 		
+		T & get() {return m_oValue;}
 	protected:
 		T m_oValue;
 		bool m_bIsAssigned;

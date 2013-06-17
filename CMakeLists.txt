@@ -16,3 +16,5 @@ add_subdirectory(test)
 add_subdirectory(benchmark)
 add_subdirectory(ff/runtime)
 add_subdirectory(ff/include/runtime)
+
+add_subdirectory(ff/include/containers)

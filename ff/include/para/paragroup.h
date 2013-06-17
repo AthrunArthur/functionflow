@@ -39,16 +39,6 @@ public:
         }
         return internal::para_accepted_call<paragroup<RT>, RT>(*this);
     }
-    
-    
-    /*
-    template <class ITEM, class RT1, class RT2>
-    std::function<void (ITEM &)>
-    	pipeline(std::function<RT1 (ITEM &)> f1,
-    			 std::function<RT2 (RT1& )> f2)
-    {
-    	return [](ITEM & item){ f2(f1(item));};
-    }*/
 };//end class paragroup
 }//end namespace ff
 
