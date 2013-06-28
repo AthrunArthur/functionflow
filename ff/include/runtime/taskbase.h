@@ -16,7 +16,7 @@ public:
 public:
 	task_base(TKind tk);
 	
-	virtual void	run(const std::thread::id & id) = 0;
+	virtual void	run() = 0;
 	
 	inline TKind		getTK(){return m_iTKind;}
 protected:

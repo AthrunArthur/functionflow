@@ -8,17 +8,12 @@ runtime_ptr runtime::s_pInstance = nullptr;
 runtime::runtime()
 : m_pReadyTasks()
 , m_pWaitTasks()
-, m_pTP(){}
+, m_pTP()
+, m_bAllThreadsQuit(false){}
 
 runtime::~runtime()
 {
-	auto pEnv = environment::instance();
-	int thrd_num = pEnv->get_thrd_num();
-	for(int i = 0; i<thrd_num; ++i)
-	{
-		task_base_ptr pt = task_base_ptr(new end_thread_task());
-		m_pReadyTasks->push_back(pt);
-	}
+	m_bAllThreadsQuit.store(true);
 	m_pTP->join();
 }
 
@@ -34,13 +29,16 @@ runtime_ptr runtime::instance()
 
 void runtime::thread_run(const std::thread::id & id)
 {
-	while(1)
+	auto info = RTThreadInfo::instance();
+	setjmp(info->get_entry_point().get());
+	
+	while(!m_pReadyTasks->empty() && 
+		!m_bAllThreadsQuit.load())
 	{
-		task_base_ptr pTask;
-		m_pReadyTasks->pop(pTask);
-		if(pTask->getTK() == task_base::TKind::end_t)
-			break;
-		pTask->run(id);
+		if(m_pReadyTasks->empty())
+			std::this_thread::yield();
+		else
+			take_one_task_and_run(id);
 	}
 }
 
@@ -51,5 +49,16 @@ void runtime::init()
 	m_pTP->run(thrd_num, [this](std::thread::id & id){thread_run(id);});
 }
 
+bool runtime::take_one_task_and_run(const std::thread::id & id)
+{
+	task_queue * tq = runtime::instance()->getReadyTasks();
+	task_base_ptr pTask;
+	bool b = tq->pop(pTask);
+	if(b)
+	{
+		pTask->run(id);
+	}
+	return b;
+}
 }//end namespace rt
 }//end namespace ff

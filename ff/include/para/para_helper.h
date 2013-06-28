@@ -4,13 +4,14 @@
 
 namespace ff {
 template<class RT> class para;
+
 namespace internal {
 using namespace ff::utils;
-
+template<class RT> class para_impl;
 template <class T>
 class para_ret {
 public:
-    para_ret(para<T> & p)
+    para_ret(para_impl<T> & p)
         : m_refP(p)
         , m_oValue() {}
 
@@ -25,7 +26,7 @@ public:
     }
 
 protected:
-    para<T> &	m_refP;
+    para_impl<T> &	m_refP;
     T m_oValue;
 };//end class para_ret;
 

@@ -23,6 +23,7 @@ namespace ff
 		
 		accumulator<T>& increase(const T & value){
 		  m_oValue = Functor(m_oValue, value);
+		  return *this;
 		}
 		
 		T & get(){return m_oValue;}

@@ -19,7 +19,8 @@ public:
 public:
     wait_and(T1 && t1, T2 && t2)
         : m_1(t1)
-        , m_2(t2) {}
+        , m_2(t2)
+		, m_iES(exe_state::exe_unknown){}
 
     template<class FT>
     auto  then(const FT & f)
@@ -41,9 +42,26 @@ public:
     {
         return bin_wait_func_deducer<T1, T2>::wrap_ret_values(m_1, m_2);
     }
+    
+    exe_state	get_state()
+	{
+		if(m_iES != exe_state::exe_over)
+			m_iES = m_1.get_state() && m_2.get_state();
+		return m_iES;
+	}
+	bool	check_if_over()
+	{
+		if(m_iES == exe_state::exe_over)
+			return true;
+		m_iES = m_1.get_state() && m_2.get_state();
+		if(m_iES == exe_state::exe_over)
+			return true;
+		return false;
+	}
 protected:
     T1 & m_1;
     T2 & m_2;
+	exe_state	m_iES;
 };//end class wait_and
 
 
@@ -55,10 +73,12 @@ public:
 public:
     wait_or(T1 & t1, T2 & t2)
         : m_1(t1)
-        , m_2(t2) {}
+        , m_2(t2)
+		, m_iES(exe_state::exe_unknown){}
     wait_or(const wait_or<T1, T2>& w)
         : m_1(w.m_1)
-        , m_2(w.m_2) {
+        , m_2(w.m_2)
+		, m_iES(w.m_iES){
     }
 
     template<class FT>
@@ -82,12 +102,28 @@ public:
         return bin_wait_func_deducer<T1, T2>::wrap_ret_values(m_1, m_2);
     }
 
+    exe_state	get_state()
+	{
+		if(m_iES != exe_state::exe_over)
+			m_iES = m_1.get_state() || m_2.get_state();
+		return m_iES;
+	}
+	bool	check_if_over()
+	{
+		if(m_iES == exe_state::exe_over)
+			return true;
+		m_iES = m_1.get_state() || m_2.get_state();
+		if(m_iES == exe_state::exe_over)
+			return true;
+		return false;
+	}
 protected:
     T1 & m_1;
     T2 & m_2;
+	exe_state	m_iES;
 };//end class wait_or
-
 }//end namespace internal
+
 template<class T1, class T2>
 internal::wait_and<T1, T2> operator &&(T1 & t1, T2 & t2)
 {
@@ -99,84 +135,6 @@ internal::wait_or<T1, T2> operator ||(T1 & t1, T2 & t2)
 {
     return internal::wait_or<T1,T2>(t1, t2);
 }
-
-
-#if 0
-namespace internal
-{
-template <class T1, class T2>
-class wait_and
-{
-public:
-    wait_and(T1 & t1, T2 & t2) {}
-    wait_and(T1 && t1, T2 && t2) {}
-
-protected:
-
-};//end class wait_and
-template <class T1, class T2>
-class wait_or
-{
-public:
-    wait_or(T1 & t1, T2 & t2) {}
-    wait_or(T1 && t1, T2 && t2) {}
-};//end class wait_or
-
-class wait_all
-{
-public:
-    wait_all(paragroup & pg) {}
-    wait_all(paragroup && pg) {}
-};//end class wait_all
-
-class wait_any
-{
-public:
-    wait_any(paragroup & pg) {}
-    wait_any(paragroup && pg) {}
-};//end class wait_any
-
-
-}//end namespace internal
-
-template<class T1, class T2>
-internal::wait_and<T1, T2>&& operator &&(T1 & t1, T2 & t2)
-{
-    return internal::wait_and<T1, T2>(t1, t2);
-}
-template<class T1, class T2>
-internal::wait_and<T1, T2>&& operator &&(T1 && t1, T2 && t2)
-{
-    return internal::wait_and<T1, T2>(t1, t2);
-}
-template<class T1, class T2>
-internal::wait_or<T1, T2>&& operator ||(T1 & t1, T2 & t2)
-{
-    return internal::wait_or<T1, T2>(t1, t2);
-}
-template<class T1, class T2>
-internal::wait_or<T1, T2>&& operator ||(T1 && t1, T2 && t2)
-{
-    return internal::wait_or<T1, T2>(t1, t2);
-}
-
-internal::wait_all all(paragroup & pg)
-{
-    return internal::wait_all(pg);
-}
-internal::wait_all all(paragroup &&pg)
-{
-    return internal::wait_all(pg);
-}
-internal::wait_any any(paragroup & pg)
-{
-    return internal::wait_any(pg);
-}
-internal::wait_any any(paragroup && pg)
-{
-    return internal::wait_any(pg);
-}
-#endif
 }//end namespace ff
 
 #endif

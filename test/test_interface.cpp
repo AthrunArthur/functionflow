@@ -21,8 +21,8 @@ int fib(int n)
 	if(n <=2)
 		return 1;
 	ff::para<int> a, b;
-	a([&n](){return fib(n - 1);});
-	b([&n](){return fib(n - 2);});
+	a([&n]()->int{return fib(n - 1);});
+	b([&n]()->int{return fib(n - 2);});
 	return (a && b).then([](int x, int y){return x + y;});
 }
 

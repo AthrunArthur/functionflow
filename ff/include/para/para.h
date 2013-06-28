@@ -4,6 +4,7 @@
 #include "common/function_traits.h"
 #include "para/para_helper.h"
 #include "para/exception.h"
+#include "para/para_impl.h"
 
 namespace ff {
 using namespace ff::utils;
@@ -12,39 +13,62 @@ class para {
 public:
     typedef RT  ret_type;
 public:
-    para(const para<RT> &) = delete;
-    para<RT> & operator =(const para<RT> &) = delete;
+    para(const para<RT> &p)
+	: m_pImpl(p.m_pImpl)
+	{
+	}
+    
     para()
-        : m_oRet(*this)
-        , m_bIsUsed(false) {};
+     : m_pImpl(nullptr){};
 
+	para<RT> & operator =(const para<RT> & p)
+	{
+		if(&p == this)
+			return *this;
+		m_pImpl = p.m_pImpl;
+	}
     template <class WT>
     internal::para_accepted_wait<para<RT>> operator[](const WT & cond)
     {
         return internal::para_accepted_wait<para<RT>>(*this);
     }
     template<class F>
-    auto		exe(F && f) -> internal::para_accepted_call<para<RT>, RT>
+    auto		exe(const F & f) -> internal::para_accepted_call<para<RT>, RT>
     {
-        if(m_bIsUsed)
+        if(m_pImpl)
             throw used_para_exception();
-        m_oRet.set(f());
-        m_bIsUsed = true;
+		m_pImpl = std::make_shared<internal::para_impl<RT>>([&f](){return f();});
+		m_pImpl->run();
+		//todo(A.A.) generate a para_impl and schedul it
         return internal::para_accepted_call<para<RT>, RT>(*this);
     }
     template<class F>
-    auto		operator ()(F && f) -> internal::para_accepted_call<para<RT>, RT>
+    auto		operator ()(const F & f) -> internal::para_accepted_call<para<RT>, RT>
     {
         return exe(f);
     }
 
     RT & get() {
-        return m_oRet.get();
+        return m_pImpl->get();
     }
+    
+    exe_state	get_state()
+	{
+		if(m_pImpl)
+			return m_pImpl->get_state();
+		return exe_state::exe_unknown;
+	}
+	bool	check_if_over()
+	{
+		if(m_pImpl)
+			return m_pImpl->check_if_over();
+		return false;
+	}
 
+	internal::para_impl_ptr<RT> get_internal_impl(){return m_pImpl;}
+	
 protected:
-    internal::para_ret<RT>	m_oRet;
-    bool		m_bIsUsed;
+    internal::para_impl_ptr<RT> m_pImpl; 
 };//end class para;
 
 
@@ -56,31 +80,46 @@ public:
     para(const para<void> &) = delete;
     para<void> & operator =(const para<void> &) = delete;
     para()
-        : m_bIsUsed(false) {};
+        : m_pImpl() {};
 
     template <class WT>
     internal::para_accepted_wait<para<void>> operator[](const WT & cond)
     {
-        if(m_bIsUsed)
-            throw used_para_exception();
         return internal::para_accepted_wait<para<void>>(*this);
     }
     template<class F>
     auto		exe(F && f) -> internal::para_accepted_call<para<void>, void>
     {
-        f();
-        m_bIsUsed = true;
+		if(m_pImpl)
+            throw used_para_exception();
+		m_pImpl = std::make_shared<internal::para_impl<void> >([&f](){f();});
+		m_pImpl->run();
+        //todo(A.A.) generate a para_impl and schedul it
         return internal::para_accepted_call<para<void>, void>(*this);
     }
     template<class F>
     auto		operator ()(F && f) -> internal::para_accepted_call<para<void>, void>
     {
-        if(m_bIsUsed)
-            throw used_para_exception();
         return exe(f);
     }
+    
+    exe_state	get_state()
+	{
+		if(m_pImpl)
+			return m_pImpl->get_state();
+		return exe_state::exe_unknown;
+	}
+	bool	check_if_over()
+	{
+		if(m_pImpl)
+			return m_pImpl->check_if_over();
+		return false;
+	}
+
+	internal::para_impl_ptr<void> get_internal_impl(){return m_pImpl;}
+	
 protected:
-    bool	m_bIsUsed;
+    internal::para_impl_ptr<void> m_pImpl; 
 };//end class para<void>
 
 }//end namespace ff
