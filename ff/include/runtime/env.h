@@ -46,6 +46,8 @@ protected:
 	
 	ctx_predicate m_oToExeCtxs;
 };//end class RTThreadInfo
+
+
 }//end namespace rt
 };//end namespace ff
 
