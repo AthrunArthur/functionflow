@@ -10,8 +10,8 @@ namespace rt {
 runtime_ptr runtime::s_pInstance(nullptr);
 
 runtime::runtime()
-: m_pReadyTasks()
-, m_pTP()
+: m_pReadyTasks(new task_queue())
+, m_pTP(new threadpool())
 , m_bAllThreadsQuit(false)
 {
 }
