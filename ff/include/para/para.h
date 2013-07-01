@@ -5,6 +5,7 @@
 #include "para/para_helper.h"
 #include "para/exception.h"
 #include "para/para_impl.h"
+#include "runtime/rtcmn.h"
 
 namespace ff {
 using namespace ff::utils;
@@ -38,8 +39,7 @@ public:
         if(m_pImpl)
             throw used_para_exception();
 		m_pImpl = std::make_shared<internal::para_impl<RT>>([&f](){return f();});
-		m_pImpl->run();
-		//todo(A.A.) generate a para_impl and schedul it
+		::ff::rt::schedule(m_pImpl);
         return internal::para_accepted_call<para<RT>, RT>(*this);
     }
     template<class F>
@@ -83,9 +83,9 @@ public:
         : m_pImpl() {};
 
     template <class WT>
-    internal::para_accepted_wait<para<void>> operator[](const WT & cond)
+    internal::para_accepted_wait<para<void>, WT> operator[](const WT & cond)
     {
-        return internal::para_accepted_wait<para<void>>(*this);
+        return internal::para_accepted_wait<para<void>, WT>(*this, cond);
     }
     template<class F>
     auto		exe(F && f) -> internal::para_accepted_call<para<void>, void>
@@ -93,8 +93,7 @@ public:
 		if(m_pImpl)
             throw used_para_exception();
 		m_pImpl = std::make_shared<internal::para_impl<void> >([&f](){f();});
-		m_pImpl->run();
-        //todo(A.A.) generate a para_impl and schedul it
+		::ff::rt::schedule(m_pImpl);
         return internal::para_accepted_call<para<void>, void>(*this);
     }
     template<class F>

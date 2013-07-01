@@ -1,6 +1,7 @@
 #ifndef FF_PARA_PARA_HELPER_H_
 #define FF_PARA_PARA_HELPER_H_
 #include "common/function_traits.h"
+#include "runtime/rtcmn.h"
 
 namespace ff {
 template<class RT> class para;
@@ -42,6 +43,8 @@ public:
     auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
+		if(!m_refP.check_if_over())
+			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
         f(m_refP.get());
     }
 
@@ -49,6 +52,8 @@ public:
     auto  then(FT && f ) ->
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
     {
+		if(!m_refP.check_if_over())
+			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
         return f(m_refP.get());
     }
 
@@ -67,6 +72,8 @@ public:
     auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
+		if(!m_refP.check_if_over())
+			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
         f();
     }
 
@@ -77,6 +84,8 @@ public:
 	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
 	    >::type 
     {
+		if(!m_refP.check_if_over())
+			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
         return f();
     }
 
@@ -84,23 +93,27 @@ protected:
     PT & m_refP;
 };//end class para_accepted_call
 
-template<class PT>
+template<class PT, class WT>
 class para_accepted_wait
 {
-    para_accepted_wait & operator = (const para_accepted_wait &) = delete;
+    para_accepted_wait & operator = (const para_accepted_wait<PT, WT> &) = delete;
 public:
-    para_accepted_wait(const para_accepted_wait<PT> &) = default;
-    para_accepted_wait(PT & p)
-        : m_refP(p)	{}
+    para_accepted_wait(const para_accepted_wait<PT, WT> &) = default;
+    para_accepted_wait(PT & p, const WT & w)
+        : m_refP(p)	
+		, m_oWaiting(w){}
 
     template<class F>
     auto		operator ()(F && f) -> para_accepted_call<PT, typename PT::ret_type>
     {
-        return m_refP.exe(f);
+		auto pTask = std::make_shared<para_impl_wait<WT>>(m_oWaiting, m_refP);
+		::ff::rt::schedule(pTask);
+        return para_accepted_call<PT, typename PT::ret_type>(m_refP);
     }
 
 protected:
     PT & m_refP;
+	WT	m_oWaiting;
 };//end class para_accepted_wait;
 
 
