@@ -3,11 +3,37 @@
 
 #include "common/common.h"
 #include "runtime/taskbase.h"
-#include "para/para_helper.h"
+#include "runtime/rtcmn.h"
 
 namespace ff {
 namespace internal
 {
+template <class RT>
+class para_impl;
+
+
+template <class T>
+class para_ret {
+public:
+    para_ret(para_impl<T> & p)
+        : m_refP(p)
+        , m_oValue() {}
+
+    T & get() {
+        return m_oValue;
+    }
+    void set(T& v) {
+        m_oValue = v;
+    }
+    void set(T&& v) {
+        m_oValue = v;
+    }
+
+protected:
+    para_impl<T> &      m_refP;
+    T m_oValue;
+};//end class para_ret;
+
 template<class RT>
 class para_impl : public ff::rt::task_base
 {
@@ -40,7 +66,7 @@ public:
 	}
 	
 protected:
-    internal::para_ret<RT>	m_oRet;
+    para_ret<RT>	m_oRet;
 	std::function<RT ()> m_oFunc;
 	std::atomic<exe_state>  m_iES;
 };//end class para_impl
@@ -84,16 +110,18 @@ template<class WT>
 class para_impl_wait : public ff::rt::task_base
 {
 public:
-	para_impl_wait(WT & w, para_impl_ptr & p)
-	:m_iES(exe_state::exe_unknown)
-	, m_pFunc(p)
+	template<class RT>
+	para_impl_wait(const WT &  w, const para_impl_ptr<RT> & p)
+	: ff::rt::task_base(TKind::user_t)
+	, m_iES(exe_state::exe_unknown)
+	, m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
 	, m_oWaitingPT(w){}
 	
 	virtual void run()
 	{
 		if(m_oWaitingPT.get_state() != exe_state::exe_over)
 		{
-			::ff::rt::yield_and_ret_until([&m_oWaitingPT](){return m_oWaitingPT.check_if_over();});
+			::ff::rt::yield_and_ret_until([this](){return m_oWaitingPT.check_if_over();});
 		}
 		m_pFunc->run();
 		m_iES.store(exe_state::exe_over);
@@ -111,11 +139,22 @@ public:
 	}
 protected:
 	std::atomic<exe_state> m_iES;
-	para_impl_ptr 	m_pFunc;
+	ff::rt::task_base_ptr 	m_pFunc;
 	WT 	m_oWaitingPT;
 };//end class para_impl_wait;
+template<class WT>
+using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
 
-
+template<class RT>
+void	schedule(para_impl_ptr<RT>  p)
+{
+	::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
+}
+template<class WT>
+void	schedule(para_impl_wait_ptr<WT>  p)
+{
+	::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
+}
 }//end namespace internal
 }//end namespace ff
 #endif

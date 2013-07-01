@@ -2,6 +2,7 @@
 #define FF_PARA_PARA_HELPER_H_
 #include "common/function_traits.h"
 #include "runtime/rtcmn.h"
+#include "para/para_impl.h"
 
 namespace ff {
 template<class RT> class para;
@@ -9,27 +10,6 @@ template<class RT> class para;
 namespace internal {
 using namespace ff::utils;
 template<class RT> class para_impl;
-template <class T>
-class para_ret {
-public:
-    para_ret(para_impl<T> & p)
-        : m_refP(p)
-        , m_oValue() {}
-
-    T & get() {
-        return m_oValue;
-    }
-    void set(T& v) {
-        m_oValue = v;
-    }
-    void set(T&& v) {
-        m_oValue = v;
-    }
-
-protected:
-    para_impl<T> &	m_refP;
-    T m_oValue;
-};//end class para_ret;
 
 
 template<class PT, class RT>
@@ -44,7 +24,7 @@ public:
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
 		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
+			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         f(m_refP.get());
     }
 
@@ -53,7 +33,7 @@ public:
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
     {
 		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
+			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         return f(m_refP.get());
     }
 
@@ -73,7 +53,7 @@ public:
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
 		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
+			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         f();
     }
 
@@ -85,7 +65,7 @@ public:
 	    >::type 
     {
 		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([m_refP](){return m_refP.check_if_over();});
+			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         return f();
     }
 
@@ -106,8 +86,8 @@ public:
     template<class F>
     auto		operator ()(F && f) -> para_accepted_call<PT, typename PT::ret_type>
     {
-		auto pTask = std::make_shared<para_impl_wait<WT>>(m_oWaiting, m_refP);
-		::ff::rt::schedule(pTask);
+		para_impl_wait_ptr<WT> pTask = std::make_shared<para_impl_wait<WT> >(m_oWaiting, m_refP.get_internal_impl());
+		schedule(pTask);
         return para_accepted_call<PT, typename PT::ret_type>(m_refP);
     }
 

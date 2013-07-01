@@ -14,32 +14,21 @@ class para {
 public:
     typedef RT  ret_type;
 public:
-    para(const para<RT> &p)
-	: m_pImpl(p.m_pImpl)
-	{
-	}
     
     para()
      : m_pImpl(nullptr){};
-
-	para<RT> & operator =(const para<RT> & p)
-	{
-		if(&p == this)
-			return *this;
-		m_pImpl = p.m_pImpl;
-	}
-    template <class WT>
-    internal::para_accepted_wait<para<RT>> operator[](const WT & cond)
+    template<class WT>
+    internal::para_accepted_wait<para<RT>, WT> operator[](const WT & cond)
     {
-        return internal::para_accepted_wait<para<RT>>(*this);
+        return internal::para_accepted_wait<para<RT>, WT>(*this,cond);
     }
     template<class F>
     auto		exe(const F & f) -> internal::para_accepted_call<para<RT>, RT>
     {
         if(m_pImpl)
             throw used_para_exception();
-		m_pImpl = std::make_shared<internal::para_impl<RT>>([&f](){return f();});
-		::ff::rt::schedule(m_pImpl);
+		m_pImpl = std::make_shared<internal::para_impl<RT>>([f](){return f();});
+		internal::schedule(m_pImpl);
         return internal::para_accepted_call<para<RT>, RT>(*this);
     }
     template<class F>
@@ -77,8 +66,6 @@ class para<void> {
 public:
     typedef void ret_type;
 public:
-    para(const para<void> &) = delete;
-    para<void> & operator =(const para<void> &) = delete;
     para()
         : m_pImpl() {};
 
@@ -93,7 +80,7 @@ public:
 		if(m_pImpl)
             throw used_para_exception();
 		m_pImpl = std::make_shared<internal::para_impl<void> >([&f](){f();});
-		::ff::rt::schedule(m_pImpl);
+		internal::schedule(m_pImpl);
         return internal::para_accepted_call<para<void>, void>(*this);
     }
     template<class F>

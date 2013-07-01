@@ -21,9 +21,9 @@ public:
     void		push(const para<RT> & p) {}
     
     template <class WT>
-    internal::para_accepted_wait<paragroup<RT>> operator[](const WT & cond)
+    internal::para_accepted_wait<paragroup<RT>,WT> operator[](const WT & cond)
     {
-        return internal::para_accepted_wait<paragroup<RT>>(*this);
+        return internal::para_accepted_wait<paragroup<RT>,WT>(*this, cond);
     }
     
     

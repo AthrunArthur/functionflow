@@ -45,23 +45,23 @@ public:
     
     exe_state	get_state()
 	{
-		if(m_iES.load() != exe_state::exe_over)
-			m_iES.store(m_1.get_state() && m_2.get_state());
-		return m_iES.load();
+		if(m_iES != exe_state::exe_over)
+			m_iES = (m_1.get_state() && m_2.get_state());
+		return m_iES;
 	}
 	bool	check_if_over()
 	{
-		if(m_iES.load() == exe_state::exe_over)
+		if(m_iES == exe_state::exe_over)
 			return true;
-		m_iES.store( m_1.get_state() && m_2.get_state());
-		if(m_iES.load() == exe_state::exe_over)
+		m_iES = ( m_1.get_state() && m_2.get_state());
+		if(m_iES == exe_state::exe_over)
 			return true;
 		return false;
 	}
 protected:
     T1 & m_1;
     T2 & m_2;
-	std::atomic<exe_state>	m_iES;
+    exe_state	m_iES;
 };//end class wait_and
 
 
@@ -104,23 +104,23 @@ public:
 
     exe_state	get_state()
 	{
-		if(m_iES.load != exe_state::exe_over)
-			m_iES.store( m_1.get_state() || m_2.get_state() );
-		return m_iES.load();
+		if(m_iES != exe_state::exe_over)
+			m_iES = ( m_1.get_state() || m_2.get_state() );
+		return m_iES;
 	}
 	bool	check_if_over()
 	{
-		if(m_iES.load() == exe_state::exe_over)
+		if(m_iES == exe_state::exe_over)
 			return true;
-		m_iES.store( m_1.get_state() || m_2.get_state() );
-		if(m_iES.load() == exe_state::exe_over)
+		m_iES = ( m_1.get_state() || m_2.get_state() );
+		if(m_iES == exe_state::exe_over)
 			return true;
 		return false;
 	}
 protected:
     T1 & m_1;
     T2 & m_2;
-	std::atomic<exe_state>	m_iES;
+    exe_state	m_iES;
 };//end class wait_or
 }//end namespace internal
 

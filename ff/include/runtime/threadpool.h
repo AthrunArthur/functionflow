@@ -17,7 +17,7 @@ public:
 	{
 		for(int i = 0; i<thrd_num; ++i)
 		{
-			m_oThreads.push_back(std::make_shared<std::thread>([](){
+			m_oThreads.push_back(std::make_shared<std::thread>([&f](){
 				std::thread::id id = std::this_thread::get_id();
 				f(id);
 			}));

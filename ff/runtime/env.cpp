@@ -6,6 +6,54 @@
 
 namespace ff {
 namespace rt {
+
+runtime_ptr runtime::s_pInstance(nullptr);
+runtime::runtime()
+{
+}
+runtime_ptr runtime::instance()
+{
+	if(!s_pInstance)
+	{
+		s_pInstance = std::shared_ptr<runtime>(new runtime());
+		s_pInstance->init();
+	}
+	return s_pInstance;
+	
+}
+void runtime::thread_run(const std::thread::id & id)
+{
+  auto info = RTThreadInfo::instance();
+  setjmp(info->get_entry_point().get());
+  
+  while(!m_pReadyTasks->empty() && 
+    !m_bAllThreadsQuit.load())
+  {
+    if(m_pReadyTasks->empty())
+      std::this_thread::yield();
+    else
+      take_one_task_and_run(id);
+  }
+}
+
+void runtime::init()
+{
+  int thrd_num = std::thread::hardware_concurrency();
+  m_pTP->run(thrd_num, [this](std::thread::id & id){thread_run(id);});
+}
+
+bool runtime::take_one_task_and_run(const std::thread::id & id)
+{
+  task_queue * tq = runtime::instance()->getReadyTasks();
+  task_base_ptr pTask;
+  bool b = tq->pop(pTask);
+  if(b)
+  {
+    pTask->run();
+ }
+  return b;
+}
+
 void	schedule(task_base_ptr p)
 {
     auto r = runtime::instance();
@@ -15,7 +63,7 @@ void	schedule(task_base_ptr p)
 void yield()
 {
     auto info = RTThreadInfo::instance();
-    auto ctx = make_shared_jmp_buf();
+    ff::jmp_buf_ptr ctx = make_shared_jmp_buf();
     if(setjmp(ctx.get()) == 0)
     {
         info->get_to_exe_ctxs().push_back(std::make_tuple(ctx, []() {
@@ -50,7 +98,7 @@ for(auto pair : m_oToExeCtxs)
 
 void RTThreadInfo::erase_runned_ctx(::ff::jmp_buf_ptr ctx)
 {
-    m_oToExeCtxs.emplace_back(std::make_tuple(ctx, [](){return true;}));
+    m_oToExeCtxs.push_back(std::make_tuple(ctx, [](){return true;}));
 }
 
 threadpool::threadpool()
