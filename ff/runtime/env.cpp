@@ -8,8 +8,17 @@ namespace ff {
 namespace rt {
 
 runtime_ptr runtime::s_pInstance(nullptr);
+
 runtime::runtime()
+: m_pReadyTasks()
+, m_pTP()
+, m_bAllThreadsQuit(false)
 {
+}
+runtime::~runtime()
+{
+m_bAllThreadsQuit.store(true);
+m_pTP->join();
 }
 runtime_ptr runtime::instance()
 {

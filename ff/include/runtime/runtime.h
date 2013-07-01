@@ -20,7 +20,7 @@ protected:
     runtime(const runtime &) = delete;
 
 public:
-    virtual ~runtime(){};
+    virtual ~runtime();
     static runtime_ptr	instance();
 
     //each thread run
