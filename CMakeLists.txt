@@ -7,11 +7,14 @@ add_definitions(-g)
 SET(DEBUG_DEFS "")
 
 SET(INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/ff/include)
+include_directories(ff/include)
 
 #SET(LIBS_LINK_DIRS "/home/athrun/boost_1_46_1/stage/lib")
 #SET(LIBS_LINK_LIBS boost_date_time boost_thread log4cplus)
+SET(ff_src ff/runtime/env.cpp)
+ADD_LIBRARY(ff SHARED ${ff_src})
+ADD_LIBRARY(ff_s STATIC ${ff_src})
+SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
 
-add_subdirectory(libs)
 add_subdirectory(test)
 add_subdirectory(benchmark)
-add_subdirectory(ff/runtime)

@@ -18,9 +18,9 @@ void yield()
     auto ctx = make_shared_jmp_buf();
     if(setjmp(ctx.get()) == 0)
     {
-        info->get_to_exe_ctxs->push_back(std::make_tuple(ctx, []() {
+        info->get_to_exe_ctxs().push_back(std::make_tuple(ctx, []() {
             return true;
-        });
+        }));
                                          longjmp(info->get_entry_point().get(), 1);
     }
     else {
@@ -28,12 +28,12 @@ void yield()
     }
 }
 
-std::shared_ptr<RTThreadInfo> RTThreadInfo::s_pInstance(nullptr);
+thread_local std::shared_ptr<RTThreadInfo> RTThreadInfo::s_pInstance(nullptr);
 
 std::shared_ptr<RTThreadInfo> RTThreadInfo::instance()
 {
     if(!s_pInstance)
-        s_pInstance = std::make_shared<RTThreadInfo>();
+        s_pInstance = std::shared_ptr<RTThreadInfo>(new RTThreadInfo());
     return s_pInstance;
 }
 void RTThreadInfo::check_and_run_paused_ctx()
@@ -50,7 +50,7 @@ for(auto pair : m_oToExeCtxs)
 
 void RTThreadInfo::erase_runned_ctx(::ff::jmp_buf_ptr ctx)
 {
-    m_oToExeCtxs.emplace_back(ctx);
+    m_oToExeCtxs.emplace_back(std::make_tuple(ctx, [](){return true;}));
 }
 
 threadpool::threadpool()
@@ -60,7 +60,7 @@ void threadpool::join()
 {
 for(auto t : m_oThreads)
     {
-        t.join();
+        t->join();
     }
 }
 

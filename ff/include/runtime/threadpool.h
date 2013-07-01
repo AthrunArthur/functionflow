@@ -3,7 +3,7 @@
 #include <thread>
 #include <vector>
 #include "runtime/task_queue.h"
-
+#include <memory>
 namespace ff {
 namespace rt
 {
@@ -17,7 +17,7 @@ public:
 	{
 		for(int i = 0; i<thrd_num; ++i)
 		{
-			m_oThreads.push_back(std::thread([](){
+			m_oThreads.push_back(std::make_shared<std::thread>([](){
 				std::thread::id id = std::this_thread::get_id();
 				f(id);
 			}));
@@ -26,7 +26,7 @@ public:
 	void join();
 	
 protected:
-	std::vector<std::thread>	m_oThreads;
+	std::vector<std::shared_ptr<std::thread>>	m_oThreads;
 };//end class threadpool;
 }//end namespace rt
 }//end namespace ff

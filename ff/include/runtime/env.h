@@ -5,7 +5,6 @@
 #include <memory>
 #include <vector>
 #include <functional>
-
 namespace ff {
 namespace rt {
 class RTThreadInfo
@@ -15,7 +14,7 @@ protected:
 	: m_oEntryPoint(::ff::make_shared_jmp_buf())
 	, m_oToExeCtxs(){}
 public:
-	typedef std::vector<std::tuple<::ff::jmp_buf_ptr, std::function<bool ()> > ctx_predicate;
+	typedef std::vector<std::tuple<::ff::jmp_buf_ptr, std::function<bool ()> > > ctx_predicate;
 	
 	static std::shared_ptr<RTThreadInfo> instance();
 	

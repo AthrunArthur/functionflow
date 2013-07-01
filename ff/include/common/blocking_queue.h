@@ -2,6 +2,8 @@
 #define FF_COMMON_BLOCKING_QUEUE_H_
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
+#include <queue>
 
 namespace ff {
 namespace utils {
