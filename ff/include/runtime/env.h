@@ -8,23 +8,6 @@
 
 namespace ff {
 namespace rt {
-class environment
-{
-protected:
-	environment() = default;
-	environment(const environment &) = delete;
-	environment & operator = (const environment &) = delete;
-public:
-	static std::shared_ptr<environment> &	instance();
-    void		init();
-
-    inline int			get_thrd_num() const {return m_iThreadNum;}
-protected:
-    int			m_iThreadNum;
-	static std::shared_ptr<environment> 	s_pInstance;
-};//end class environment
-
-
 class RTThreadInfo
 {
 protected:
@@ -40,6 +23,10 @@ public:
 	
 	ctx_predicate & get_to_exe_ctxs() {return m_oToExeCtxs;}
 	
+	void	check_and_run_paused_ctx();
+	
+	void	erase_runned_ctx(::ff::jmp_buf_ptr ctx);
+	
 protected:
 	thread_local static std::shared_ptr<RTThreadInfo> s_pInstance;
 	::ff::jmp_buf_ptr m_oEntryPoint;
@@ -49,7 +36,7 @@ protected:
 
 
 }//end namespace rt
-};//end namespace ff
+}//end namespace ff
 
 
 #endif

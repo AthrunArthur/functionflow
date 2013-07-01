@@ -26,8 +26,6 @@ public:
 	void join();
 	
 protected:
-	
-protected:
 	std::vector<std::thread>	m_oThreads;
 };//end class threadpool;
 }//end namespace rt

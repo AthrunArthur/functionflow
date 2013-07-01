@@ -4,7 +4,7 @@
 
 namespace ff{
 	namespace rt {
-		class user_task: task_base
+		/*class user_task: task_base
 		{
 		};//end class user_task
 		
@@ -18,6 +18,7 @@ namespace ff{
 		class end_thread_task : task_base
 		{
 		};//end class end_thread_task
+		*/
 	}//end namespace ff
 }//end namespace ff
 
