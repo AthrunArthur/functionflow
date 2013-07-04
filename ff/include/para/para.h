@@ -6,6 +6,8 @@
 #include "para/exception.h"
 #include "para/para_impl.h"
 #include "runtime/rtcmn.h"
+#include "common/log.h"
+
 
 namespace ff {
 using namespace ff::utils;
@@ -29,6 +31,7 @@ public:
             throw used_para_exception();
 		m_pImpl = std::make_shared<internal::para_impl<RT>>([f](){return f();});
 		internal::schedule(m_pImpl);
+		LOG_INFO(para)<<"task "<<m_pImpl.get()<<" scheduled";
         return internal::para_accepted_call<para<RT>, RT>(*this);
     }
     template<class F>
@@ -81,6 +84,7 @@ public:
             throw used_para_exception();
 		m_pImpl = std::make_shared<internal::para_impl<void> >([&f](){f();});
 		internal::schedule(m_pImpl);
+		LOG_INFO(para)<<"task(void) "<<m_pImpl.get()<<" scheduled";
         return internal::para_accepted_call<para<void>, void>(*this);
     }
     template<class F>

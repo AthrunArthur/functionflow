@@ -1,7 +1,7 @@
 #include "runtime/env.h"
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
-
+#include "common/log.h"
 #include <thread>
 
 namespace ff {
@@ -10,78 +10,94 @@ namespace rt {
 runtime_ptr runtime::s_pInstance(nullptr);
 
 runtime::runtime()
-: m_pReadyTasks(new task_queue())
-, m_pTP(new threadpool())
-, m_bAllThreadsQuit(false)
+    : m_pReadyTasks(new task_queue())
+    , m_pTP(new threadpool())
+    , m_bAllThreadsQuit(false)
 {
+    LOG_INFO(rt)<<"runtime::runtime()";
 }
 runtime::~runtime()
 {
-m_bAllThreadsQuit.store(true);
-m_pTP->join();
+    LOG_INFO(rt)<<"runtime::~runtime() waiting...";
+    m_bAllThreadsQuit.store(true);
+    m_pTP->join();
+    LOG_INFO(rt)<<"runtime::~runtime(), exit!";
 }
 runtime_ptr runtime::instance()
 {
-	if(!s_pInstance)
-	{
-		s_pInstance = std::shared_ptr<runtime>(new runtime());
-		s_pInstance->init();
-	}
-	return s_pInstance;
-	
+    if(!s_pInstance)
+    {
+        s_pInstance = std::shared_ptr<runtime>(new runtime());
+        s_pInstance->init();
+    }
+    return s_pInstance;
+
 }
 void runtime::thread_run(const std::thread::id & id)
 {
-  auto info = RTThreadInfo::instance();
-  setjmp(info->get_entry_point().get());
-  
-  while(!m_pReadyTasks->empty() && 
-    !m_bAllThreadsQuit.load())
-  {
-    if(m_pReadyTasks->empty())
-      std::this_thread::yield();
-    else
-      take_one_task_and_run(id);
-  }
+    LOG_INFO(thread)<<"runtime::thread_run, start thread, id:"<<id;
+    auto info = RTThreadInfo::instance();
+	info->clear_main_thread();
+    setjmp(info->get_entry_point().get());
+
+    while(!m_pReadyTasks->empty() &&
+            !m_bAllThreadsQuit.load())
+    {
+        info->check_and_run_paused_ctx();
+        if(m_pReadyTasks->empty())
+            std::this_thread::yield();
+        else
+            take_one_task_and_run(id);
+    }
 }
 
 void runtime::init()
 {
-  int thrd_num = std::thread::hardware_concurrency();
-  m_pTP->run(thrd_num, [this](std::thread::id & id){thread_run(id);});
+    int thrd_num = std::thread::hardware_concurrency();
+    LOG_INFO(thread)<<"runtime::init, thread num:"<<thrd_num;
+    m_pTP->run(thrd_num, [this](std::thread::id & id) {
+        thread_run(id);
+    });
+    LOG_INFO(thread)<<"runtime::init over"<<thrd_num;
 }
 
 bool runtime::take_one_task_and_run(const std::thread::id & id)
 {
-  task_queue * tq = runtime::instance()->getReadyTasks();
-  task_base_ptr pTask;
-  bool b = tq->pop(pTask);
-  if(b)
-  {
-    pTask->run();
- }
-  return b;
+    task_queue * tq = runtime::instance()->getReadyTasks();
+    task_base_ptr pTask;
+    bool b = tq->pop(pTask);
+    if(b)
+    {
+        LOG_INFO(thread)<<"runtime::take_one_task_and_run, got task "<<pTask.get();
+        pTask->run();
+    }
+    return b;
 }
 
 void	schedule(task_base_ptr p)
 {
     auto r = runtime::instance();
     r->getReadyTasks()->push_back(p);
+	LOG_INFO(rt)<<"schedule, task "<<p.get()<<" has been push_back!";
 }
 
 void yield()
 {
+	LOG_INFO(rt)<<"yield(), enter!";
     auto info = RTThreadInfo::instance();
     ff::jmp_buf_ptr ctx = make_shared_jmp_buf();
     if(setjmp(ctx.get()) == 0)
     {
-        info->get_to_exe_ctxs().push_back(std::make_tuple(ctx, []() {
-            return true;
-        }));
-                                         longjmp(info->get_entry_point().get(), 1);
+        LOG_INFO(rt)<<"yield, save ctx and jmp...";
+	ctx_pdict cp;
+  cp.ctx = ctx;
+  cp.pdict = [](){return true;};
+        info->get_to_exe_ctxs().push_back(cp);
+        longjmp(info->get_entry_point().get(), 1);
     }
     else {
         info->erase_runned_ctx(ctx);
+        LOG_INFO(rt)<<"yield, jmped into ctx...";
     }
 }
 
@@ -97,17 +113,20 @@ void RTThreadInfo::check_and_run_paused_ctx()
 {
 for(auto pair : m_oToExeCtxs)
     {
-        auto f = std::get<1>(pair);
+        auto f = pair.pdict;
         if(f())
         {
-            longjmp(std::get<0>(pair).get(), 1);
+            longjmp(pair.ctx.get(), 1);
         }
     }
 }//end check_and_run_paused_ctx
 
 void RTThreadInfo::erase_runned_ctx(::ff::jmp_buf_ptr ctx)
 {
-    m_oToExeCtxs.push_back(std::make_tuple(ctx, [](){return true;}));
+  ctx_pdict cp;
+  cp.ctx = ctx;
+  cp.pdict = [](){return true;};
+    m_oToExeCtxs.push_back(cp);
 }
 
 threadpool::threadpool()

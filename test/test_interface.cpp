@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include "ff.h"
+#include "common/log.h"
 
 using namespace ff;
 
@@ -28,7 +29,7 @@ int fib(int n)
 
 int main(int argc, char *argv[])
 {	
-	
+	ff::log<>::init(ff::INFO, "log.txt");
 	ff::para<int> a;
 	int num = 10;
 	a([&num](){return foo(num);}).then([](int x){std::cout <<"got x:"<<x<<std::endl;});

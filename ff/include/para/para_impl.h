@@ -4,6 +4,7 @@
 #include "common/common.h"
 #include "runtime/taskbase.h"
 #include "runtime/rtcmn.h"
+#include "common/log.h"
 
 namespace ff {
 namespace internal
@@ -46,11 +47,12 @@ public:
 	
 	virtual void	run()
 	{
+		LOG_INFO(para)<<"para_impl::run(), "<<this;
 		m_oRet.set(m_oFunc());
+		m_iES.store(exe_state::exe_over);
 	}
     RT & get() {
         return m_oRet.get();
-		m_iES.store(exe_state::exe_over);
     }
     
     
@@ -82,6 +84,7 @@ public:
 	
 	virtual void	run()
 	{
+		LOG_INFO(para)<<"para_impl::run(), "<<this;
 		m_oFunc();
 		m_iES.store(exe_state::exe_over);
 	}
@@ -119,6 +122,7 @@ public:
 	
 	virtual void run()
 	{
+		LOG_INFO(para)<<"para_impl_wait::run(), "<<this;
 		if(m_oWaitingPT.get_state() != exe_state::exe_over)
 		{
 			::ff::rt::yield_and_ret_until([this](){return m_oWaitingPT.check_if_over();});
