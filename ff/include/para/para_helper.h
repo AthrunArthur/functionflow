@@ -1,8 +1,10 @@
 #ifndef FF_PARA_PARA_HELPER_H_
 #define FF_PARA_PARA_HELPER_H_
+#include "common/common.h"
 #include "common/function_traits.h"
 #include "runtime/rtcmn.h"
 #include "para/para_impl.h"
+#include "common/log.h"
 
 namespace ff {
 template<class RT> class para;
@@ -73,28 +75,6 @@ protected:
     PT & m_refP;
 };//end class para_accepted_call
 
-template<class PT, class WT>
-class para_accepted_wait
-{
-    para_accepted_wait & operator = (const para_accepted_wait<PT, WT> &) = delete;
-public:
-    para_accepted_wait(const para_accepted_wait<PT, WT> &) = default;
-    para_accepted_wait(PT & p, const WT & w)
-        : m_refP(p)	
-		, m_oWaiting(w){}
-
-    template<class F>
-    auto		operator ()(F && f) -> para_accepted_call<PT, typename PT::ret_type>
-    {
-		para_impl_wait_ptr<WT> pTask = std::make_shared<para_impl_wait<WT> >(m_oWaiting, m_refP.get_internal_impl());
-		schedule(pTask);
-        return para_accepted_call<PT, typename PT::ret_type>(m_refP);
-    }
-
-protected:
-    PT & m_refP;
-	WT	m_oWaiting;
-};//end class para_accepted_wait;
 
 
 }//end namespace internal;

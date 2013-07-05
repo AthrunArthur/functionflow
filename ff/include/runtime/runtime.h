@@ -30,10 +30,12 @@ public:
 	
 	threadpool *	getThreadPool() {return m_pTP.get();}
 	
+	static bool		take_one_task_and_run();
+	
 protected:
     void			init();
 	
-	static bool		take_one_task_and_run(const std::thread::id & id);
+	
 protected:
     std::unique_ptr<task_queue>		m_pReadyTasks;
     std::unique_ptr<threadpool>		m_pTP;

@@ -40,37 +40,37 @@ class para_impl : public ff::rt::task_base
 {
 public:
     para_impl(const std::function<RT ()> & f)
-	: ff::rt::task_base(TKind::user_t)
-	, m_oRet(*this)
-	, m_oFunc(f)
-	, m_iES(exe_state::exe_unknown){}
-	
-	virtual void	run()
-	{
-		LOG_INFO(para)<<"para_impl::run(), "<<this;
-		m_oRet.set(m_oFunc());
-		m_iES.store(exe_state::exe_over);
-	}
+        : ff::rt::task_base(TKind::user_t)
+        , m_oRet(*this)
+        , m_oFunc(f)
+        , m_iES(exe_state::exe_unknown) {}
+
+    virtual void	run()
+    {
+        LOG_INFO(para)<<"para_impl::run(), "<<this;
+        m_oRet.set(m_oFunc());
+        m_iES.store(exe_state::exe_over);
+    }
     RT & get() {
         return m_oRet.get();
     }
-    
-    
+
+
     exe_state	get_state()
-	{
-		return m_iES.load();
-	}
-	bool	check_if_over()
-	{
-		if(m_iES.load() == exe_state::exe_over)
-			return true;
-		return false;
-	}
-	
+    {
+        return m_iES.load();
+    }
+    bool	check_if_over()
+    {
+        if(m_iES.load() == exe_state::exe_over)
+            return true;
+        return false;
+    }
+
 protected:
     para_ret<RT>	m_oRet;
-	std::function<RT ()> m_oFunc;
-	std::atomic<exe_state>  m_iES;
+    std::function<RT ()> m_oFunc;
+    std::atomic<exe_state>  m_iES;
 };//end class para_impl
 
 template<>
@@ -78,73 +78,98 @@ class para_impl<void> : public ff::rt::task_base
 {
 public:
     para_impl(std::function<void ()> f)
-	: ff::rt::task_base(TKind::user_t)
-	, m_iES(exe_state::exe_unknown)
-	, m_oFunc(f){}
-	
-	virtual void	run()
-	{
-		LOG_INFO(para)<<"para_impl::run(), "<<this;
-		m_oFunc();
-		m_iES.store(exe_state::exe_over);
-	}
-    
-    
+        : ff::rt::task_base(TKind::user_t)
+        , m_iES(exe_state::exe_unknown)
+        , m_oFunc(f) {}
+
+    virtual void	run()
+    {
+        LOG_INFO(para)<<"para_impl::run(), "<<this;
+        m_oFunc();
+        m_iES.store(exe_state::exe_over);
+    }
+
+
     exe_state	get_state()
-	{
-		return m_iES.load();
-	}
-	bool	check_if_over()
-	{
-		if(m_iES.load() == exe_state::exe_over)
-			return true;
-		return false;
-	}
-	
+    {
+        return m_iES.load();
+    }
+    bool	check_if_over()
+    {
+        if(m_iES.load() == exe_state::exe_over)
+            return true;
+        return false;
+    }
+
 protected:
-	std::atomic<exe_state>  m_iES;
-	std::function<void ()> m_oFunc;
+    std::atomic<exe_state>  m_iES;
+    std::function<void ()> m_oFunc;
 };//end class para_impl_ptr
 template<class RT>
 using para_impl_ptr = std::shared_ptr<para_impl<RT>>;
 
 
+template <class ret_type, class F>
+auto make_para_impl(F&& f)
+-> typename std::enable_if<
+std::is_void<ret_type>::value,
+    internal::para_impl_ptr<ret_type>
+    >::type
+{
+    return std::make_shared<internal::para_impl<ret_type> >([f]() {
+        f();
+    });
+}
+template <class ret_type, class F>
+auto make_para_impl(F&& f)
+-> typename std::enable_if<
+!std::is_void<ret_type>::value,
+internal::para_impl_ptr<ret_type>
+>::type
+{
+    return std::make_shared<internal::para_impl<ret_type> >([f]() {
+        return f();
+    });
+}
+
 template<class WT>
 class para_impl_wait : public ff::rt::task_base
 {
 public:
-	template<class RT>
-	para_impl_wait(const WT &  w, const para_impl_ptr<RT> & p)
-	: ff::rt::task_base(TKind::user_t)
-	, m_iES(exe_state::exe_unknown)
-	, m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
-	, m_oWaitingPT(w){}
-	
-	virtual void run()
-	{
-		LOG_INFO(para)<<"para_impl_wait::run(), "<<this;
-		if(m_oWaitingPT.get_state() != exe_state::exe_over)
-		{
-			::ff::rt::yield_and_ret_until([this](){return m_oWaitingPT.check_if_over();});
-		}
-		m_pFunc->run();
-		m_iES.store(exe_state::exe_over);
-	}
-	
-	exe_state	get_state()
-	{
-		return m_iES.load();
-	}
-	bool	check_if_over()
-	{
-		if(m_iES.load() == exe_state::exe_over)
-			return true;
-		return false;
-	}
+    template<class RT>
+    para_impl_wait(const WT &  w, const para_impl_ptr<RT> & p)
+        : ff::rt::task_base(TKind::user_t)
+        , m_iES(exe_state::exe_unknown)
+        , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
+        , m_oWaitingPT(w) {}
+
+    virtual void run()
+    {
+        LOG_INFO(para)<<"para_impl_wait::run(), "<<this;
+        if(m_oWaitingPT.get_state() != exe_state::exe_over)
+        {
+            ::ff::rt::yield_and_ret_until([this]() {
+                return m_oWaitingPT.check_if_over();
+            });
+        }
+        m_pFunc->run();
+        m_iES.store(exe_state::exe_over);
+    }
+
+    exe_state	get_state()
+    {
+        return m_iES.load();
+    }
+    bool	check_if_over()
+    {
+        if(m_iES.load() == exe_state::exe_over)
+            return true;
+        return false;
+    }
 protected:
-	std::atomic<exe_state> m_iES;
-	ff::rt::task_base_ptr 	m_pFunc;
-	WT 	m_oWaitingPT;
+    std::atomic<exe_state> m_iES;
+    ff::rt::task_base_ptr 	m_pFunc;
+    WT 	m_oWaitingPT;
 };//end class para_impl_wait;
 template<class WT>
 using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
@@ -152,12 +177,12 @@ using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
 template<class RT>
 void	schedule(para_impl_ptr<RT>  p)
 {
-	::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
+    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
 }
 template<class WT>
 void	schedule(para_impl_wait_ptr<WT>  p)
 {
-	::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
+    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
 }
 }//end namespace internal
 }//end namespace ff

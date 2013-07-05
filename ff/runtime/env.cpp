@@ -18,10 +18,10 @@ runtime::runtime()
 }
 runtime::~runtime()
 {
-    LOG_INFO(rt)<<"runtime::~runtime() waiting...";
+    //LOG_INFO(rt)<<"runtime::~runtime() waiting...";
     m_bAllThreadsQuit.store(true);
     m_pTP->join();
-    LOG_INFO(rt)<<"runtime::~runtime(), exit!";
+    //LOG_INFO(rt)<<"runtime::~runtime(), exit!";
 }
 runtime_ptr runtime::instance()
 {
@@ -35,19 +35,21 @@ runtime_ptr runtime::instance()
 }
 void runtime::thread_run(const std::thread::id & id)
 {
-    LOG_INFO(thread)<<"runtime::thread_run, start thread, id:"<<id;
-    auto info = RTThreadInfo::instance();
+    LOG_INFO(thread)<<"runtime::thread_run, start thread";
+  /*  auto info = RTThreadInfo::instance();
 	info->clear_main_thread();
     setjmp(info->get_entry_point().get());
 
+	LOG_INFO(thread)<<"runtime::thread_run, jumped in to start checking";
+	*/
     while(!m_pReadyTasks->empty() &&
             !m_bAllThreadsQuit.load())
     {
-        info->check_and_run_paused_ctx();
+      /*  info->check_and_run_paused_ctx();
         if(m_pReadyTasks->empty())
             std::this_thread::yield();
-        else
-            take_one_task_and_run(id);
+        else*/
+            take_one_task_and_run();
     }
 }
 
@@ -61,7 +63,7 @@ void runtime::init()
     LOG_INFO(thread)<<"runtime::init over"<<thrd_num;
 }
 
-bool runtime::take_one_task_and_run(const std::thread::id & id)
+bool runtime::take_one_task_and_run()
 {
     task_queue * tq = runtime::instance()->getReadyTasks();
     task_base_ptr pTask;
@@ -77,6 +79,7 @@ bool runtime::take_one_task_and_run(const std::thread::id & id)
 void	schedule(task_base_ptr p)
 {
     auto r = runtime::instance();
+	LOG_INFO(rt)<<"schedule, task "<<p.get()<<" try push_back...";
     r->getReadyTasks()->push_back(p);
 	LOG_INFO(rt)<<"schedule, task "<<p.get()<<" has been push_back!";
 }
@@ -84,6 +87,7 @@ void	schedule(task_base_ptr p)
 void yield()
 {
 	LOG_INFO(rt)<<"yield(), enter!";
+	/*
     auto info = RTThreadInfo::instance();
     ff::jmp_buf_ptr ctx = make_shared_jmp_buf();
     if(setjmp(ctx.get()) == 0)
@@ -98,7 +102,7 @@ void yield()
     else {
         info->erase_runned_ctx(ctx);
         LOG_INFO(rt)<<"yield, jmped into ctx...";
-    }
+    }*/
 }
 
 thread_local std::shared_ptr<RTThreadInfo> RTThreadInfo::s_pInstance(nullptr);
@@ -109,6 +113,7 @@ std::shared_ptr<RTThreadInfo> RTThreadInfo::instance()
         s_pInstance = std::shared_ptr<RTThreadInfo>(new RTThreadInfo());
     return s_pInstance;
 }
+/*
 void RTThreadInfo::check_and_run_paused_ctx()
 {
 for(auto pair : m_oToExeCtxs)
@@ -128,7 +133,7 @@ void RTThreadInfo::erase_runned_ctx(::ff::jmp_buf_ptr ctx)
   cp.pdict = [](){return true;};
     m_oToExeCtxs.push_back(cp);
 }
-
+*/
 threadpool::threadpool()
     : m_oThreads() {}
 

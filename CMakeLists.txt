@@ -15,6 +15,9 @@ link_directories(ff/build)
 SET(ff_src ff/runtime/env.cpp)
 ADD_LIBRARY(ff SHARED ${ff_src})
 ADD_LIBRARY(ff_s STATIC ${ff_src})
+target_link_libraries(ff pthread)
+target_link_libraries(ff_s pthread)
+
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
 
 add_subdirectory(test)

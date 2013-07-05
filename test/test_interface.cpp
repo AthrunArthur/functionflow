@@ -30,6 +30,7 @@ int fib(int n)
 int main(int argc, char *argv[])
 {	
 	ff::log<>::init(ff::INFO, "log.txt");
+	LOG_INFO(main)<<"main start";
 	ff::para<int> a;
 	int num = 10;
 	a([&num](){return foo(num);}).then([](int x){std::cout <<"got x:"<<x<<std::endl;});
@@ -74,5 +75,7 @@ int main(int argc, char *argv[])
 	ff::single_assign<int> first;
 	pg2.for_each(s.begin(), s.end(), [&first](int x){first = x;});
 	std::cout<<"pg2 first: "<<first.get()<<std::endl;
+	
+	LOG_INFO(main)<<"main quit!";
 	return 0;
 }
