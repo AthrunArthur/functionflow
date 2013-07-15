@@ -5,7 +5,7 @@
 #include "runtime/threadpool.h"
 #include <memory>
 #include <boost/concept_check.hpp>
-#include "common/log.h"
+//#include "common/log.h"
 
 namespace ff {
 namespace rt
@@ -37,7 +37,7 @@ public:
 
     void	schedule(task_base_ptr p)
 	{
-		LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();
+	//	LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();
 		m_pGlobalTasks->push_back(p);
 	}
 
@@ -45,14 +45,14 @@ public:
     {
         task_base_ptr pTask;
         bool b = false;
-		LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";
+		//LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";
         if(m_pLQueue != nullptr)
             b = m_pLQueue->pop(pTask) || m_pGlobalTasks->pop(pTask);
         else b = m_pGlobalTasks->pop(pTask);
-        LOG_INFO(thread)<<"take_one_task_and_run() fetch task ? "<<b;
+        //LOG_INFO(thread)<<"take_one_task_and_run() fetch task ? "<<b;
         if(b)
         {
-            LOG_INFO(thread)<<"runtime::take_one_task_and_run, got task "<<pTask.get();
+            //LOG_INFO(thread)<<"runtime::take_one_task_and_run, got task "<<pTask.get();
             pTask->run();
         }
         return b;
@@ -62,7 +62,7 @@ protected:
     //each thread run
     void			thread_run(size_t index)
     {
-		LOG_INFO(thread)<<"runtime::thread_run() id:"<<index;
+		//LOG_INFO(thread)<<"runtime::thread_run() id:"<<index;
         bool flag = false;
         while(!m_bAllThreadsQuit)
         {

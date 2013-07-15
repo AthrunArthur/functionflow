@@ -1,13 +1,13 @@
 
 #include "ff.h"
-#include "common/log.h"
+//#include "common/log.h"
 
 
 int fib(int n)
 {
 	if(n <=2)
 		return 1;
-	LOG_INFO(main)<<"fib "<<n;
+	//LOG_INFO(main)<<"fib "<<n;
 	ff::para<int> a, b;
 	a([&n]()->int{return fib(n - 1);});
 	b([&n]()->int{return fib(n - 2);});
@@ -23,8 +23,8 @@ int foo(int t)
 
 int main(int argc, char *argv[])
 {	
-	ff::log<>::init(ff::INFO, "log.txt");
-	LOG_INFO(main)<<"main start";
+	//ff::log<>::init(ff::INFO, "log.txt");
+	//LOG_INFO(main)<<"main start";
 	int num = 10;	
 /*	
 	ff::para<> a;
@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
 	
 	int fib_res = fib(num);
 	std::cout<<"fib( "<<num<<" )="<<fib_res<<std::endl;
-	LOG_INFO(main)<<"main exit!";
+	//LOG_INFO(main)<<"main exit!";
 	//ff::rt::join();
 	return 0;
 }

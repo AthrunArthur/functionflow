@@ -1,12 +1,12 @@
 
-#include "common/log.h"
+//#include "common/log.h"
 #include "runtime/runtime.h"
 
 
 int main(int argc, char *argv[])
 {	
-	ff::log<>::init(ff::INFO, "log.txt");
-	LOG_INFO(main)<<"main start";
+	//ff::log<>::init(ff::INFO, "log.txt");
+	//LOG_INFO(main)<<"main start";
 
 	ff::rt::threadpool tp;
 	tp.run(std::thread::hardware_concurrency(), [](){

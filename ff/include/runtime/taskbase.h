@@ -6,7 +6,7 @@
 
 namespace ff {
 namespace rt {
-class task_base :public std::enable_shared_from_this<task_base>{
+class task_base {
 public:
     enum TKind {
         user_t,

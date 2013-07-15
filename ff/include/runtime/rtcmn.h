@@ -4,7 +4,7 @@
 #include <atomic>
 #include <mutex>
 #include "runtime.h"
-#include "common/log.h"
+//#include "common/log.h"
 
 
 namespace ff {
@@ -23,14 +23,14 @@ void yield(){
 template <class Func>
 void 	yield_and_ret_until(Func f)
 {
-	LOG_INFO(rt)<<"yield_and_ret_until(), enter...";
+//	LOG_INFO(rt)<<"yield_and_ret_until(), enter...";
 	while(!f())
 	{
 		runtime_ptr r = runtime::instance();
 			
 		if(r->take_one_task_and_run())
 		{
-			LOG_INFO(rt)<<"yield_and_ret_until(), recursively run...";
+			//LOG_INFO(rt)<<"yield_and_ret_until(), recursively run...";
 		}
 		else{
 			std::this_thread::yield();

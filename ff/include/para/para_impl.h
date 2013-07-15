@@ -85,7 +85,7 @@ public:
 
     virtual void	run()
     {
-        LOG_INFO(para)<<"para_impl::run(), "<<this;
+        //LOG_INFO(para)<<"para_impl::run(), "<<this;
         m_oFunc();
         m_iES.store(exe_state::exe_over);
     }

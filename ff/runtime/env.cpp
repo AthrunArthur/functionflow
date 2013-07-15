@@ -1,7 +1,7 @@
 #include "runtime/env.h"
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
-#include "common/log.h"
+//#include "common/log.h"
 #include <functional>
 #include <thread>
 #include <iostream>
@@ -29,7 +29,7 @@ void			runtime::init()
     {
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
     }
-    LOG_INFO(thread)<<"runtime::init, thread num:"<<thrd_num;
+  //  LOG_INFO(thread)<<"runtime::init, thread num:"<<thrd_num;
     for(int i = 0; i< thrd_num; ++i)
 	{
 		s_pInstance->m_pTP->run([i](){
@@ -38,7 +38,7 @@ void			runtime::init()
 			r->thread_run(i);
 		});
 	}
-    LOG_INFO(thread)<<"runtime::init over"<<thrd_num;
+    //LOG_INFO(thread)<<"runtime::init over"<<thrd_num;
 }
 }//end namespace rt
 }//end namespace ff
