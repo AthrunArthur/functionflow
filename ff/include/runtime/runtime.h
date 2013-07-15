@@ -27,19 +27,11 @@ protected:
     runtime(const runtime &) = delete;
 
 public:
-    
-	void	join(){
-        m_bAllThreadsQuit = true;
-        m_pTP->join();
-	}
 	
 	virtual ~runtime()
     {
-		join();
-		for(work_stealing_queue * p : m_oQueues)
-		{
-			delete p;
-		}
+		m_bAllThreadsQuit = true;
+        m_pTP->join();
     }
     static runtime_ptr 	instance();
 
@@ -49,13 +41,13 @@ public:
 		m_pGlobalTasks->push_back(p);
 	}
 
-    bool		take_one_task_and_run(work_stealing_queue_ptr pLQueue = nullptr)
+    bool		take_one_task_and_run()
     {
         task_base_ptr pTask;
         bool b = false;
 		LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";
-        if(pLQueue != nullptr)
-            b = pLQueue->pop(pTask) || m_pGlobalTasks->pop(pTask);
+        if(m_pLQueue != nullptr)
+            b = m_pLQueue->pop(pTask) || m_pGlobalTasks->pop(pTask);
         else b = m_pGlobalTasks->pop(pTask);
         LOG_INFO(thread)<<"take_one_task_and_run() fetch task ? "<<b;
         if(b)
@@ -70,13 +62,11 @@ protected:
     //each thread run
     void			thread_run(size_t index)
     {
-        work_stealing_queue_ptr pLQueue = m_oQueues[index];
-
 		LOG_INFO(thread)<<"runtime::thread_run() id:"<<index;
         bool flag = false;
         while(!m_bAllThreadsQuit)
         {
-            flag = take_one_task_and_run(pLQueue);
+            flag = take_one_task_and_run();
             if(!flag)
                 flag = steal_one_task_and_run(index);
             if(!flag)
@@ -110,7 +100,8 @@ protected:
 protected:
     std::unique_ptr<task_queue> 		m_pGlobalTasks;
     std::unique_ptr<threadpool> 		m_pTP;
-    std::vector<work_stealing_queue *>	m_oQueues;
+    std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
+	thread_local static work_stealing_queue *				m_pLQueue;
     std::atomic< bool>  				m_bAllThreadsQuit;
 
     static runtime_ptr s_pInstance;

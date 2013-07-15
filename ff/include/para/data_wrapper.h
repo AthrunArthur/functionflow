@@ -1,6 +1,8 @@
 #ifndef FF_PARA_DATA_WRAPPER_H_
 #define FF_PARA_DATA_WRAPPER_H_
 #include "common/common.h"
+#include <mutex>
+#include <vector>
 
 namespace ff
 {
@@ -12,25 +14,46 @@ namespace ff
 	public:
 		typedef std::function<T (const T&, const T&)> Functor_t;
 		template<class FT>
-		accumulator(const T & value, const FT& functor)
-		: m_oValue(value)
-		, Functor(functor){}
+		accumulator(T && value, FT && functor)
+		: m_oValue(std::move(value))
+		, Functor(std::move(functor)){}
 		
 		template<class FT>
-		accumulator(const FT& functor)
+		accumulator(FT && functor)
 		: m_oValue()
-		, Functor(functor){}
+		, Functor(std::move(functor)){}
 		
-		accumulator<T>& increase(const T & value){
-		  m_oValue = Functor(m_oValue, value);
+		template<class TT>
+		accumulator<T>& increase(TT && value){
+			if(plocal == nullptr)
+			{
+				plocal = new T();
+				m_oMutex.lock();
+				m_pAllValues.push_back(plocal);
+				m_oMutex.unlock();
+			}
+		  *plocal = std::move(Functor(*plocal, std::forward<TT>(value)));
 		  return *this;
 		}
 		
-		T & get(){return m_oValue;}
+		T & get(){
+			for(T * p : m_pAllValues)
+			{
+				m_oValue = std::move(Functor(m_oValue, *p));
+				delete p;
+			}
+			return m_oValue;
+		}
 	protected:
 		T m_oValue;
 		Functor_t	Functor;
+		static thread_local T * plocal;
+		std::vector<T *>	m_pAllValues;
+		std::mutex			m_oMutex;
 	};//end class accumulator
+	
+	template <class T>
+	thread_local T * accumulator<T>::plocal(nullptr);
 	
 	template< class T>
 	class single_assign
@@ -57,7 +80,7 @@ namespace ff
 		T & get() {return m_oValue;}
 	protected:
 		T m_oValue;
-		bool m_bIsAssigned;
+		std::atomic<bool> m_bIsAssigned;
 	};//end class single_assign
 }//end namespace ff;
 #endif

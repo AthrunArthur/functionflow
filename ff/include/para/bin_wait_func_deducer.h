@@ -25,7 +25,6 @@ struct bin_wait_func_deducer{
 	
 	template<class FT, class T1, class T2>
 	static void 	void_func_or( const FT & f, T1 && t1, T2 && t2){
-		std::cout<<t1.get()<<" "<<t2.get()<<std::endl;
 		f(0, std::make_tuple(t1.get(), t2.get()));}
 	template<class FT, class T1, class T2>
 	static auto	ret_func_or(const FT & f, T1 && t1, T2 && t2)
