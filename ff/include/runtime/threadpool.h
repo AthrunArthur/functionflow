@@ -2,31 +2,47 @@
 #define FF_RUNTIME_THREAD_POOL_H_
 #include <thread>
 #include <vector>
-#include "runtime/task_queue.h"
 #include <memory>
+#include <functional>
+#include <iostream>
+
+
 namespace ff {
 namespace rt
 {
 class threadpool
 {
 public:
-	threadpool();
+	threadpool(): m_oThreads(){};
 	
-	template<class FT>
-	void		run(int thrd_num, FT && f)
+	
+	template<class F>
+	void run(int thrd_num, F && func)
 	{
-		for(int i = 0; i<thrd_num; ++i)
+		for (int i = 0; i< thrd_num ;i++)  
 		{
-			m_oThreads.push_back(std::make_shared<std::thread>([&f](){
-				std::thread::id id = std::this_thread::get_id();
-				f(id);
-			}));
+			m_oThreads.push_back(std::thread(func));  
 		}
 	}
-	void join();
+	
+	template<class F>
+	void run(F && func)
+	{
+		m_oThreads.push_back(std::thread(func));  
+	}
+	
+	
+	void join()
+	{
+		for(size_t i = 0; i< m_oThreads.size(); ++i)
+		{
+			if(m_oThreads[i].joinable())
+				m_oThreads[i].join();
+		}
+	}
 	
 protected:
-	std::vector<std::shared_ptr<std::thread>>	m_oThreads;
+	std::vector<std::thread >	m_oThreads;
 };//end class threadpool;
 }//end namespace rt
 }//end namespace ff

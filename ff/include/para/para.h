@@ -6,7 +6,6 @@
 #include "para/exception.h"
 #include "para/para_impl.h"
 #include "runtime/rtcmn.h"
-#include "common/log.h"
 
 
 namespace ff {
@@ -51,19 +50,18 @@ protected:
         return para_accepted_wait<para<RT>, WT>(*this,cond);
     }
     template<class F>
-    auto		exe(const F & f) -> internal::para_accepted_call<para<RT>, RT>
+    auto		exe(F && f) -> internal::para_accepted_call<para<RT>, RT>
     {
         if(m_pImpl)
             throw used_para_exception();
-        m_pImpl = internal::make_para_impl<ret_type>(f);
+        m_pImpl = internal::make_para_impl<ret_type>(std::forward<F>(f));
         internal::schedule(m_pImpl);
-        LOG_INFO(para)<<"task "<<m_pImpl.get()<<" scheduled";
         return internal::para_accepted_call<para<RT>, RT>(*this);
     }
     template<class F>
-    auto		operator ()(const F & f) -> internal::para_accepted_call<para<RT>, RT>
+    auto		operator ()(F && f) -> internal::para_accepted_call<para<RT>, RT>
     {
-        return exe(f);
+        return exe(std::forward<F>(f));
     }
 
     auto get() -> typename std::enable_if< !std::is_void<RT>::value,RT>::type &
@@ -90,63 +88,6 @@ protected:
 protected:
     internal::para_impl_ptr<RT> m_pImpl;
 };//end class para;
-
-/*
-template<>
-class para<void> {
-public:
-    typedef void ret_type;
-public:
-    para()
-        : m_pImpl() {};
-
-    template <class WT>
-    internal::para_accepted_wait<para<void>, WT> operator[](const WT & cond)
-    {
-        return internal::para_accepted_wait<para<void>, WT>(*this, cond);
-    }
-    template<class F>
-    auto		exe(F && f) -> internal::para_accepted_call<para<void>, void>
-    {
-        internal::schedule(m_pImpl);
-        LOG_INFO(para)<<"task(void) "<<m_pImpl.get()<<" scheduled";
-        return internal::para_accepted_call<para<void>, void>(*this);
-    }
-    template<class F>
-    auto		operator ()(F && f) -> internal::para_accepted_call<para<void>, void>
-    {
-        if(m_pImpl)
-            m_pImpl = std::make_shared<internal::para_impl<void> >([&f]() {
-            f();
-        });
-        throw used_para_exception();
-        return exe(f);
-    }
-
-    exe_state	get_state()
-    {
-        if(m_pImpl)
-            return m_pImpl->get_state();
-        return exe_state::exe_unknown;
-    }
-    bool	check_if_over()
-    {
-        if(m_pImpl)
-            return m_pImpl->check_if_over();
-        return false;
-    }
-
-    internal::para_impl_ptr<void> get_internal_impl() {
-        return m_pImpl;
-    }
-    void		set_internal_impl(internal::para_impl_ptr<RT> &pImpl)
-	{
-		m_pImpl = pImpl;
-	}
-
-protected:
-    internal::para_impl_ptr<void> m_pImpl;
-};*///end class para<void>
 
 template<>
 class para<void> {
@@ -185,19 +126,18 @@ protected:
         return para_accepted_wait<para<ret_type>, WT>(*this,cond);
     }
     template<class F>
-    auto		exe(const F & f) -> internal::para_accepted_call<para<ret_type>, ret_type>
+    auto		exe(F && f) -> internal::para_accepted_call<para<ret_type>, ret_type>
     {
         if(m_pImpl)
             throw used_para_exception();
-        m_pImpl = internal::make_para_impl<ret_type>(f);
+        m_pImpl = internal::make_para_impl<ret_type>(std::forward<F>(f));
         internal::schedule(m_pImpl);
-        LOG_INFO(para)<<"task "<<m_pImpl.get()<<" scheduled";
         return internal::para_accepted_call<para<ret_type>, ret_type>(*this);
     }
     template<class F>
-    auto		operator ()(const F & f) -> internal::para_accepted_call<para<ret_type>, ret_type>
+    auto		operator ()(F && f) -> internal::para_accepted_call<para<ret_type>, ret_type>
     {
-        return exe(f);
+        return exe(std::forward<F>(f));
     }
 
     exe_state	get_state()

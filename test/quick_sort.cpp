@@ -71,8 +71,8 @@ void para_quick_sort(int * data,int i,int j)
 
 int main(int argc, char *argv[])
 {
-    string in_file_name = "../test/numbers.txt";
-    string out_file_name = "../test/numbers_sort.txt";
+    string in_file_name = "../../test/numbers.txt";
+    string out_file_name = "../../test/numbers_sort.txt";
     int data[BUFFER_LEN],len,i;
     ifstream in_file;
     ofstream out_file;    

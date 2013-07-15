@@ -4,7 +4,6 @@
 #include "common/function_traits.h"
 #include "runtime/rtcmn.h"
 #include "para/para_impl.h"
-#include "common/log.h"
 
 namespace ff {
 template<class RT> class para;
@@ -40,7 +39,7 @@ public:
     }
 
 protected:
-    PT & m_refP;
+    PT m_refP;
 };//end class para_accepted_call
 
 template<class PT>
@@ -72,7 +71,7 @@ public:
     }
 
 protected:
-    PT & m_refP;
+    PT m_refP;
 };//end class para_accepted_call
 
 

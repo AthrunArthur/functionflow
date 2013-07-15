@@ -12,6 +12,8 @@ namespace rt {
     ::ff::jmp_buf_ptr ctx;
     std::function<bool ()> pdict;
   };
+  
+  /*
 class RTThreadInfo
 {
 protected:
@@ -41,7 +43,7 @@ protected:
 	bool		m_bIsMainThread;
 	ctx_predicate m_oToExeCtxs;
 };//end class RTThreadInfo
-
+*/
 
 }//end namespace rt
 }//end namespace ff

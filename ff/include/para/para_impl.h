@@ -4,7 +4,6 @@
 #include "common/common.h"
 #include "runtime/taskbase.h"
 #include "runtime/rtcmn.h"
-#include "common/log.h"
 
 namespace ff {
 namespace internal
@@ -39,15 +38,15 @@ template<class RT>
 class para_impl : public ff::rt::task_base
 {
 public:
-    para_impl(const std::function<RT ()> & f)
+	template <class F>
+    para_impl(F && f)
         : ff::rt::task_base(TKind::user_t)
         , m_oRet(*this)
-        , m_oFunc(f)
+        , m_oFunc(std::move(f))
         , m_iES(exe_state::exe_unknown) {}
 
     virtual void	run()
     {
-        LOG_INFO(para)<<"para_impl::run(), "<<this;
         m_oRet.set(m_oFunc());
         m_iES.store(exe_state::exe_over);
     }
@@ -77,10 +76,12 @@ template<>
 class para_impl<void> : public ff::rt::task_base
 {
 public:
-    para_impl(std::function<void ()> f)
+	template< class F>
+    para_impl(F && f)
         : ff::rt::task_base(TKind::user_t)
         , m_iES(exe_state::exe_unknown)
-        , m_oFunc(f) {}
+        , m_oFunc(std::move(f)) 
+		{}
 
     virtual void	run()
     {
@@ -116,9 +117,7 @@ std::is_void<ret_type>::value,
     internal::para_impl_ptr<ret_type>
     >::type
 {
-    return std::make_shared<internal::para_impl<ret_type> >([f]() {
-        f();
-    });
+    return std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
 }
 template <class ret_type, class F>
 auto make_para_impl(F&& f)
@@ -127,9 +126,7 @@ auto make_para_impl(F&& f)
 internal::para_impl_ptr<ret_type>
 >::type
 {
-    return std::make_shared<internal::para_impl<ret_type> >([f]() {
-        return f();
-    });
+    return std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
 }
 
 template<class WT>
@@ -145,7 +142,6 @@ public:
 
     virtual void run()
     {
-        LOG_INFO(para)<<"para_impl_wait::run(), "<<this;
         if(m_oWaitingPT.get_state() != exe_state::exe_over)
         {
             ::ff::rt::yield_and_ret_until([this]() {

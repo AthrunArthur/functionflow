@@ -21,4 +21,4 @@ target_link_libraries(ff_s pthread)
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
 
 add_subdirectory(test)
-add_subdirectory(benchmark)
+#add_subdirectory(benchmark)
