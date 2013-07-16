@@ -4,7 +4,7 @@
 #include "runtime/task_queue.h"
 #include "runtime/threadpool.h"
 #include <memory>
-#include <boost/concept_check.hpp>
+//#include <boost/concept_check.hpp>
 //#include "common/log.h"
 
 namespace ff {
