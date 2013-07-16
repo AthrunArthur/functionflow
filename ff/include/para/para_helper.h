@@ -75,7 +75,6 @@ protected:
 };//end class para_accepted_call
 
 
-
 }//end namespace internal;
 }//end namespace ff
 #endif

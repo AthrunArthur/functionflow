@@ -17,17 +17,17 @@ struct bin_wait_func_deducer{
 	typedef pair && wrapper_type;
 	
 	template<class FT, class T1, class T2>
-	static void 	void_func_and( const FT & f, T1 && t1, T2 && t2){f(t1.get(), t2.get());}
+	static void 	void_func_and( FT && f, T1 && t1, T2 && t2){f(t1.get(), t2.get());}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_and(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type 
 	{return f(t1.get(), t2.get());}
 	
 	template<class FT, class T1, class T2>
-	static void 	void_func_or( const FT & f, T1 && t1, T2 && t2){
+	static void 	void_func_or( FT && f, T1 && t1, T2 && t2){
 		f(0, std::make_tuple(t1.get(), t2.get()));}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_or(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f(0, std::make_tuple(t1.get(), t2.get()));}
 	
@@ -44,16 +44,16 @@ struct bin_wait_func_deducer<void, RT2>{
 	typedef pair or_type;
 	typedef typename std::remove_reference<pair>::type && wrapper_type;
 	template<class FT, class T1, class T2>
-	static void 	void_func_and( const FT & f, T1 && t1, T2 && t2){f(t2.get());}
+	static void 	void_func_and( FT && f, T1 && t1, T2 && t2){f(t2.get());}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_and(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f(t2.get());}
 	
 	template<class FT, class T1, class T2>
-	static void 	void_func_or( const FT & f, T1 && t1, T2 && t2){f(t2.get());}
+	static void 	void_func_or(FT && f, T1 && t1, T2 && t2){f(t2.get());}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_or(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f(t2.get());}
 	
@@ -70,16 +70,16 @@ struct bin_wait_func_deducer<RT1, void>{
 	typedef pair or_type;
 	typedef typename std::remove_reference<pair>::type && wrapper_type;
 	template<class FT, class T1, class T2>
-	static void 	void_func_and( const FT & f, T1 && t1, T2 && t2){f(t1.get());}
+	static void 	void_func_and( FT && f, T1 && t1, T2 && t2){f(t1.get());}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_and(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f(t1.get());}
 	
 	template<class FT, class T1, class T2>
-	static void 	void_func_or( const FT & f, T1 && t1, T2 && t2){f(t1.get());}
+	static void 	void_func_or( FT && f, T1 && t1, T2 && t2){f(t1.get());}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_or(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f(t1.get());}
 	
@@ -98,16 +98,16 @@ struct bin_wait_func_deducer<void, void>{
 	typedef pair wrapper_type;
 	
 	template<class FT, class T1, class T2>
-	static void 	void_func_and( const FT & f, T1 && t1, T2 && t2){f();}
+	static void 	void_func_and(FT && f, T1 && t1, T2 && t2){f();}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_and(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f();}
 	
 	template<class FT, class T1, class T2>
-	static void 	void_func_or( const FT & f, T1 && t1, T2 && t2){f();}
+	static void 	void_func_or(FT && f, T1 && t1, T2 && t2){f();}
 	template<class FT, class T1, class T2>
-	static auto	ret_func_or(const FT & f, T1 && t1, T2 && t2)
+	static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
 	{return f();}
 	

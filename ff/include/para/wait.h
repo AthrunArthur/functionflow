@@ -26,16 +26,16 @@ public:
 		, m_iES(exe_state::exe_unknown){}
 
     template<class FT>
-    auto  then(const FT & f)
+    auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
 		if(!check_if_over())
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
-        deduct_t::void_func_and(f, m_1, m_2);
+        deduct_t::void_func_and(std::forward<FT>(f), m_1, m_2);
     }
 
     template<class FT>
-    auto  then(const FT & f ) ->
+    auto  then(FT && f ) ->
     typename std::enable_if<
 	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
 	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
@@ -43,7 +43,7 @@ public:
     {
 		if(!check_if_over())
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
-        return deduct_t::ret_func_and(f, m_1, m_2);
+        return deduct_t::ret_func_and(std::forward<FT>(f), m_1, m_2);
     }
     auto get() -> typename deduct_t::wrapper_type
     {
@@ -92,16 +92,16 @@ public:
     }
 
     template<class FT>
-    auto  then(const FT & f)
+    auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
 		if(!check_if_over())
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
-        deduct_t::void_func_or(f, m_1, m_2);
+        deduct_t::void_func_or(std::forward<FT>(f), m_1, m_2);
     }
 
     template<class FT>
-    auto  then(const FT & f ) ->
+    auto  then(FT && f ) ->
     typename std::enable_if<
 	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
 	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
@@ -109,7 +109,7 @@ public:
     {
 		if(!check_if_over())
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
-        return deduct_t::ret_func_or(f, m_1, m_2);
+        return deduct_t::ret_func_or(std::forward<FT>(f), m_1, m_2);
     }
     auto get() -> typename deduct_t::wrapper_type
     {
@@ -136,6 +136,95 @@ protected:
     T2  m_2;
     exe_state	m_iES;
 };//end class wait_or
+
+
+class wait_all
+{
+public:
+	typedef void ret_type;
+	wait_all(std::vector<para<void> > & ps)
+	: all_ps(ps)
+	, m_iES(exe_state::exe_unknown){};
+	
+	
+	template<class FT>
+    auto  then(FT && f ) -> void
+    {
+		if(!check_if_over())
+			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
+		f();
+    }
+
+
+    exe_state	get_state()
+	{
+		if(m_iES != exe_state::exe_over)
+		{
+			m_iES = exe_state::exe_over;
+			for(para<void> & p : all_ps)
+				m_iES = m_iES && p.get_state();
+		}
+		return m_iES;
+	}
+	bool	check_if_over()
+	{
+		if(m_iES == exe_state::exe_over)
+			return true;
+		get_state();
+		if(m_iES == exe_state::exe_over)
+			return true;
+		return false;
+	}
+	
+protected:
+	std::vector<para<void> > & all_ps;
+	exe_state	m_iES;
+};//end class wait_all
+
+class wait_any
+{
+public:
+	typedef void ret_type;
+	wait_any(std::vector<para<void> > & ps)
+	: all_ps(ps)
+	, m_iES(exe_state::exe_unknown){};
+	
+	
+	template<class FT>
+    auto  then(FT && f ) -> void
+    {
+		if(!check_if_over())
+			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
+		f();
+    }
+
+
+    exe_state	get_state()
+	{
+		if(m_iES != exe_state::exe_over)
+		{
+			m_iES = exe_state::exe_unknown;
+			for(para<void> & p : all_ps)
+				m_iES = m_iES || p.get_state();
+		}
+		return m_iES;
+	}
+	bool	check_if_over()
+	{
+		if(m_iES == exe_state::exe_over)
+			return true;
+		get_state();
+		if(m_iES == exe_state::exe_over)
+			return true;
+		return false;
+	}
+	
+protected:
+	std::vector<para<void> > & all_ps;
+	exe_state	m_iES;
+};//end class wait_any
+
+
 }//end namespace internal
 
 template<class T>
@@ -146,7 +235,10 @@ template<class T1, class T2>
 struct is_para_or_wait<internal::wait_and<T1, T2> > : public std::true_type{};
 template<class T1, class T2>
 struct is_para_or_wait<internal::wait_or<T1, T2> > : public std::true_type{};
-
+template<>
+struct is_para_or_wait<internal::wait_all> : public std::true_type{};
+template<>
+struct is_para_or_wait<internal::wait_any> : public std::true_type{};
 
 template<class T1, class T2>
 auto operator &&(T1 && t1, T2 && t2)
@@ -165,6 +257,17 @@ auto operator ||(T1 && t1, T2 && t2)
 {
     return internal::wait_or<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
 }
+
+auto all(paragroup & pg) -> internal::wait_all
+{
+	return internal::wait_all(pg.all_entities());
+}
+
+auto any(paragroup & pg) -> internal::wait_any
+{
+	return internal::wait_any(pg.all_entities());
+}
+
 }//end namespace ff
 
 #endif
