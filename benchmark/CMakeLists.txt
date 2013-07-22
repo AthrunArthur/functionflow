@@ -1,6 +1,6 @@
-SET(LU_LIST LU/LU_resolve.cpp)
-SET(QS_LIST quick_sort/quick_sort.cpp)
-SET(RANDOM LU/gen_matrix.cpp)
+SET(LU_LIST LU/ff/LU_resolve.cpp)
+SET(QS_LIST quick_sort/ff/quick_sort.cpp)
+SET(RANDOM LU/ff/gen_matrix.cpp)
 
 INCLUDE_DIRECTORIES(${INCLUDE_DIRS})
 
@@ -10,7 +10,6 @@ ADD_DEFINITIONS(${DEBUG_DEFS})
 ADD_EXECUTABLE(LU ${LU_LIST})
 ADD_EXECUTABLE(quick_sort ${QS_LIST})
 ADD_EXECUTABLE(random ${RANDOM})
-
 
 TARGET_LINK_LIBRARIES(LU ${TOOLS_LINK_LIBS} ff pthread)
 TARGET_LINK_LIBRARIES(quick_sort ${TOOLS_LINK_LIBS} ff pthread)
