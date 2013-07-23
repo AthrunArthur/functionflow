@@ -1,10 +1,9 @@
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <chrono>
-// #include <ctime>
 #include "ff.h"
-#define MIN_PARA_LEN 5
-#define BUFFER_LEN 1000
+#define BUFFER_LEN 100000
 #define SEPARATOR ','
 using namespace ff;
 using namespace std;
@@ -49,34 +48,45 @@ void quick_sort(int *data,int start,int end)
 }
 
 /* parallel quick sort using ff::para. */
-void para_quick_sort(int * data,int i,int j)
+void para_quick_sort(int * data,int i,int j,int para_len)
 {
-    int r;    
-    if(j-i <= MIN_PARA_LEN-1)/*The length is too small.*/
+
+    int r;
+    if(j-i <= para_len)/*The length is too small.*/
         quick_sort(data,i,j);
     else
     {
         r = partition(data,i,j);
         ff::para<> a,b;
-        a([&data,&i,&r]() {
-            para_quick_sort(data,i,r-1);
+        a([&data,&i,&r,&para_len]() {
+            para_quick_sort(data,i,r-1,para_len);
         });
-        b([&data,&r,&j]() {
-            para_quick_sort(data,r+1,j);
+        b([&data,&r,&j,&para_len]() {
+            para_quick_sort(data,r+1,j,para_len);
         });
         (a&&b).then([]() {});
     }
+
 }
 
 int main(int argc, char *argv[])
 {
-    string in_file_name = "../../benchmark/quick_sort2/numbers.txt";
-    string out_file_name = "../../benchmark/quick_sort2/numbers_sort.txt";
+    string in_file_name = "../../benchmark/quick_sort/ff/numbers.txt";
+    string out_file_name = "../../benchmark/quick_sort/ff/numbers_sort.txt";
+    string time_file_name = "para_time.txt";
     int data[BUFFER_LEN],len,i;
     ifstream in_file;
-    ofstream out_file;    
+    ofstream out_file,out_time_file;
+    int n_div = 1;// Default 1
+    int para_len;
+    
+    if(argc > 1) {
+        stringstream ss_argv;
+        ss_argv << argv[1];
+        ss_argv >> n_div;
+    }
 
-    if(in_file_name.empty() || out_file_name.empty()) {
+    if(in_file_name.empty() || out_file_name.empty() || time_file_name.empty()) {
         cout << "File name is empty!" << endl;
         return -1;
     }
@@ -96,7 +106,6 @@ int main(int argc, char *argv[])
         char tmp;
         in_file >> data[i];
         in_file.get(tmp);
-//         cout << data[i] << tmp;
         if(tmp != SEPARATOR) {
             i++;
             break;
@@ -107,35 +116,64 @@ int main(int argc, char *argv[])
         cout << "Only the first " << BUFFER_LEN << " numbers will be sorted" << endl;
     }
     len = i;
-//     cout << "len = " << len << endl;
+    para_len = len / n_div;
+    if(n_div == 1)
+      cout << "len = " << len << endl;
+    else
+      cout << "Para granularity = " << n_div << endl;
     in_file.close();
 
-    
+    //Pre initialization thread_pool when using parallelizing.
+    if(n_div != 1) {
+        ff::para<int> a;
+        int num = 10;
+        a([&num]() {
+            return num;
+        }).then([](int x) {});
+        ff::para<> b;
+        b[a]([&num, &a]() {
+            num + a.get();
+        }).then([]() {});
+    }
+
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
 
-    para_quick_sort(data,0,len-1);   
-    
-    end = chrono::system_clock::now();
- 
-    int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
-                             (end-start).count();
-    
-//     time_t end_time = chrono::system_clock::to_time_t(end);
-//  
-//     cout << "finished computation at " << ctime(&end_time);
-    cout << "Elapsed time: " << elapsed_seconds << "us\n";
+    para_quick_sort(data,0,len-1,para_len);
 
-//     for(i=0; i<len; i++) {
-//         out_file << data[i];
-//         cout << data[i];
-//         if(i < len - 1) {
-//             out_file << SEPARATOR;
-//             cout << SEPARATOR;
-//         }
-//     }
-//     cout << endl;
+    end = chrono::system_clock::now();
+    int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
+                          (end-start).count();
+
+    cout << "Elapsed time: " << elapsed_seconds << "us" << endl;
+
+    for(i=0; i<len; i++) {
+        out_file << data[i];
+        if(i < len - 1) {
+            out_file << SEPARATOR;
+        }
+    }
     out_file << endl << "Elapsed time: " << elapsed_seconds << "us" << endl;
     out_file.close();
-    return elapsed_seconds;//return the parallel time to the system
+
+    if(n_div != 1) {
+        out_time_file.open(time_file_name.c_str(),ios::app);
+        if(!out_time_file.is_open()) {
+            cout << "Can't open the file " << time_file_name << endl;
+            return -1;
+        }
+        out_time_file << elapsed_seconds << endl;
+        out_time_file.close();
+    }
+    else{
+      out_time_file.open("time.txt");
+        if(!out_time_file.is_open()) {
+            cout << "Can't open the file time.txt" << endl;
+            return -1;
+        }
+        out_time_file << elapsed_seconds << endl;
+        out_time_file.close();
+    }
+
+    return 0;//return the parallel time to the system
 }

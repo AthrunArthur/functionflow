@@ -7,9 +7,13 @@ def execute_cmd(cmd):
 
 if __name__ == '__main__':
 	path = execute_cmd('pwd').strip('\n')
-	cmd = 'cd %s/build; rm -rf *;cmake ../; make;' % path
+	if not os.path.exists(r'%s/build' %path):
+		execute_cmd('cd %s; mkdir build;' %path)		
+	else:
+		execute_cmd('cd %s/build; rm -rf *;' %path)
+	cmd = 'cd %s/build; cmake ../; make;' % path
 	execute_cmd(cmd)
-	matrix_n = 1000
+	matrix_n = 10
 	rand_max = 5
 	print 'file:random'
 	execute_cmd('cd %s/build/benchmark; ./random %s %s' % (path,matrix_n,rand_max))
@@ -28,9 +32,11 @@ if __name__ == '__main__':
 				para_n = 4
 			print 'file:%s' % item
 			print 'Parallel time:'
+			time_path = '%s/build/benchmark/para_time.txt' % path
+			if os.path.exists(r'%s' %time_path):
+				execute_cmd('rm %s' % time_path)
 			for i in range(3):
 				print execute_cmd('cd %s/build/benchmark; ./%s %s' % (path, item, para_n)).strip('\n')
-			time_path = '%s/build/benchmark/para_time.txt' % path
 			time_file = open(time_path)
 			ptime = 0
 			for lines in time_file:
