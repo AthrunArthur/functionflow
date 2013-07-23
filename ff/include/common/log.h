@@ -1,6 +1,6 @@
 #ifndef COMMON_LOG_H_
 #define COMMON_LOG_H_
-#include "ff/log.h"
+//#include "ff/log.h"
 
 DEF_LOG_MODULE(main)
 DEF_LOG_MODULE(thread)

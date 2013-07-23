@@ -50,7 +50,7 @@ public:
 			step ++;
         
 		t = begin;
-		
+		m_refP.m_pEntities = std::make_shared<std::vector<para<void> > >();
 		while(t!=end)
 		{
 			Iterator_t tmp = t;
@@ -69,7 +69,7 @@ public:
 					lt ++;
 				}
 			});
-			m_refP.m_oEntities.push_back(std::move(p));
+			m_refP.m_pEntities->push_back(std::move(p));
 			
 			t=tmp;
 		}
@@ -88,7 +88,9 @@ protected:
     {
         return para_accepted_wait<paragroup,WT>(*this, std::forward<WT>(cond));
     }
-    
+    ~paragroup()
+	{
+	}
     
     template<class Iterator_t, class Functor_t>
     auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f) 
@@ -108,7 +110,7 @@ protected:
 			step ++;
         
 		t = begin;
-		
+		m_pEntities = std::make_shared<std::vector<para<void> > >();
 		while(t!=end)
 		{
 			Iterator_t tmp = t;
@@ -127,7 +129,7 @@ protected:
 					lt ++;
 				}
 			});
-			m_oEntities.push_back(std::move(p));
+			m_pEntities->push_back(p);
 			
 			t=tmp;
 		}
@@ -137,10 +139,10 @@ protected:
 protected:
 	friend internal::wait_all all(paragroup & pg);
 	friend internal::wait_any any(paragroup & pg);
-    std::vector<para<void> > & all_entities(){return m_oEntities;};
+    std::shared_ptr<std::vector<para<void> > > & all_entities(){return m_pEntities;};
     
 protected:
-	std::vector<para<void> >	m_oEntities;
+	std::shared_ptr<std::vector<para<void> > >	m_pEntities;
 };//end class paragroup
 
 

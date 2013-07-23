@@ -142,7 +142,7 @@ class wait_all
 {
 public:
 	typedef void ret_type;
-	wait_all(std::vector<para<void> > & ps)
+	wait_all(std::shared_ptr<std::vector<para<void> > >  ps)
 	: all_ps(ps)
 	, m_iES(exe_state::exe_unknown){};
 	
@@ -161,8 +161,10 @@ public:
 		if(m_iES != exe_state::exe_over)
 		{
 			m_iES = exe_state::exe_over;
-			for(para<void> & p : all_ps)
-				m_iES = m_iES && p.get_state();
+			for(auto p= all_ps->begin(); p != all_ps->end(); ++p)
+			{
+				m_iES = m_iES && p->get_state();
+			}
 		}
 		return m_iES;
 	}
@@ -177,7 +179,7 @@ public:
 	}
 	
 protected:
-	std::vector<para<void> > & all_ps;
+	std::shared_ptr<std::vector<para<void> > >  all_ps;
 	exe_state	m_iES;
 };//end class wait_all
 
@@ -185,7 +187,7 @@ class wait_any
 {
 public:
 	typedef void ret_type;
-	wait_any(std::vector<para<void> > & ps)
+	wait_any(std::shared_ptr<std::vector<para<void> > >  ps)
 	: all_ps(ps)
 	, m_iES(exe_state::exe_unknown){};
 	
@@ -204,8 +206,8 @@ public:
 		if(m_iES != exe_state::exe_over)
 		{
 			m_iES = exe_state::exe_unknown;
-			for(para<void> & p : all_ps)
-				m_iES = m_iES || p.get_state();
+			for(auto p = all_ps->begin(); p != all_ps->end(); ++p)
+				m_iES = m_iES || p->get_state();
 		}
 		return m_iES;
 	}
@@ -220,7 +222,7 @@ public:
 	}
 	
 protected:
-	std::vector<para<void> > & all_ps;
+	std::shared_ptr<std::vector<para<void> > >  all_ps;
 	exe_state	m_iES;
 };//end class wait_any
 

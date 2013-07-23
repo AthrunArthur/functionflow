@@ -46,8 +46,11 @@ int main(int argc, char *argv[])
 	f1([](){return foo(1);});
 	f2([](){return bar(2.2);});
 	(f1 || f2).then([](int index, std::tuple<int, double> res){
-		std::cout<<"(f1||f2).then "<<std::get<1>(res)<<std::endl;}
-	);
+		if(index == 0)
+			std::cout<<"(f1||f2).then 0 "<<std::get<0>(res)<<std::endl;
+		else if(index == 1)
+			std::cout<<"(f1||f2).then 1 "<<std::get<1>(res)<<std::endl;
+	});
 	
 	ff::para<> f3;
 	f3([](){return foo(3);});
@@ -69,13 +72,14 @@ int main(int argc, char *argv[])
 	pg1[all(pg)].for_each(s.begin(), s.end(), [&sum](int x){
 	  sum.increase(x);
 	});
+	ff_wait(all(pg1));
 	std::cout<<"pg1 sum: "<<sum.get()<<std::endl;
-	
+	/*
 	ff::paragroup pg2;
 	ff::single_assign<int> first;
 	pg2.for_each(s.begin(), s.end(), [&first](int x){first = x;});
 	std::cout<<"pg2 first: "<<first.get()<<std::endl;
-	
+	*/
 	//LOG_INFO(main)<<"main quit!";
 	return 0;
 }

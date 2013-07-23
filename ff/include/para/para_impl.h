@@ -34,6 +34,21 @@ protected:
     T m_oValue;
 };//end class para_ret;
 
+void wait_until_exe_over(volatile std::atomic<exe_state> * piES)
+{
+		exe_state expected = exe_state::exe_unknown;
+		exe_state desired = exe_state::exe_over;
+		while(piES->load() != exe_state::exe_over)
+		{
+			std::atomic_compare_exchange_strong(piES, &expected, desired);
+			if(expected == exe_state::exe_run)
+			{
+				expected = exe_state::exe_unknown;
+				std::this_thread::yield();
+			}
+		}
+}
+
 template<class RT>
 class para_impl : public ff::rt::task_base
 {
@@ -45,8 +60,20 @@ public:
         , m_oFunc(std::move(f))
         , m_iES(exe_state::exe_unknown) {}
 
+    ~para_impl()
+	{
+		wait_until_exe_over(&m_iES);
+	}
     virtual void	run()
     {
+		exe_state es = exe_state::exe_unknown;
+		exe_state ts = exe_state::exe_run;
+		while(m_iES != exe_state::exe_run)
+		{
+			std::atomic_compare_exchange_strong(&m_iES, &es, ts );
+			if(es == exe_state::exe_over)
+				return;
+		}
         m_oRet.set(m_oFunc());
         m_iES.store(exe_state::exe_over);
     }
@@ -69,7 +96,7 @@ public:
 protected:
     para_ret<RT>	m_oRet;
     std::function<RT ()> m_oFunc;
-    std::atomic<exe_state>  m_iES;
+    volatile std::atomic<exe_state>  m_iES;
 };//end class para_impl
 
 template<>
@@ -83,9 +110,22 @@ public:
         , m_oFunc(std::move(f)) 
 		{}
 
+	~para_impl()
+	{
+		wait_until_exe_over(&m_iES);
+	}
+	
     virtual void	run()
     {
         //LOG_INFO(para)<<"para_impl::run(), "<<this;
+		exe_state es = exe_state::exe_unknown;
+		exe_state ts = exe_state::exe_run;
+		while(m_iES != exe_state::exe_run)
+		{
+			std::atomic_compare_exchange_strong(&m_iES, &es, ts );
+			if(es == exe_state::exe_over)
+				return;
+		}
         m_oFunc();
         m_iES.store(exe_state::exe_over);
     }
@@ -103,7 +143,7 @@ public:
     }
 
 protected:
-    std::atomic<exe_state>  m_iES;
+    volatile std::atomic<exe_state>  m_iES;
     std::function<void ()> m_oFunc;
 };//end class para_impl_ptr
 template<class RT>
@@ -140,8 +180,20 @@ public:
         , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
         , m_oWaitingPT(w) {}
 
+    ~para_impl_wait()
+	{
+		wait_until_exe_over(&m_iES);
+	}
     virtual void run()
     {
+		exe_state es = exe_state::exe_unknown;
+		exe_state ts = exe_state::exe_run;
+		while(m_iES != exe_state::exe_run)
+		{
+			std::atomic_compare_exchange_strong(&m_iES, &es, ts );
+			if(es == exe_state::exe_over)
+				return;
+		}
         if(m_oWaitingPT.get_state() != exe_state::exe_over)
         {
             ::ff::rt::yield_and_ret_until([this]() {
@@ -163,7 +215,7 @@ public:
         return false;
     }
 protected:
-    std::atomic<exe_state> m_iES;
+    volatile std::atomic<exe_state> m_iES;
     ff::rt::task_base_ptr 	m_pFunc;
     WT 	m_oWaitingPT;
 };//end class para_impl_wait;
