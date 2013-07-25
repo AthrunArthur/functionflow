@@ -64,7 +64,8 @@ void para_quick_sort(int * data,int i,int j,int para_len)
         b([&data,&r,&j,&para_len]() {
             para_quick_sort(data,r+1,j,para_len);
         });
-        (a&&b).then([]() {});
+	ff_wait(a&&b);
+//         (a&&b).then([]() {});
     }
 
 }

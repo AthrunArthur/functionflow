@@ -8,10 +8,8 @@ def execute_cmd(cmd):
 if __name__ == '__main__':
 	path = execute_cmd('pwd').strip('\n')
 	if not os.path.exists(r'%s/build' %path):
-		execute_cmd('cd %s; mkdir build;' %path)		
-	else:
-		execute_cmd('cd %s/build; rm -rf *;' %path)
-	cmd = 'cd %s/build; cmake ../; make;' % path
+		cmd = 'cd %s; mkdir build;' %path
+	cmd = 'cd %s/build; rm -rf *;cmake ../; make;' % path
 	execute_cmd(cmd)
 	matrix_n = 10
 	rand_max = 5
@@ -26,9 +24,9 @@ if __name__ == '__main__':
 		if os.path.isfile('%s' %ifile) and os.access('%s' % ifile, os.X_OK):
 			if not cmp(item,'random'):
 				continue
-			elif not cmp(item,'LU'):
+			elif not cmp(item,'lu'):
 				para_n = matrix_n / 2
-			elif not cmp(item,'quick_sort'):
+			elif not cmp(item,'quicksort'):
 				para_n = 4
 			print 'file:%s' % item
 			print 'Parallel time:'
