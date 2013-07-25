@@ -4,6 +4,7 @@
 #include <chrono>
 #include "ff.h"
 #define BUFFER_LEN 100000
+#define INCREMENT 1000
 #define SEPARATOR ','
 using namespace ff;
 using namespace std;
@@ -75,11 +76,12 @@ int main(int argc, char *argv[])
     string in_file_name = "../../benchmark/quick_sort/ff/numbers.txt";
     string out_file_name = "../../benchmark/quick_sort/ff/numbers_sort.txt";
     string time_file_name = "para_time.txt";
-    int data[BUFFER_LEN],len,i;
+    int len,i;
     ifstream in_file;
     ofstream out_file,out_time_file;
     int n_div = 1;// Default 1
     int para_len;
+    int * data = (int *)malloc(sizeof(int)*BUFFER_LEN),buf_size = BUFFER_LEN;
     
     if(argc > 1) {
         stringstream ss_argv;
@@ -103,8 +105,13 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-    for(i=0; !in_file.eof() && i < BUFFER_LEN; i++) {
-        char tmp;
+    for(i=0; !in_file.eof(); i++) {
+      char tmp;
+      if(i >= buf_size){
+	buf_size += INCREMENT;
+	data = (int *)realloc(data,buf_size*sizeof(int));
+// 	cout << "New size = " << buf_size << endl;
+      }        
         in_file >> data[i];
         in_file.get(tmp);
         if(tmp != SEPARATOR) {
@@ -112,9 +119,9 @@ int main(int argc, char *argv[])
             break;
         }
     }
-    if(!in_file.eof() && i > BUFFER_LEN) {
-        cout << "Max data length is " << BUFFER_LEN << endl;
-        cout << "Only the first " << BUFFER_LEN << " numbers will be sorted" << endl;
+    if(!in_file.eof() && i > buf_size) {
+        cout << "Max data length is " << buf_size << endl;
+        cout << "Only the first " << buf_size << " numbers will be sorted" << endl;
     }
     len = i;
     para_len = len / n_div;
