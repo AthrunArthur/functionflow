@@ -38,7 +38,10 @@ public:
     void	schedule(task_base_ptr p)
 	{
 	//	LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();
-		m_pGlobalTasks->push_back(p);
+		if(m_pLQueue != nullptr)
+			m_pLQueue->push_back(p);
+		else
+			m_pGlobalTasks->push_back(p);
 	}
 
     bool		take_one_task_and_run()
