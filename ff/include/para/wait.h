@@ -20,10 +20,14 @@ public:
 	typedef bin_wait_func_deducer<typename T1_t::ret_type, typename T2_t::ret_type> deduct_t;
     typedef typename deduct_t::and_type ret_type;
 public:
-    wait_and(T1 && t1, T2 && t2)
+    wait_and(T1_t && t1, T2_t && t2)
         : m_1(t1)
         , m_2(t2)
 		, m_iES(exe_state::exe_unknown){}
+    wait_and(T1_t & t1, T2_t & t2)
+	: m_1(t1)
+	, m_2(t2)
+	, m_iES(exe_state::exe_unknown){}
 
     template<class FT>
     auto  then(FT && f)
@@ -66,8 +70,8 @@ public:
 		return false;
 	}
 protected:
-    T1_t  m_1;
-    T2_t  m_2;
+    T1_t&  m_1;
+    T2_t&  m_2;
     exe_state	m_iES;
 };//end class wait_and
 
@@ -81,14 +85,14 @@ public:
 	typedef bin_wait_func_deducer<typename T1_t::ret_type, typename T2_t::ret_type> deduct_t;
     typedef typename deduct_t::or_type ret_type;
 public:
-    wait_or(T1 && t1, T2 && t2)
+    wait_or(T1_t && t1, T2_t && t2)
         : m_1(t1)
         , m_2(t2)
 		, m_iES(exe_state::exe_unknown){}
-    wait_or(const wait_or<T1, T2>& w)
-        : m_1(w.m_1)
-        , m_2(w.m_2)
-		, m_iES(w.m_iES){
+    wait_or(T1_t & t1, T2_t & t2)
+        : m_1(t1)
+        , m_2(t2)
+		, m_iES(exe_state::exe_unknown){
     }
 
     template<class FT>
@@ -132,8 +136,8 @@ public:
 		return false;
 	}
 protected:
-    T1  m_1;
-    T2  m_2;
+    T1_t &  m_1;
+    T2_t &  m_2;
     exe_state	m_iES;
 };//end class wait_or
 

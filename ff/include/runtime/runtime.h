@@ -39,16 +39,9 @@ public:
 	{
 	//	LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();
 		if(m_pLQueue != nullptr)
-		{
-			std::cout<<"schedule to local task"<<std::endl;
 			m_pLQueue->push_back(p);
-		}
-		else 
-		{
-			std::cout<<"schedule to global queue"<<std::endl;
+		else
 			m_pGlobalTasks->push_back(p);
-		}
-		
 	}
 
     bool		take_one_task_and_run()

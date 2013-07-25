@@ -39,7 +39,7 @@ public:
     }
 
 protected:
-    PT m_refP;
+    PT& m_refP;
 };//end class para_accepted_call
 
 template<class PT>
@@ -71,7 +71,7 @@ public:
     }
 
 protected:
-    PT m_refP;
+    PT& m_refP;
 };//end class para_accepted_call
 
 
