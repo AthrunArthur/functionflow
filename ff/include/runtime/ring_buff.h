@@ -12,10 +12,6 @@ namespace ff{
 		public:
 			seq_num(int n = 0)
 			: m_num(n){}
-			seq_num<N>(const seq_num<N> & n)
-			: m_num(n.m_num.load()){}
-			seq_num<N>(seq_num<N> && n)
-			: m_num(n.m_num.load()){}
 			
 			seq_num<N>& increment()
 			{
@@ -33,20 +29,21 @@ namespace ff{
 				return *this;
 			}
 			
-			seq_num<N> operator +(size_t t)
+			seq_num<N>& add(size_t t)
 			{
-				return seq_num<N>((m_num.load() + t)%N);
+				m_num = (m_num + t)&(N-1);
+				return *this;
 			}
 			
 			seq_num<N> & set(size_t t)
 			{
-				m_num = t%N;
+				m_num = t&(N-1);
 				return *this;
 			}
 			
-			seq_num<N> & operator -(size_t t)
+			seq_num<N> & sub(size_t t)
 			{
-				return seq_num<N>((m_num.load() - t)%N);
+				m_num = (m_num -t)&(N-1);
 				return *this;
 			}
 			
@@ -72,12 +69,13 @@ namespace ff{
 			template<size_t NN>
 			void		copy_from(ring_buff<Ty_, NN> * pt)
 			{
-				while(!is_full() && !pt->is_empty())
+				int base = front.num().load();
+				int pbase = pt->front.num().load();
+				for(int i = 0; i < NN; ++i)
 				{
-					Ty_ t;
-					pt->pop_front(t);
-					push_front(t);
+					buf[base +i] = std::move(pt->buf[pbase+i]);
 				}
+				front.add(NN);
 			}
 			bool		is_empty() const
 			{
@@ -85,7 +83,7 @@ namespace ff{
 			}
 			bool		is_full()
 			{
-				return (back +1 == front);
+				return (front.num().load() + 1 == back.num().load());
 			}
 			
 			bool 		push_front(const Ty_ & t)
@@ -116,7 +114,7 @@ namespace ff{
 			
 			size_t  size()const
 			{
-				return (front.num() - back.num())%N;
+				return (front.num() - back.num())&(N-1);
 			}
 		protected:
 			seq_num<N>	front;
