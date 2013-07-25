@@ -4,8 +4,7 @@
 #include "runtime/task_queue.h"
 #include "runtime/threadpool.h"
 #include <memory>
-//#include <boost/concept_check.hpp>
-//#include "common/log.h"
+#include "common/log.h"
 
 namespace ff {
 namespace rt
@@ -37,7 +36,7 @@ public:
 
     void	schedule(task_base_ptr p)
 	{
-	//	LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();
+		_DEBUG(LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();)
 		if(m_pLQueue != nullptr)
 			m_pLQueue->push_back(p);
 		else
@@ -48,7 +47,7 @@ public:
     {
         task_base_ptr pTask;
         bool b = false;
-		//LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";
+		_DEBUG(LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";)
         if(m_pLQueue != nullptr)
             b = m_pLQueue->pop(pTask);
         else b = m_pGlobalTasks->pop(pTask);
@@ -89,7 +88,6 @@ protected:
        // {
             if(m_oQueues[(cur_id + dis)%ts]->steal(pTask))
             {
-				std::cout<<"got a task from neighbour"<<std::endl;
                 pTask->run();
                 b = true;
           //      break;
@@ -99,7 +97,6 @@ protected:
 				task_block_ptr tbp;
 				if(m_pGlobalTasks->steal_block(tbp))
 				{
-					std::cout<<"got tasks! from global"<<std::endl;
 					m_pLQueue->internal_tasks().copy_from(tbp.get());
 					if(m_pLQueue->pop(pTask))
 					{
@@ -112,7 +109,6 @@ protected:
 					//std::cout<<"have to get a task from global..size:"<<m_pGlobalTasks->size()<<std::endl;
 					if(m_pGlobalTasks->pop(pTask))
 					{
-						std::cout<<"\t yes, done!"<<std::endl;
 						pTask->run();
 						b = true;
 					}

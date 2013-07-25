@@ -116,7 +116,7 @@ namespace ff{
 			{
 				return (front.num() - back.num())&(N-1);
 			}
-		protected:
+
 			seq_num<N>	front;
 			seq_num<N>	back;
 			Ty_		buf[N];

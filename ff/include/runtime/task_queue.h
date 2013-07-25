@@ -7,8 +7,8 @@
 #include <deque>
 namespace ff {
 namespace rt {
-typedef ff::nonblocking_queue<task_base_ptr> task_queue;
-#if 0
+
+#if 1
 	typedef internal::ring_buff<task_base_ptr, 64> task_block;
 	typedef internal::ring_buff<task_base_ptr, 128> local_task_block;
 	typedef std::shared_ptr<task_block> task_block_ptr;
@@ -37,17 +37,13 @@ public:
 		if(!pCurrent)
 			return false;
 		std::unique_lock<std::mutex> ul(m_oMutex);
-		std::cout<<"pop 1"<<std::endl;
 		if(pCurrent->pop_front(val))
 		{
-			std::cout<<"pop 2"<<std::endl;
 			return true;
 		}
-		std::cout<<"pop 3 "<<std::endl;
 		task_block_ptr t;
 		if(m_oContainer.pop(t))
 		{
-			std::cout<<"pop 4"<<std::endl;
 			pCurrent = t;
 			return pCurrent->pop_front(val);
 		}
@@ -129,7 +125,8 @@ protected:
 	local_task_block	m_oContainer;
 };
 #endif
-#if 1
+#if 0
+typedef ff::nonblocking_queue<task_base_ptr> task_queue;
 class work_stealing_queue
 {
 public:

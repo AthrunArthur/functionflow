@@ -1,6 +1,6 @@
 
 #include "ff.h"
-//#include "common/log.h"
+#include "common/log.h"
 
 
 int fib(int n)
@@ -16,7 +16,10 @@ int fib(int n)
 
 
 int main(int argc, char *argv[])
-{	
+{
+	_DEBUG(ff::log<>::init(ff::INFO, "log.txt"))
+	_DEBUG(LOG_INFO(main)<<"main start");
+	
 	int num = 10;	
 	int fib_res = fib(num);
 	std::cout<<"fib( "<<num<<" )="<<fib_res<<std::endl;
