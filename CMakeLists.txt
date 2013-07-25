@@ -5,7 +5,7 @@ MESSAGE(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
 add_definitions(-std=c++11)
 add_definitions(-g)
 #add_definitions(_GLIBCXX_USE_SCHED_YIELD)
-#add_definitions(-O2)
+add_definitions(-O2)
 add_definitions(-DNDEBUG)
 SET(DEBUG_DEFS "")
 
@@ -22,7 +22,7 @@ target_link_libraries(ff_s pthread)
 
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
 
-add_subdirectory(test)
+#add_subdirectory(test)
 #add_subdirectory(benchmark)
 #add_subdirectory(test)
 add_subdirectory(benchmark)
