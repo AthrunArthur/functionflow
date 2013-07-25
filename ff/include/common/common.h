@@ -7,6 +7,9 @@
 #include <thread>
 #include <type_traits>
 #include <iostream>
+#include <cassert>
+
+#define CACHE_LINE_SIZE 64
 
 namespace ff {
 
