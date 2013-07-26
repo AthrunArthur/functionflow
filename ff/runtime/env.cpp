@@ -24,7 +24,7 @@ void			runtime::init()
 {
     s_pInstance = new runtime();
     runtime_deletor::s_pInstance = std::make_shared<runtime_deletor>(s_pInstance);
-    int thrd_num = std::thread::hardware_concurrency();
+    int thrd_num = hardware_concurrency();
     for(int i = 0; i<thrd_num; ++i)
     {
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));

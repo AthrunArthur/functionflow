@@ -10,6 +10,9 @@
 namespace ff {
 namespace rt {
 
+inline size_t  hardware_concurrency(){
+	return std::thread::hardware_concurrency();
+}
 void	schedule(task_base_ptr p);
 
 //Give other tasks opportunities to run!
@@ -28,7 +31,7 @@ void 	yield_and_ret_until(Func f)
 			//LOG_INFO(rt)<<"yield_and_ret_until(), recursively run...";
 		}
 		else{
-			std::this_thread::yield();
+			yield();
 		}
 	}
 }

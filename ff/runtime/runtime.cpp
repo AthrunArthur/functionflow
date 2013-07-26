@@ -11,6 +11,7 @@ void schedule(task_base_ptr p)
 
 void yield()
 {
+//	std::this_thread::sleep_for(std::chrono::nanoseconds(1));
 	std::this_thread::yield();
 }
 
@@ -64,7 +65,7 @@ runtime::~runtime()
             if(!flag)
                 flag = steal_one_task_and_run(index);
             if(!flag)
-                std::this_thread::yield();
+                yield();
         }
     }
 
