@@ -146,9 +146,7 @@ class wait_all
 {
 public:
 	typedef void ret_type;
-	wait_all(std::shared_ptr<std::vector<para<void> > >  ps)
-	: all_ps(ps)
-	, m_iES(exe_state::exe_unknown){};
+	wait_all(std::shared_ptr<std::vector<para<void> > >  ps);
 	
 	
 	template<class FT>
@@ -160,27 +158,8 @@ public:
     }
 
 
-    exe_state	get_state()
-	{
-		if(m_iES != exe_state::exe_over)
-		{
-			m_iES = exe_state::exe_over;
-			for(auto p= all_ps->begin(); p != all_ps->end(); ++p)
-			{
-				m_iES = m_iES && p->get_state();
-			}
-		}
-		return m_iES;
-	}
-	bool	check_if_over()
-	{
-		if(m_iES == exe_state::exe_over)
-			return true;
-		get_state();
-		if(m_iES == exe_state::exe_over)
-			return true;
-		return false;
-	}
+    exe_state	get_state();
+    bool	check_if_over();
 	
 protected:
 	std::shared_ptr<std::vector<para<void> > >  all_ps;
@@ -191,9 +170,7 @@ class wait_any
 {
 public:
 	typedef void ret_type;
-	wait_any(std::shared_ptr<std::vector<para<void> > >  ps)
-	: all_ps(ps)
-	, m_iES(exe_state::exe_unknown){};
+	wait_any(std::shared_ptr<std::vector<para<void> > >  ps);
 	
 	
 	template<class FT>
@@ -205,25 +182,8 @@ public:
     }
 
 
-    exe_state	get_state()
-	{
-		if(m_iES != exe_state::exe_over)
-		{
-			m_iES = exe_state::exe_unknown;
-			for(auto p = all_ps->begin(); p != all_ps->end(); ++p)
-				m_iES = m_iES || p->get_state();
-		}
-		return m_iES;
-	}
-	bool	check_if_over()
-	{
-		if(m_iES == exe_state::exe_over)
-			return true;
-		get_state();
-		if(m_iES == exe_state::exe_over)
-			return true;
-		return false;
-	}
+    exe_state	get_state();
+	bool	check_if_over();
 	
 protected:
 	std::shared_ptr<std::vector<para<void> > >  all_ps;
@@ -264,15 +224,9 @@ auto operator ||(T1 && t1, T2 && t2)
     return internal::wait_or<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
 }
 
-auto all(paragroup & pg) -> internal::wait_all
-{
-	return internal::wait_all(pg.all_entities());
-}
+auto all(paragroup & pg) -> internal::wait_all;
 
-auto any(paragroup & pg) -> internal::wait_any
-{
-	return internal::wait_any(pg.all_entities());
-}
+auto any(paragroup & pg) -> internal::wait_any;
 
 }//end namespace ff
 

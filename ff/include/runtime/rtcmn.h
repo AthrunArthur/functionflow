@@ -10,15 +10,10 @@
 namespace ff {
 namespace rt {
 
-void	schedule(task_base_ptr p){
-	runtime_ptr r = runtime::instance();
-	r->schedule(p);
-};
+void	schedule(task_base_ptr p);
 
 //Give other tasks opportunities to run!
-void yield(){
-	std::this_thread::yield();
-};
+void yield();
 
 template <class Func>
 void 	yield_and_ret_until(Func f)

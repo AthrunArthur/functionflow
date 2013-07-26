@@ -24,7 +24,7 @@ public:
 protected:
     TKind 	m_iTKind;
 };//end class task_base;
-typedef std::shared_ptr<task_base> task_base_ptr;
+typedef task_base *  task_base_ptr;
 
 }//end namespace rt
 }//end namespace ff
