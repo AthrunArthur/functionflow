@@ -35,7 +35,7 @@ protected:
     void			thread_run(size_t index);
 
 
-    bool		steal_one_task_and_run(size_t cur_id)；
+    bool		steal_one_task_and_run(size_t cur_id);
 
     static void			init();
     
