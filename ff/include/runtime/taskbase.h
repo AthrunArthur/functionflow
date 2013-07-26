@@ -14,15 +14,20 @@ public:
         end_t
     };
 public:
-    task_base(TKind tk): m_iTKind(tk){};
+	virtual ~task_base(){}
+    task_base(TKind tk, bool rt_del_mem = false): m_iTKind(tk)
+	, m_bRTDelThis(rt_del_mem){};
 
     virtual void	run() = 0;
 
     inline TKind		getTK() {
         return m_iTKind;
     }
+
+	inline bool			isDelByRT(){return m_bRTDelThis;}
 protected:
     TKind 	m_iTKind;
+	bool	m_bRTDelThis;
 };//end class task_base;
 typedef task_base *  task_base_ptr;
 

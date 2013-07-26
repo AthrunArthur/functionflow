@@ -46,8 +46,14 @@ public:
         , m_oFunc(std::move(f))
         , m_iES(exe_state::exe_unknown) {}
 
-    ~para_impl()
+    virtual ~para_impl()
 	{
+		while(get_state() != exe_state::exe_over)
+        {
+            ::ff::rt::yield_and_ret_until([this]() {
+                return check_if_over();
+            });
+        }
 	}
     virtual void	run()
     {
@@ -88,8 +94,14 @@ public:
         , m_oFunc(std::move(f)) 
 		{}
 
-	~para_impl()
+	virtual ~para_impl()
 	{
+		while(get_state() != exe_state::exe_over)
+        {
+            ::ff::rt::yield_and_ret_until([this]() {
+                return check_if_over();
+            });
+        }
 	}
 	
     virtual void	run()
@@ -169,13 +181,13 @@ class para_impl_wait : public ff::rt::task_base
 public:
     template<class RT>
     para_impl_wait(const WT &  w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base(TKind::user_t)
+        : ff::rt::task_base(TKind::user_t, true)
         , m_iES(exe_state::exe_unknown)
       //  , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
 	, m_pFunc(p)
         , m_oWaitingPT(w) {}
 
-    ~para_impl_wait()
+    virtual ~para_impl_wait()
 	{
 	}
     virtual void run()
