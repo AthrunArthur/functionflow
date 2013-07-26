@@ -180,12 +180,18 @@ class para_impl_wait : public ff::rt::task_base
 {
 public:
     template<class RT>
-    para_impl_wait(const WT &  w, const para_impl_ptr<RT> & p)
+    para_impl_wait(WT &  w, const para_impl_ptr<RT> & p)
         : ff::rt::task_base(TKind::user_t, true)
         , m_iES(exe_state::exe_unknown)
       //  , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
 	, m_pFunc(p)
         , m_oWaitingPT(w) {}
+
+    template<class RT>
+    para_impl_wait(WT && w, const para_impl_ptr<RT> & p)
+        : ff::rt::task_base(TKind::user_t, true)
+	, m_pFunc(p)
+	, m_oWaitingPT(w){}
 
     virtual ~para_impl_wait()
 	{
@@ -216,7 +222,7 @@ public:
 protected:
     volatile std::atomic<exe_state> m_iES;
     ff::rt::task_base_ptr 	m_pFunc;
-    WT 	m_oWaitingPT;
+    WT & 	m_oWaitingPT;
 };//end class para_impl_wait;
 template<class WT>
 using para_impl_wait_ptr = para_impl_wait<WT> *;

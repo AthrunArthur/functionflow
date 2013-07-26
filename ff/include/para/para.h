@@ -19,6 +19,14 @@ public:
 #include "para/para_accepted_wait.h"
     para()
         : m_pImpl(nullptr) {};
+    para(const para<RT> & p) = delete;
+    para<RT> & operator =(const para<RT> &p) = delete;
+
+    ~para()
+    {
+	if(m_pImpl)
+		delete m_pImpl;
+    }
     template<class WT>
     para_accepted_wait<para<RT>, WT> operator[](WT && cond)
     {
@@ -72,6 +80,13 @@ public:
 #include "para/para_accepted_wait.h"
     para()
         : m_pImpl(nullptr) {};
+    para(const para<void> & p) = delete;
+    para<void> & operator=(const para<void> & p) = delete;
+    ~para()
+    {
+	if(m_pImpl)
+		delete m_pImpl;
+    }
     template<class WT>
     para_accepted_wait<para<ret_type>, WT> operator[](WT && cond)
     {
