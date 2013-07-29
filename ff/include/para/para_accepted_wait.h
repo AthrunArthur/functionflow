@@ -15,8 +15,8 @@ public:
 		typedef typename std::remove_reference<WT>::type WT_t;
 		internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
 		m_refP.m_pImpl = pImpl;
-		internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
-//std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
+		//internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
+        internal::para_impl_wait_ptr<WT_t> pTask = std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
 		internal::schedule(pTask);
         return internal::para_accepted_call<PT, ret_type>(m_refP);
     }

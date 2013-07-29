@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 	_DEBUG(ff::log<>::init(ff::INFO, "log.txt"))
 	_DEBUG(LOG_INFO(main)<<"main start");
 	
-	int num = 10;	
+	int num = 30;	
 	int fib_res = fib(num);
 	std::cout<<"fib( "<<num<<" )="<<fib_res<<std::endl;
 	return 0;

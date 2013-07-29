@@ -48,12 +48,13 @@ public:
 
     virtual ~para_impl()
 	{
+		/*
 		while(get_state() != exe_state::exe_over)
         {
             ::ff::rt::yield_and_ret_until([this]() {
                 return check_if_over();
             });
-        }
+        }*/
 	}
     virtual void	run()
     {
@@ -96,12 +97,13 @@ public:
 
 	virtual ~para_impl()
 	{
+		/*
 		while(get_state() != exe_state::exe_over)
         {
             ::ff::rt::yield_and_ret_until([this]() {
                 return check_if_over();
             });
-        }
+        }*/
 	}
 	
     virtual void	run()
@@ -129,6 +131,7 @@ protected:
     std::function<void ()> m_oFunc;
 };//end class para_impl_ptr
 
+#if 0
 template<class RT>
 using para_impl_ptr = para_impl<RT> *;
 
@@ -150,7 +153,9 @@ auto make_para_impl(F&& f)
 {
 	return new para_impl<ret_type>(std::forward<F>(f));
 }
-#if 0
+#endif
+
+#if 1
 template<class RT>
 using para_impl_ptr = std::shared_ptr<para_impl<RT>>;
 
@@ -181,15 +186,15 @@ class para_impl_wait : public ff::rt::task_base
 public:
     template<class RT>
     para_impl_wait(WT &  w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base(TKind::user_t, true)
+        : ff::rt::task_base(TKind::user_t)
         , m_iES(exe_state::exe_unknown)
-      //  , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
-	, m_pFunc(p)
+        , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
+	//, m_pFunc(p)
         , m_oWaitingPT(w) {}
 
     template<class RT>
     para_impl_wait(WT && w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base(TKind::user_t, true)
+        : ff::rt::task_base(TKind::user_t)
 	, m_pFunc(p)
 	, m_oWaitingPT(w){}
 
@@ -222,22 +227,22 @@ public:
 protected:
     volatile std::atomic<exe_state> m_iES;
     ff::rt::task_base_ptr 	m_pFunc;
-    WT & 	m_oWaitingPT;
+    WT  	m_oWaitingPT;
 };//end class para_impl_wait;
 template<class WT>
-using para_impl_wait_ptr = para_impl_wait<WT> *;
-//using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
+//using para_impl_wait_ptr = para_impl_wait<WT> *;
+using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
 
 template<class RT>
 void	schedule(para_impl_ptr<RT>  p)
 {
-//    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
-    ::ff::rt::schedule(p);
+    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
+//    ::ff::rt::schedule(p);
 }
 template<class WT>
 void	schedule(para_impl_wait_ptr<WT>  p)
 {
-//    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
+    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
 	::ff::rt::schedule(p);
 }
 }//end namespace internal

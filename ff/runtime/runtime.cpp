@@ -24,7 +24,9 @@ runtime::runtime()
 runtime::~runtime()
     {
 		m_bAllThreadsQuit = true;
+		_DEBUG(LOG_INFO(thread)<<"runtime::~runtime(), start killing worker thread...";)
         m_pTP->join();
+		
     }		
 	
 	    void	runtime::schedule(task_base_ptr p)
@@ -47,10 +49,7 @@ runtime::~runtime()
         //LOG_INFO(thread)<<"take_one_task_and_run() fetch task ? "<<b;
         if(b)
         {
-            //LOG_INFO(thread)<<"runtime::take_one_task_and_run, got task "<<pTask.get();
             pTask->run();
-			if(pTask->isDelByRT())
-				delete pTask;
         }
         return b;
     }
@@ -69,8 +68,25 @@ runtime::~runtime()
         }
     }
 
-
-
+    bool		runtime::steal_one_task_and_run(size_t cur_id)
+	{
+		size_t dis = 1;
+        bool b = false;
+        size_t ts = m_oQueues.size();
+        task_base_ptr pTask;
+        while((cur_id + dis)%ts !=cur_id)
+        {
+			if(m_oQueues[(cur_id + dis)%ts]->steal(pTask))
+            {
+                pTask->run();
+                b = true;
+                break;
+            }
+            dis ++;
+		}
+		return b;
+	}
+#if 0
     bool		runtime::steal_one_task_and_run(size_t cur_id)
     {
         size_t dis = 1;
@@ -82,8 +98,6 @@ runtime::~runtime()
             if(m_oQueues[(cur_id + dis)%ts]->steal(pTask))
             {
                 pTask->run();
-				if(pTask->isDelByRT())
-					delete pTask;
                 b = true;
           //      break;
             }
@@ -97,8 +111,6 @@ runtime::~runtime()
 					{
 						pTask->run();
 						b = true;
-						if(pTask->isDelByRT())
-							delete pTask;
 					}
 				}
 				else
@@ -107,8 +119,6 @@ runtime::~runtime()
 					if(m_pGlobalTasks->pop(pTask))
 					{
 						pTask->run();
-						if(pTask->isDelByRT())
-							delete pTask;
 						b = true;
 					}
 					//if(b == false)
@@ -119,6 +129,6 @@ runtime::~runtime()
         //}
         return b;
     }
-	
+#endif
 }//end namespace rt
 }//end namespace ff

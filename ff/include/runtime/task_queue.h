@@ -8,7 +8,7 @@
 namespace ff {
 namespace rt {
 
-#if 1
+#if 0
 	typedef internal::ring_buff<task_base_ptr, 64> task_block;
 	typedef internal::ring_buff<task_base_ptr, 128> local_task_block;
 	typedef std::shared_ptr<task_block> task_block_ptr;
@@ -124,8 +124,10 @@ public:
 protected:
 	local_task_block	m_oContainer;
 };
+typedef work_stealing_queue * work_stealing_queue_ptr;
+
 #endif
-#if 0
+#if 1
 typedef ff::nonblocking_queue<task_base_ptr> task_queue;
 class work_stealing_queue
 {
@@ -177,8 +179,9 @@ protected:
     std::deque<task_base_ptr> m_oContainer;
 };//end class work_stealing_queue
 
-#endif
 typedef work_stealing_queue * work_stealing_queue_ptr;
+#endif
+
 }//end namespace rt
 }//end namespace ff
 #endif
