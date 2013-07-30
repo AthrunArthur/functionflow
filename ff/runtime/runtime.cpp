@@ -44,7 +44,7 @@ runtime::~runtime()
         bool b = false;
 		_DEBUG(LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";)
         if(m_pLQueue != nullptr)
-            b = m_pLQueue->pop(pTask);
+            b = m_pLQueue->pop(pTask) || m_pGlobalTasks->pop(pTask);
         else b = m_pGlobalTasks->pop(pTask);
         //LOG_INFO(thread)<<"take_one_task_and_run() fetch task ? "<<b;
         if(b)
