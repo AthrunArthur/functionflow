@@ -9,10 +9,19 @@
 
 namespace ff {
 namespace rt {
+typedef int32_t thrd_id_t;
 
 inline size_t  hardware_concurrency(){
-	return std::thread::hardware_concurrency();
+	static int t = std::thread::hardware_concurrency();
+	return t;
 }
+inline size_t rt_concurrency()
+{
+	return hardware_concurrency() + 1;
+}
+
+thrd_id_t get_thrd_id();
+
 void	schedule(task_base_ptr p);
 
 //Give other tasks opportunities to run!

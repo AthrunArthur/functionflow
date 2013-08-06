@@ -1,6 +1,7 @@
 #ifndef FF_PARA_DATA_WRAPPER_H_
 #define FF_PARA_DATA_WRAPPER_H_
 #include "common/common.h"
+#include "runtime/rtcmn.h"
 #include <mutex>
 #include <vector>
 
@@ -16,22 +17,26 @@ namespace ff
 		template<class FT>
 		accumulator(T && value, FT && functor)
 		: m_oValue(std::move(value))
-		, Functor(std::move(functor)){}
+		, Functor(std::move(functor)){
+			for(int i = 0; i < ::ff::rt::rt_concurrency(); ++i)
+			{
+				m_pAllValues.push_back(new T(value));
+			}
+		}
 		
 		template<class FT>
 		accumulator(FT && functor)
 		: m_oValue()
-		, Functor(std::move(functor)){}
+		, Functor(std::move(functor)){
+			for(int i = 0; i < ::ff::rt::rt_concurrency(); ++i)
+			{
+				m_pAllValues.push_back(new T());
+			}
+		}
 		
 		template<class TT>
 		accumulator<T>& increase(TT && value){
-			if(plocal == nullptr)
-			{
-				plocal = new T();
-				m_oMutex.lock();
-				m_pAllValues.push_back(plocal);
-				m_oMutex.unlock();
-			}
+		  T * plocal = m_pAllValues[ff::rt::get_thrd_id()];
 		  *plocal = std::move(Functor(*plocal, std::forward<TT>(value)));
 		  return *this;
 		}
@@ -41,6 +46,7 @@ namespace ff
 			{
 				m_oValue = std::move(Functor(m_oValue, *p));
 				delete p;
+				p = nullptr;
 			}
 			return m_oValue;
 		}

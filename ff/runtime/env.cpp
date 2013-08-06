@@ -7,12 +7,17 @@
 #include <iostream>
 namespace ff {
 namespace rt {
+static thread_local thrd_id_t id = 0;
 
 std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
 runtime_ptr runtime::s_pInstance(nullptr);
 std::once_flag		runtime::s_oOnce;
 thread_local work_stealing_queue_ptr runtime::m_pLQueue(nullptr);
 
+thrd_id_t get_thrd_id()
+{
+	return id;
+}
 runtime_ptr 	runtime::instance()
 {
 	if(!s_pInstance)
@@ -30,10 +35,11 @@ void			runtime::init()
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
     }
   //  LOG_INFO(thread)<<"runtime::init, thread num:"<<thrd_num;
-    for(int i = 0; i< thrd_num; ++i)
+    for(int i = 1; i< thrd_num + 1; ++i)
 	{
 		s_pInstance->m_pTP->run([i](){
 			auto r = runtime::instance();
+			id = i;
 			m_pLQueue = r->m_oQueues[i].get();
 			r->thread_run(i);
 		});

@@ -1,22 +1,30 @@
+#define BOOST_TEST_MODULE test_ff
+
+#include <boost/test/unit_test.hpp>
+
 #include <iostream>
 #include <vector>
+#include <algorithm>
 #include "ff.h"
 #include "common/log.h"
 
 using namespace ff;
+#define FF_TEST_TIME 1000
 
-int foo(int t)
+
+BOOST_AUTO_TEST_SUITE(minimal_test)
+
+
+int inc(int t)
 {
-	std::cout<<"foo:"<<t<<std::endl;
 	return t + 1;
 }
-double bar(double t)
+double inc(double t)
 {
-	std::cout<<"bar:"<<t<<std::endl;
 	return t + 1;
 }
 
-
+/*
 int fib(int n)
 {
 	if(n <=2)
@@ -25,8 +33,82 @@ int fib(int n)
 	a([&n]()->int{return fib(n - 1);});
 	b([&n]()->int{return fib(n - 2);});
 	return (a && b).then([](int x, int y){return x + y;});
+}*/
+void ff_test_para()
+{
+	int num = 10;
+	para<int> a;
+	a([&num](){return inc(num);}).then([&num](int x){
+		BOOST_CHECK(x == inc(num));
+	});
+	ff::para<> b;
+	int b_res;
+	b[a]([&num, &a, &b_res](){b_res = inc(num + a.get());}).then([&num, &a, &b, &b_res](){
+		BOOST_CHECK(b_res == inc(num + a.get()));
+	});
+	
+	ff::para<int> f1;
+	ff::para<double> f2;
+	f1([](){return inc(1);});
+	f2([](){return inc(2.2);});
+	(f1 || f2).then([](int index, std::tuple<int, double> res){
+		if(index == 0)
+			BOOST_CHECK(std::get<0>(res) == inc(1));
+		else if(index == 1)
+			BOOST_CHECK(std::get<0>(res) == inc(2.2));
+	});
+	
+	ff::para<> f3;
+	f3([](){return inc(3);});
+	ff::para<double> f4;
+	f4[f3]([](){return inc(4.5);}).then([](double x){
+		BOOST_CHECK(x == inc(4.5));
+	});
+	(f3 && f4).then([](double x){
+		BOOST_CHECK(x == inc(4.5));
+	});	
 }
 
+void ff_test_paragroup()
+{
+	std::vector<int> s;
+	s.push_back(10);
+	s.push_back(11);
+	s.push_back(15);
+	s.push_back(9);
+	
+	int ssum = 0;
+	std::for_each(s.begin(), s.end(), [&ssum](int x){ssum += x;});
+	
+	ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
+	ff::paragroup pg1;
+	pg1.for_each(s.begin(), s.end(), [&sum](int x){
+	  sum.increase(x);
+	});
+	ff_wait(all(pg1));
+	
+	BOOST_CHECK(ssum == sum.get());
+	//std::cout<<"fff"<<std::endl;
+	/*
+	ff::paragroup pg2;
+	ff::single_assign<int> first;
+	pg2.for_each(s.begin(), s.end(), [&first](int x){first = x;});
+	std::cout<<"pg2 first: "<<first.get()<<std::endl;
+	*/
+}
+BOOST_AUTO_TEST_CASE(test_para)
+{
+	for(int i = 0; i < FF_TEST_TIME; ++i)
+	{
+		ff_test_para();
+		//ff_test_paragroup();
+	}
+	//std::cout<<"xxx"<<std::endl;
+}
+
+
+BOOST_AUTO_TEST_SUITE_END()
+#if 0
 int main(int argc, char *argv[])
 {	
 	_DEBUG(ff::log<>::init(ff::INFO, "log.txt"))
@@ -83,3 +165,4 @@ int main(int argc, char *argv[])
 	//LOG_INFO(main)<<"main quit!";
 	return 0;
 }
+#endif
