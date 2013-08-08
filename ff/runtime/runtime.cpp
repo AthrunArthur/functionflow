@@ -3,10 +3,13 @@
 
 namespace ff {
 namespace rt {
+  std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
+runtime_ptr runtime::s_pInstance(nullptr);
+std::once_flag		runtime::s_oOnce;
 
 
 void schedule(task_base_ptr p)
-{   runtime_ptr r = runtime::instance();
+{   static runtime_ptr r = runtime::instance();
     r->schedule(p);
 }
 
@@ -16,10 +19,11 @@ void yield()
     std::this_thread::yield();
 }
 
+
 runtime::runtime()
-    : m_pGlobalTasks(new task_queue())
-    , m_pTP(new threadpool())
+    : m_pTP(new threadpool())
     , m_oQueues()
+    , m_oLocalCtxs()
     , m_bAllThreadsQuit(false) {};
 
 runtime::~runtime()
@@ -30,13 +34,42 @@ runtime::~runtime()
 
 }
 
+runtime_ptr 	runtime::instance()
+{
+    if(!s_pInstance)
+        std::call_once(s_oOnce, runtime::init);
+    return s_pInstance;
+}
+
+void			runtime::init()
+{
+    s_pInstance = new runtime();
+    runtime_deletor::s_pInstance = std::make_shared<runtime_deletor>(s_pInstance);
+    int thrd_num = hardware_concurrency();
+    for(int i = 0; i<rt_concurrency(); ++i)
+    {
+        s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
+	s_pInstance->m_oLocalCtxs.push_back(std::unique_ptr<local_stack_queue>(new local_stack_queue()));
+    }
+    //  LOG_INFO(thread)<<"runtime::init, thread num:"<<thrd_num;
+    set_local_thrd_id(0);
+    for(int i = 1; i< thrd_num + 1; ++i)
+    {
+        s_pInstance->m_pTP->run([i]() {
+            auto r = runtime::instance();
+            set_local_thrd_id(i);
+            r->thread_run();
+        });
+    }
+    //LOG_INFO(thread)<<"runtime::init over"<<thrd_num;
+}
+
+
 void	runtime::schedule(task_base_ptr p)
 {
     _DEBUG(LOG_INFO(thread)<<"runtime::schedule() task: "<<p.get();)
-    if(m_pLQueue != nullptr)
-        m_pLQueue->push_back(p);
-    else
-        m_pGlobalTasks->push_back(p);
+    static int i = get_thrd_id();
+    m_oQueues[i] ->push_back(p);
 }
 
 bool		runtime::take_one_task_and_run()
@@ -44,33 +77,35 @@ bool		runtime::take_one_task_and_run()
     task_base_ptr pTask;
     bool b = false;
     _DEBUG(LOG_INFO(thread)<<"take_one_task_and_run() try to fetch task... ";)
-    if(m_pLQueue != nullptr)
-        b = m_pLQueue->pop(pTask);
-    else b = m_pGlobalTasks->pop(pTask);
-    //LOG_INFO(thread)<<"take_one_task_and_run() fetch task ? "<<b;
+    static int i = get_thrd_id();
+    b = m_oQueues[i]->pop(pTask);
     if(b)
     {
         pTask->run();
     }
+    else{
+      b = steal_one_task_and_run();
+    }
     return b;
 }
 
-void			runtime::thread_run(size_t index)
+void			runtime::thread_run()
 {
     //LOG_INFO(thread)<<"runtime::thread_run() id:"<<index;
     bool flag = false;
     while(!m_bAllThreadsQuit)
     {
         flag = take_one_task_and_run();
-        if(!flag)
-            flag = steal_one_task_and_run(index);
+        //if(!flag)
+        //    flag = steal_one_task_and_run();
         if(!flag)
             yield();
     }
 }
 
-bool		runtime::steal_one_task_and_run(size_t cur_id)
+bool		runtime::steal_one_task_and_run()
 {
+  static int cur_id = get_thrd_id();
     size_t dis = 1;
     bool b = false;
     size_t ts = m_oQueues.size();
@@ -87,6 +122,23 @@ bool		runtime::steal_one_task_and_run(size_t cur_id)
     }
     return b;
 }
+
+bool runtime::restore_stack_and_run()
+{
+  static int cur_id = get_thrd_id();
+  static local_stack_queue * p = m_oLocalCtxs[cur_id].get();
+  CHECK_CTXS:
+  for(local_stack_queue::iterator i = p->begin(); i != p->end(); i++)
+  {
+    ctx_pdict_ptr tp = * i;
+    if(tp->pdict())
+    {
+      p->erase(i);
+      longjmp(tp->ctx.get(), 1);
+    }
+  }
+}
+
 #if 0
 bool		runtime::steal_one_task_and_run(size_t cur_id)
 {

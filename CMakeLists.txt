@@ -14,7 +14,10 @@ include_directories(${PROJECT_SOURCE_DIR}/ff/include)
 link_directories(ff/build)
 #SET(LIBS_LINK_DIRS "/home/athrun/boost_1_46_1/stage/lib")
 #SET(LIBS_LINK_LIBS boost_date_time boost_thread log4cplus)
-SET(ff_src ff/runtime/env.cpp ff/runtime/runtime.cpp ff/para/para.cpp ff/common/common.cpp)
+SET(ff_src ff/runtime/env.cpp 
+  ff/runtime/runtime.cpp 
+  ff/para/para.cpp 
+  ff/common/common.cpp)
 ADD_LIBRARY(ff SHARED ${ff_src})
 ADD_LIBRARY(ff_s STATIC ${ff_src})
 target_link_libraries(ff pthread)

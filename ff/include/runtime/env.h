@@ -8,42 +8,41 @@
 
 namespace ff {
 namespace rt {
+typedef int32_t thrd_id_t;
+
+inline size_t  hardware_concurrency(){
+	static int t = std::thread::hardware_concurrency();
+	return t;
+}
+inline size_t rt_concurrency()
+{
+	return hardware_concurrency() + 1;
+}
+
+thrd_id_t get_thrd_id();
+
+void set_local_thrd_id(thrd_id_t i);
+
   struct ctx_pdict{
     ::ff::jmp_buf_ptr ctx;
     std::function<bool ()> pdict;
   };
+  typedef ctx_pdict * ctx_pdict_ptr;
   
-  /*
-class RTThreadInfo
+  template <class F>
+ctx_pdict_ptr make_ctx_pdict_ptr(  F && f)
 {
-protected:
-	RTThreadInfo()
-	: m_oEntryPoint(::ff::make_shared_jmp_buf())
-	, m_bIsMainThread(true)
-	, m_oToExeCtxs(){}
-public:
-	typedef std::vector< ctx_pdict > ctx_predicate;
-	
-	static std::shared_ptr<RTThreadInfo> instance();
-	
-	::ff::jmp_buf_ptr get_entry_point() const {return m_oEntryPoint;}
-	
-	ctx_predicate & get_to_exe_ctxs() {return m_oToExeCtxs;}
-	
-	void	check_and_run_paused_ctx();
-	
-	void	erase_runned_ctx(::ff::jmp_buf_ptr ctx);
-	
-	void	clear_main_thread(){m_bIsMainThread = false;}
-	
-	bool	is_main_thread(){return m_bIsMainThread;}
-protected:
-	thread_local static std::shared_ptr<RTThreadInfo> s_pInstance;
-	::ff::jmp_buf_ptr m_oEntryPoint;
-	bool		m_bIsMainThread;
-	ctx_predicate m_oToExeCtxs;
-};//end class RTThreadInfo
-*/
+  ctx_pdict_ptr p = new ctx_pdict();
+  p->ctx = make_shared_jmp_buf();
+  p->pdict = std::bind([f](){f();});
+  return p;
+}
+
+inline void free_ctx_pdict_ptr(ctx_pdict_ptr p)
+{
+  delete p;
+}
+
 
 }//end namespace rt
 }//end namespace ff

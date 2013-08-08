@@ -4,6 +4,8 @@
 #include "runtime/task_queue.h"
 #include "runtime/threadpool.h"
 #include <memory>
+#include "runtime/env.h"
+
 #include "common/log.h"
 
 namespace ff {
@@ -22,8 +24,8 @@ protected:
     runtime(const runtime &) = delete;
 
 public:
-	
-	virtual ~runtime();
+
+    virtual ~runtime();
     static runtime_ptr 	instance();
 
     void	schedule(task_base_ptr p);
@@ -32,22 +34,25 @@ public:
 
 protected:
     //each thread run
-    void			thread_run(size_t index);
+    void			thread_run();
 
 
-    bool		steal_one_task_and_run(size_t cur_id);
+    bool		steal_one_task_and_run();
 
-    static void			init();
+    bool		restore_stack_and_run();
     
+    static void			init();
+
 protected:
-    std::unique_ptr<task_queue> 		m_pGlobalTasks;
     std::unique_ptr<threadpool> 		m_pTP;
     std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
-	thread_local static work_stealing_queue *				m_pLQueue;
+    std::vector<std::unique_ptr<local_stack_queue> > m_oLocalCtxs;
+    
+//    thread_local static work_stealing_queue *				m_pLQueue;
     std::atomic< bool>  				m_bAllThreadsQuit;
 
     static runtime_ptr s_pInstance;
-	static std::once_flag			s_oOnce;
+    static std::once_flag			s_oOnce;
 };//end class runtime
 
 

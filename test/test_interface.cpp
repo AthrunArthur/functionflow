@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE(test_para)
 	for(int i = 0; i < FF_TEST_TIME; ++i)
 	{
 		ff_test_para();
-		//ff_test_paragroup();
+		ff_test_paragroup();
 	}
 	//std::cout<<"xxx"<<std::endl;
 }
