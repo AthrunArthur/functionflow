@@ -29,7 +29,7 @@ public:
     static runtime_ptr 	instance();
 
     void	schedule(task_base_ptr p);
-
+    
     bool		take_one_task_and_run();
 
 protected:
@@ -38,15 +38,12 @@ protected:
 
 
     bool		steal_one_task_and_run();
-
-    bool		restore_stack_and_run();
     
     static void			init();
 
 protected:
     std::unique_ptr<threadpool> 		m_pTP;
     std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
-    std::vector<std::unique_ptr<local_stack_queue> > m_oLocalCtxs;
     
 //    thread_local static work_stealing_queue *				m_pLQueue;
     std::atomic< bool>  				m_bAllThreadsQuit;

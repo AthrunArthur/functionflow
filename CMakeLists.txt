@@ -10,7 +10,7 @@ add_definitions(-DNDEBUG)
 SET(DEBUG_DEFS "")
 
 include_directories(${PROJECT_SOURCE_DIR}/ff/include)
-#include_directories(/home/athrun/projects/ff)
+#include_directories(/root/projects/ff)
 link_directories(ff/build)
 #SET(LIBS_LINK_DIRS "/home/athrun/boost_1_46_1/stage/lib")
 #SET(LIBS_LINK_LIBS boost_date_time boost_thread log4cplus)

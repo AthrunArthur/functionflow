@@ -7,7 +7,7 @@
 #include <iostream>
 namespace ff {
 namespace rt {
-static thread_local thrd_id_t id = 0;
+thread_local static thrd_id_t id = 0;
 
 
 

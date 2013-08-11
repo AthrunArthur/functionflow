@@ -8,8 +8,9 @@ add_definitions(-g)
 
 
 include_directories(${PROJECT_SOURCE_DIR}/../ff/include)
-include_directories(/home/athrun/boost_1_53_0/)
-SET(LIBS_LINK_DIRS "/home/athrun/boost_1_53_0/stage/lib" ${PROJECT_SOURCE_DIR}/../build)
+include_directories(/home/athrun/boost_1_54_0/)
+include_directories(/root/projects/ff)
+SET(LIBS_LINK_DIRS "/home/athrun/boost_1_54_0/stage/lib" ${PROJECT_SOURCE_DIR}/../build)
 SET(LIBS_LINK_LIBS boost_test_exec_monitor)
 
 SET(SRC_LIST test_interface.cpp)
@@ -32,3 +33,10 @@ LINK_DIRECTORIES(${LIBS_LINK_DIRS})
 ADD_DEFINITIONS(${DEBUG_DEFS})
 ADD_EXECUTABLE(fib ${SRC_FIB})
 TARGET_LINK_LIBRARIES(fib ${LIBS_LINK_LIBS} ff pthread)
+
+SET(SRC_JMP test_jmp.cpp)
+#add_definitions(-g)
+LINK_DIRECTORIES(${LIBS_LINK_DIRS})
+ADD_DEFINITIONS(${DEBUG_DEFS})
+ADD_EXECUTABLE(test_jmp ${SRC_JMP})
+TARGET_LINK_LIBRARIES(test_jmp ${LIBS_LINK_LIBS} ff pthread)

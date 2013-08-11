@@ -34,7 +34,7 @@ ctx_pdict_ptr make_ctx_pdict_ptr(  F && f)
 {
   ctx_pdict_ptr p = new ctx_pdict();
   p->ctx = make_shared_jmp_buf();
-  p->pdict = std::bind([f](){f();});
+  p->pdict = f;//std::bind([f](){f();});
   return p;
 }
 

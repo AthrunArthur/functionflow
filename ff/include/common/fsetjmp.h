@@ -2,7 +2,8 @@
 #ifndef FF_COMMON_FSETJMP_H_
 #define FF_COMMON_FSETJMP_H_
 #include <csetjmp>
-
+#include <sstream>
+#include <string>
 namespace ff{
 template<class T>
 struct array_len {};
@@ -21,5 +22,6 @@ inline jmp_buf_ptr make_shared_jmp_buf()
 					[](jmp_buf_primitive *p){delete p;});
 }
 
+std::string dump_ctx(jmp_buf p);
 }//end namespace ff
 #endif
