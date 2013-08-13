@@ -2,125 +2,102 @@
 #define FF_RNTIME_RING_BUFF_H_
 #include "common/common.h"
 
-namespace ff{
-	namespace internal{
-		
-		//N should be power of 2, for example 256
-		
-		template <size_t N>
-		class seq_num{
-		public:
-			seq_num(int n = 0)
-			: m_num(n){}
-			
-			seq_num<N>& increment()
-			{
-				m_num ++;
-				if(m_num == N)
-					m_num = 0;
-				return *this;
-			}
-			
-			seq_num<N>& decrement()
-			{
-				m_num --;
-				if(m_num <0)
-					m_num = N - 1;
-				return *this;
-			}
-			
-			seq_num<N>& add(size_t t)
-			{
-				m_num = (m_num + t)&(N-1);
-				return *this;
-			}
-			
-			seq_num<N> & set(size_t t)
-			{
-				m_num = t&(N-1);
-				return *this;
-			}
-			
-			seq_num<N> & sub(size_t t)
-			{
-				m_num = (m_num -t)&(N-1);
-				return *this;
-			}
-			
-			bool operator ==(const seq_num<N> & n) const
-			{
-				return m_num.load() == n.m_num.load();
-			}
-			std::atomic<int> &	num(){return m_num;}
-			const std::atomic<int> & num()const {return m_num;}
-		protected:
-			std::atomic<int> m_num;
-			char _pad[CACHE_LINE_SIZE -sizeof(std::atomic<int>)];
-		};//end class seq_num;
-		
-		template <class Ty_, size_t N>
-		class ring_buff{
-		public:
-			const static size_t SIZE = N;
-			ring_buff()
-			: front(0)
-			, back(0){}
-			
-			template<size_t NN>
-			void		copy_from(ring_buff<Ty_, NN> * pt)
-			{
-				int base = front.num().load();
-				int pbase = pt->front.num().load();
-				for(int i = 0; i < NN; ++i)
-				{
-					buf[base +i] = std::move(pt->buf[pbase+i]);
-				}
-				front.add(NN);
-			}
-			bool		is_empty() const
-			{
-				return back == front;
-			}
-			bool		is_full()
-			{
-				return (front.num().load() + 1 == back.num().load());
-			}
-			
-			bool 		push_front(const Ty_ & t)
-			{
-				if(is_full())
-					return false;
-				buf[front.num().load()] = t;
-				front.increment();
-				return true;
-			}
-			bool		pop_front(Ty_ & t)
-			{
-				if(is_empty())
-					return false;
-				front.decrement();
-				t = buf[front.num().load()];
-				
-				return true;
-			}
-			bool		pop_back(Ty_& t)
-			{
-				if(is_empty())
-					return false;
-				t = buf[back.num().load()];
-				back.increment();
-				return true;
-			}
-			
-			size_t  size()const
-			{
-				return (front.num() - back.num())&(N-1);
-			}
+namespace ff {
+namespace internal {
 
-			seq_num<N>	front;
-			seq_num<N>	back;
-			Ty_		buf[N];
-		};//class ring_buff
-	}//end namespace internal
+//N , 2^N.
+template <class T, size_t N>
+class nonblocking_stealing_queue
+{
+  const static uint64_t INITIAL_SIZE=1<<N;
+protected:
+  struct meta_data{
+    T * array;
+    int64_t  head;
+    int64_t  tail;
+    uint64_t cap;
+  };
+public:
+  nonblocking_stealing_queue()
+  {
+    meta_data md;
+    md.array = new T[1<<N];
+    md.head=0;
+    md.tail = 0;
+    md.cap = 1<<N;
+    m.store(md);
+  }
+  
+  void push_back(const T & val)
+  {
+    meta_data ld = m.load();
+    if(ld.head-ld.tail == ld.cap)
+    {  resize(ld.cap<<1);
+       ld = m.load();
+    }
+    auto mask = ld.cap -1;
+    ld.array[ld.head&mask] = val;
+    ld.head ++;
+    m.store(ld);
+  }
+  
+  bool pop(T & val)
+  {
+    meta_data ld = m.load();
+    if(ld.head == ld.tail)
+      return false;
+    if(ld.head - ld.tail >= ld.cap>>2 && 
+      ld.head-ld.tail > INITIAL_SIZE)
+    {  
+      resize(ld.cap>>1);
+      ld = m.load();
+    }
+    auto mask = ld.cap - 1;
+    auto p = ld.head -1;
+    ld.head --;
+    m.store(ld);
+    val = ld.array[p&mask];
+    return true;
+  }
+  
+  bool steal(T & val)
+  {
+    while(1)
+    {
+      meta_data ld = m.load();
+      if(ld.head == ld.tail)
+	return false;
+      auto mask = ld.cap - 1;
+      val = ld.array[ld.tail & mask];
+      meta_data ep = ld;
+      ep.tail ++;
+      if(m.compare_exchange_strong(&ld, ep))
+	return true;
+    }
+  }
+protected:
+
+  
+  void		resize(uint64_t s)
+  {
+    auto c1 = new T[s];
+    auto tm = m.load();
+    auto mask = tm.cap-1;
+    int64_t j = 0;
+    for(int64_t i = tm.tail, j = 0; i< tm.head; ++i, ++j)
+    {
+      c1[j] = tm.array[i&mask];
+    }
+    tm.array = c1;
+    tm.tail = 0;
+    tm.head = j;
+    tm.cap = s;
+    m.store(tm);
+  }
+protected:
+  std::atomic<meta_data> m;
+};//end class nonblocking_stealing_queue
+
+}//end namespace internal
 }//end namespace ff
 #endif
