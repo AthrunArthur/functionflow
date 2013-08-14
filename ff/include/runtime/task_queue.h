@@ -12,20 +12,22 @@ namespace rt {
 
 
 #if 1
-class work_stealing_queue
+  
+template<class T>
+class mutex_stealing_queue
 {
 public:
-    work_stealing_queue(const work_stealing_queue & ) = delete;
-    work_stealing_queue operator =(const work_stealing_queue &) = delete;
-    work_stealing_queue() { }
+    mutex_stealing_queue(const mutex_stealing_queue<T> & ) = delete;
+    mutex_stealing_queue<T> operator =(const mutex_stealing_queue<T> &) = delete;
+    mutex_stealing_queue() { }
 
-    void push_back(const task_base_ptr & val)
+    void push_back(const T & val)
     {
         std::unique_lock<std::mutex> ul(m_oMutex);
         m_oContainer.push_back(std::move(val));
     }
 
-    bool pop(task_base_ptr & val)
+    bool pop(T & val)
     {
         std::unique_lock<std::mutex> ul(m_oMutex);
 
@@ -36,7 +38,7 @@ public:
         return true;
     }
 
-    bool steal(task_base_ptr &val)
+    bool steal(T &val)
     {
         std::unique_lock<std::mutex> ul(m_oMutex);
 
@@ -59,9 +61,11 @@ public:
     }
 protected:
     mutable std::mutex  m_oMutex;
-    std::deque<task_base_ptr> m_oContainer;
-};//end class work_stealing_queue
+    std::deque<T> m_oContainer;
+};//end class mutex_stealing_queue
 
+
+typedef nonblocking_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 typedef work_stealing_queue * work_stealing_queue_ptr;
 #endif
 

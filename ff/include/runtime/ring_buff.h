@@ -3,99 +3,120 @@
 #include "common/common.h"
 
 namespace ff {
-namespace internal {
+namespace rt {
 
 //N , 2^N.
 template <class T, size_t N>
 class nonblocking_stealing_queue
 {
     const static uint64_t INITIAL_SIZE=1<<N;
-protected:
-    struct meta_data {
-        T * array;
-        int64_t  head;
-        int64_t  tail;
-        uint64_t cap;
-    };
 public:
     nonblocking_stealing_queue()
     {
-        meta_data md;
-        md.array = new T[1<<N];
-        md.head=0;
-        md.tail = 0;
-        md.cap = 1<<N;
-        m.store(md);
+        array = new T[1<<N];
+        head=0;
+        tail = 0;
+        cap = 1<<N;
+	version.store(0);
+    }
+    ~nonblocking_stealing_queue()
+    {
+      if(array != nullptr)
+      {
+	delete[] array;
+      }
     }
 
     void push_back(const T & val)
     {
-        meta_data ld = m.load();
-        if(ld.head-ld.tail == ld.cap)
-        {   resize(ld.cap<<1);
-            ld = m.load();
+      std::atomic_thread_fence(std::memory_order_acquire);
+        if(head-tail == cap)
+        {   
+	  resize(cap<<1);
+	  std::atomic_thread_fence(std::memory_order_release);
         }
-        auto mask = ld.cap -1;
-        ld.array[ld.head&mask] = val;
-        ld.head ++;
-        m.store(ld);
+        auto mask = cap -1;
+        array[head&mask] = val;
+        head ++;
+        std::atomic_thread_fence(std::memory_order_release);
     }
 
     bool pop(T & val)
     {
-        meta_data ld = m.load();
-        if(ld.head == ld.tail)
+        std::atomic_thread_fence(std::memory_order_acquire);
+        if(head == tail)
             return false;
-        if(ld.head - ld.tail >= ld.cap>>2 &&
-                ld.head-ld.tail > INITIAL_SIZE)
+        if(head - tail >= cap>>2 &&
+                head-tail > INITIAL_SIZE)
         {
-            resize(ld.cap>>1);
-            ld = m.load();
+            resize(cap>>1);
+            std::atomic_thread_fence(std::memory_order_release);
         }
-        auto mask = ld.cap - 1;
-        auto p = ld.head -1;
-        ld.head --;
-        m.store(ld);
-        val = ld.array[p&mask];
+        auto mask = cap - 1;
+        auto p = head -1;
+        head --;
+        std::atomic_thread_fence(std::memory_order_release);
+        val = array[p&mask];
+	
         return true;
     }
 
     bool steal(T & val)
     {
-        while(1)
-        {
-            meta_data ld = m.load();
-            if(ld.head == ld.tail)
-                return false;
-            auto mask = ld.cap - 1;
-            val = ld.array[ld.tail & mask];
-            meta_data ep = ld;
-            ep.tail ++;
-            if(m.compare_exchange_strong(&ld, ep))
-                return true;
-        }
+      BEGIN:
+      std::atomic_thread_fence(std::memory_order_acquire);
+      uint64_t l = version.load();
+      if(l & 1 || head == tail)
+	return false;
+      auto mask = cap - 1;
+      if(!version.compare_exchange_strong(l, l + 1))
+	goto BEGIN;
+      val = array[tail % mask];
+      tail ++;
+      std::atomic_thread_fence(std::memory_order_release);
+      auto el = l + 1;
+      auto b = version.compare_exchange_strong(el, l + 2);
+      assert(b && "should always be true");
     }
 protected:
     void		resize(uint64_t s)
     {
         auto c1 = new T[s];
-        auto tm = m.load();
-        auto mask = tm.cap-1;
+        auto mask = cap-1;
         int64_t j = 0;
-        for(int64_t i = tm.tail, j = 0; i< tm.head; ++i, ++j)
+	
+	bool b = false;
+	uint64_t l = 0;
+	while(!b)
+	{
+	  l = version.load();
+	  auto el = l & VER_MASK;
+	  b = version.compare_exchange_strong(el, l+1);
+	}
+	
+        for(int64_t i = tail, j = 0; i< head; ++i, ++j)
         {
-            c1[j] = tm.array[i&mask];
+            c1[j] = array[i&mask];
         }
-        tm.array = c1;
-        tm.tail = 0;
-        tm.head = j;
-        tm.cap = s;
-        m.store(tm);
+        auto temp = array;
+        array = c1;
+        tail = 0;
+        head = j;
+        cap = s;
+	b = version.compare_exchange_strong(l, l + 2);
+	assert(b && "Should always be true!");
+	delete temp;
     }
 protected:
-    std::atomic<meta_data> m;
+  const static uint64_t VER_MASK=~1;
+  std::atomic<uint64_t> version;
+  
+    T * array;
+    int64_t  head;
+    int64_t  tail;
+    uint64_t cap;
 };//end class nonblocking_stealing_queue
 
-}//end namespace internal
+}//end namespace rt
 }//end namespace ff
 #endif
