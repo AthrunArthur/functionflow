@@ -103,7 +103,8 @@ protected:
         tail = 0;
         head = j;
         cap = s;
-	b = version.compare_exchange_strong(l, l + 2);
+	auto el = l+1;
+	b = version.compare_exchange_strong(el, l + 2);
 	assert(b && "Should always be true!");
 	delete temp;
     }
@@ -112,8 +113,8 @@ protected:
   std::atomic<uint64_t> version;
   
     T * array;
-    int64_t  head;
-    int64_t  tail;
+    std::atomic_llong  head;
+    std::atomic_llong  tail;
     uint64_t cap;
 };//end class nonblocking_stealing_queue
 

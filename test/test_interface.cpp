@@ -106,7 +106,6 @@ BOOST_AUTO_TEST_CASE(test_para)
 	//std::cout<<"xxx"<<std::endl;
 }
 
-
 BOOST_AUTO_TEST_SUITE_END()
 #if 0
 int main(int argc, char *argv[])
