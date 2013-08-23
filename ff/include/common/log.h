@@ -2,7 +2,7 @@
 #define COMMON_LOG_H_
 #define SYNC_WRITING_LOG
 
-#include "ff/log.h"
+//#include "ff/log.h"
 
 
 

@@ -23,39 +23,33 @@ public:
     {
       if(array != nullptr)
       {
-	delete[] array;
+	delete[] array.load();
       }
     }
 
     void push_back(const T & val)
     {
-      std::atomic_thread_fence(std::memory_order_acquire);
         if(head-tail == cap)
         {   
-	  resize(cap<<1);
-	  std::atomic_thread_fence(std::memory_order_release);
+	  resize(cap.load()<<1);
         }
         auto mask = cap -1;
         array[head&mask] = val;
         head ++;
-        std::atomic_thread_fence(std::memory_order_release);
     }
 
     bool pop(T & val)
     {
-        std::atomic_thread_fence(std::memory_order_acquire);
         if(head == tail)
             return false;
         if(head - tail >= cap>>2 &&
                 head-tail > INITIAL_SIZE)
         {
-            resize(cap>>1);
-            std::atomic_thread_fence(std::memory_order_release);
+            resize(cap.load()>>1);
         }
         auto mask = cap - 1;
         auto p = head -1;
         head --;
-        std::atomic_thread_fence(std::memory_order_release);
         val = array[p&mask];
 	
         return true;
@@ -64,7 +58,6 @@ public:
     bool steal(T & val)
     {
       BEGIN:
-      std::atomic_thread_fence(std::memory_order_acquire);
       uint64_t l = version.load();
       if(l & 1 || head == tail)
 	return false;
@@ -73,10 +66,10 @@ public:
 	goto BEGIN;
       val = array[tail % mask];
       tail ++;
-      std::atomic_thread_fence(std::memory_order_release);
       auto el = l + 1;
       auto b = version.compare_exchange_strong(el, l + 2);
       assert(b && "should always be true");
+      return true;
     }
 protected:
     void		resize(uint64_t s)
@@ -98,7 +91,7 @@ protected:
         {
             c1[j] = array[i&mask];
         }
-        auto temp = array;
+        auto temp = array.load();
         array = c1;
         tail = 0;
         head = j;
@@ -106,16 +99,16 @@ protected:
 	auto el = l+1;
 	b = version.compare_exchange_strong(el, l + 2);
 	assert(b && "Should always be true!");
-	delete temp;
+	delete[] temp;
     }
 protected:
   const static uint64_t VER_MASK=~1;
   std::atomic<uint64_t> version;
   
-    T * array;
+    std::atomic<T *> array;
     std::atomic_llong  head;
     std::atomic_llong  tail;
-    uint64_t cap;
+    std::atomic_ullong cap;
 };//end class nonblocking_stealing_queue
 
 }//end namespace rt
