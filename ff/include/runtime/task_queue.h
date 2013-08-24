@@ -64,7 +64,7 @@ protected:
     std::deque<T> m_oContainer;
 };//end class mutex_stealing_queue
 
-
+//typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
 typedef nonblocking_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 typedef work_stealing_queue * work_stealing_queue_ptr;
 #endif

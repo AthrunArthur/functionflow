@@ -3,6 +3,7 @@
 #include "common/common.h"
 #include "common/function_traits.h"
 #include "runtime/rtcmn.h"
+#include "runtime/runtime.h"
 #include "para/para_impl.h"
 
 namespace ff {

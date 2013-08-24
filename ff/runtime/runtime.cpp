@@ -73,11 +73,12 @@ bool		runtime::take_one_task_and_run()
 {
     task_base_ptr pTask;
     bool b = false;
-    _DEBUG(LOG_INFO(thread)<<"take_one_task_and_run() id:"<<get_thrd_id()<<" try to fetch task... ";)
+    
     thread_local static int i = get_thrd_id();
     b = m_oQueues[i]->pop(pTask);
     if(b)
     {
+        _DEBUG(LOG_INFO(thread)<<"take_one_task_and_run() id:"<<get_thrd_id()<<" get task... "<<pTask.get();)
         pTask->run();
     }
     else{

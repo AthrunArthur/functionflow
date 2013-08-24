@@ -25,11 +25,19 @@ struct bin_wait_func_deducer{
 	
 	template<class FT, class T1, class T2>
 	static void 	void_func_or( FT && f, T1 && t1, T2 && t2){
-		f(0, std::make_tuple(t1.get(), t2.get()));}
+	  int i = 0;
+	  if(t1.get_state() == exe_state::exe_over) i = 0;
+	  else if(t2.get_state() == exe_state::exe_over) i = 1;
+		f(i, std::make_tuple(t1.get(), t2.get()));}
 	template<class FT, class T1, class T2>
 	static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
 	-> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
-	{return f(0, std::make_tuple(t1.get(), t2.get()));}
+	{
+	  int i = 0;
+	  if(t1.get_state() == exe_state::exe_over) i = 0;
+	  else if(t2.get_state() == exe_state::exe_over) i = 1;
+	  return f(i, std::make_tuple(t1.get(), t2.get()));
+	}
 	
 	template<class T1, class T2>
 	pair &&  wrap_ret_values(T1 && t1, T2 && t2)

@@ -243,7 +243,7 @@ template<class WT>
 void	schedule(para_impl_wait_ptr<WT>  p)
 {
     ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
-	::ff::rt::schedule(p);
+//  ::ff::rt::schedule(p);
 }
 }//end namespace internal
 }//end namespace ff

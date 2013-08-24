@@ -1,6 +1,11 @@
 #ifndef FF_RNTIME_RING_BUFF_H_
 #define FF_RNTIME_RING_BUFF_H_
 #include "common/common.h"
+#include "common/scope_guard.h"
+#include "runtime/hazard_pointer.h"
+#include "runtime/rtcmn.h"
+#include "common/spin_lock.h"
+#include "common/log.h"
 
 namespace ff {
 namespace rt {
@@ -17,7 +22,9 @@ public:
         head=0;
         tail = 0;
         cap = 1<<N;
-	version.store(0);
+	
+	thieves.store(0);
+	is_resizing.store(false);
     }
     ~nonblocking_stealing_queue()
     {
@@ -33,8 +40,9 @@ public:
         {   
 	  resize(cap.load()<<1);
         }
-        auto mask = cap -1;
-        array[head&mask] = val;
+        auto mask = cap.load() -1;
+        array[head.load()&mask] = val;
+	_DEBUG(LOG_INFO(queue)<<"mask:"<<mask<<" pos:"<<(head.load()&mask));
         head ++;
     }
 
@@ -42,73 +50,94 @@ public:
     {
         if(head == tail)
             return false;
-        if(head - tail >= cap>>2 &&
+	
+        if(head - tail <= cap>>2 &&
                 head-tail > INITIAL_SIZE)
         {
             resize(cap.load()>>1);
         }
-        auto mask = cap - 1;
-        auto p = head -1;
-        head --;
-        val = array[p&mask];
+        std::atomic<T *> & hp = get_hazard_pointer_for_cur_thrd<T>();
+	scope_guard _sg([](){}, [&hp](){hp.store(nullptr);});
 	
+	auto mask = cap.load() - 1;
+	auto h = head.load() - 1;
+	hp.store(&array[h & mask]);
+	
+	if(head == tail)
+	{
+	  return false;
+	}
+	
+	if(/*head-tail<=thieves &&*/
+	  outstanding_hazard_pointer_for<T>(hp.load()))
+	{
+	  return false;
+	}
+        
+        head.store(h);
+	
+        val = array[h&mask];
+	_DEBUG(LOG_INFO(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
         return true;
     }
 
     bool steal(T & val)
     {
-      BEGIN:
-      uint64_t l = version.load();
-      if(l & 1 || head == tail)
+      
+      while(is_resizing) yield();
+      scope_guard _sg([this](){thieves ++;}, [this](){thieves --;});
+      if(head == tail)
 	return false;
-      auto mask = cap - 1;
-      if(!version.compare_exchange_strong(l, l + 1))
-	goto BEGIN;
-      val = array[tail % mask];
+      std::atomic<T *> & hp = get_hazard_pointer_for_cur_thrd<T>();
+      
+      uint64_t t;
+      auto mask = cap-1;
+      do{
+	t = tail.load();
+	hp.store(&array[t&mask]);
+      }while(head> tail && outstanding_hazard_pointer_for<T>(hp.load()));
+      
+      if(head == tail)
+	return false;
+      
+      val = *(hp.load());
       tail ++;
-      auto el = l + 1;
-      auto b = version.compare_exchange_strong(el, l + 2);
-      assert(b && "should always be true");
       return true;
     }
 protected:
     void		resize(uint64_t s)
     {
+      _DEBUG(LOG_INFO(queue)<<"origin size:"<<cap.load()<<" -->"<<s);
         auto c1 = new T[s];
-        auto mask = cap-1;
-        int64_t j = 0;
-	
-	bool b = false;
-	uint64_t l = 0;
-	while(!b)
-	{
-	  l = version.load();
-	  auto el = l & VER_MASK;
-	  b = version.compare_exchange_strong(el, l+1);
-	}
-	
-        for(int64_t i = tail, j = 0; i< head; ++i, ++j)
+        auto mask = cap.load()-1;
+        
+	auto old_tail = tail.load();
+	int64_t i = old_tail, j = 0;
+	auto h = head.load();
+	T * temp = array.load();
+        for( j = 0, i = old_tail; i< h; ++i, ++j)
         {
-            c1[j] = array[i&mask];
+            c1[j] = temp[i&mask];
         }
-        auto temp = array.load();
+
+	is_resizing = true;
+	while(thieves.load() != 0) yield();
+	auto t2 = tail.load();
         array = c1;
-        tail = 0;
+        tail = t2 - old_tail;
         head = j;
         cap = s;
-	auto el = l+1;
-	b = version.compare_exchange_strong(el, l + 2);
-	assert(b && "Should always be true!");
+	is_resizing = false;
+	
 	delete[] temp;
     }
 protected:
-  const static uint64_t VER_MASK=~1;
-  std::atomic<uint64_t> version;
-  
     std::atomic<T *> array;
     std::atomic_llong  head;
     std::atomic_llong  tail;
     std::atomic_ullong cap;
+    std::atomic<int> thieves;
+    std::atomic<bool> is_resizing;
 };//end class nonblocking_stealing_queue
 
 }//end namespace rt

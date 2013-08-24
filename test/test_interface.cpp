@@ -53,9 +53,9 @@ void ff_test_para()
 	f2([](){return inc(2.2);});
 	(f1 || f2).then([](int index, std::tuple<int, double> res){
 		if(index == 0)
-			BOOST_CHECK(std::get<0>(res) == inc(1));
+			BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
 		else if(index == 1)
-			BOOST_CHECK(std::get<0>(res) == inc(2.2));
+			BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
 	});
 	
 	ff::para<> f3;
