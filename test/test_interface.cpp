@@ -9,7 +9,7 @@
 #include "common/log.h"
 
 using namespace ff;
-#define FF_TEST_TIME 1000
+#define FF_TEST_TIME 100000
 
 
 BOOST_AUTO_TEST_SUITE(minimal_test)

@@ -3,13 +3,14 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 MESSAGE(STATUS "This is BINARY dir" ${PROJECT_BINARY_DIR})
 MESSAGE(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
 add_definitions(-std=c++11)
-add_definitions(-g)
+#add_definitions(-g)
+add_definitions(-DUSING_LOCK_FREE_QUEUE)
 #add_definitions(_GLIBCXX_USE_SCHED_YIELD)
 
 
 include_directories(${PROJECT_SOURCE_DIR}/../ff/include)
 include_directories(/home/athrun/boost_1_54_0/)
-include_directories(/root/projects/ff)
+#include_directories(/root/projects/ff)
 SET(LIBS_LINK_DIRS "/home/athrun/boost_1_54_0/stage/lib" ${PROJECT_SOURCE_DIR}/../build)
 SET(LIBS_LINK_LIBS boost_test_exec_monitor)
 

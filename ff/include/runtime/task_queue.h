@@ -1,7 +1,11 @@
 #ifndef FF_RUNTIME_TASK_QUEUE_H_
 #define FF_RUNTIME_TASK_QUEUE_H_
+
+#ifdef USING_FF_NONBLOCKING_QUEUE
 #include "ff/blocking_queue.h"
 #include "ff/nonblocking_queue.h"
+#endif
+
 #include "runtime/taskbase.h"
 #include "runtime/ring_buff.h"
 #include <deque>
@@ -11,8 +15,7 @@ namespace ff {
 namespace rt {
 
 
-#if 1
-  
+#ifdef USING_FF_NONBLOCKING_QUEUE
 template<class T>
 class mutex_stealing_queue
 {
@@ -64,11 +67,14 @@ protected:
     std::deque<T> m_oContainer;
 };//end class mutex_stealing_queue
 
-//typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
-typedef nonblocking_stealing_queue<task_base_ptr, 8> work_stealing_queue;
+typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
 typedef work_stealing_queue * work_stealing_queue_ptr;
 #endif
 
+#ifdef USING_LOCK_FREE_QUEUE
+typedef nonblocking_stealing_queue<task_base_ptr, 8> work_stealing_queue;
+typedef work_stealing_queue * work_stealing_queue_ptr;
+#endif
 
 typedef std::vector<ctx_pdict_ptr> local_stack_queue;
 

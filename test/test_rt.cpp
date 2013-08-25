@@ -6,7 +6,7 @@
 #include "common/log.h"
 
 using namespace ff;
-#define FF_TEST_TIME 1
+#define FF_TEST_TIME 10000
 
 
 int inc(int t)
@@ -39,7 +39,7 @@ int fib(int n)
 void ff_test_para()
 {
     int num = 10;
-    /*
+    
     para<int> a;
     a([&num]() {
         return inc(num);
@@ -53,7 +53,7 @@ void ff_test_para()
     }).then([&num, &a, &b, &b_res]() {
         BOOST_CHECK(b_res == inc(num + a.get()));
     });
-*/
+
     ff::para<int> f1;
     ff::para<double> f2;
     f1([]() {
@@ -70,7 +70,7 @@ void ff_test_para()
         {   BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
         }
     });
-/*
+
     ff::para<> f3;
     f3([]() {
         return inc(3);
@@ -83,7 +83,7 @@ void ff_test_para()
     });
     (f3 && f4).then([](double x) {
         BOOST_CHECK(x == inc(4.5));
-    });*/
+    });
 }
 
 void ff_test_paragroup()
