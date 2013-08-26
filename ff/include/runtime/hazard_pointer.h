@@ -30,7 +30,7 @@ namespace ff{
 	{
 	  if(i == id)
 	    continue;
-	  if(s_pPointers[i].load() == p)
+	  if(s_pPointers[i].load(std::memory_order_acquire) == p)
 	    return true;
 	}
 	return false;
