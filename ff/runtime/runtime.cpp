@@ -1,6 +1,8 @@
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
 
+#include <pthread.h>
+
 namespace ff {
 namespace rt {
   std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
@@ -55,6 +57,11 @@ void			runtime::init()
         s_pInstance->m_pTP->run([i]() {
             auto r = runtime::instance();
             set_local_thrd_id(i);
+	    cpu_set_t cpuset;
+	    CPU_ZERO(&cpuset);
+	    CPU_SET(i -1, &cpuset);
+	    auto s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+	    _DEBUG(LOG_INFO(thread)<<"pthread_setaffinity_np ret: "<< s);
             r->thread_run();
         });
     }

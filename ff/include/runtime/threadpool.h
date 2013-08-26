@@ -6,7 +6,6 @@
 #include <functional>
 #include <iostream>
 
-
 namespace ff {
 namespace rt
 {
