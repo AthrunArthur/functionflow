@@ -1,6 +1,12 @@
 import subprocess
 import os
 
+def bubblesort(numbers):
+    for j in range(len(numbers)-1,-1,-1):
+        for i in range(j):
+            if numbers[i]>numbers[i+1]:
+                numbers[i],numbers[i+1] = numbers[i+1],numbers[i]
+
 def execute_cmd(cmd):
 	p = subprocess.Popen(cmd, shell=True, stdout = subprocess.PIPE)
 	return p.stdout.read()
@@ -15,14 +21,24 @@ if __name__ == '__main__':
 	time_path = '%s/para_time.txt' % path
 	if os.path.exists(r'%s' %time_path):
 		execute_cmd('rm %s' % time_path)
-	for i in range(3):
+	cycle = 3
+	for i in range(cycle):
 		print execute_cmd('cd %s; ./qsort_tbb %s' % (path, para_n)).strip('\n')
 	time_file = open(time_path)
 	ptime = 0
+	etime = 1
+        time_arr = []
 	for lines in time_file:
-		ptime += int(lines.strip('\n'))
-	ptime /= 3
-	print 'Average parallel time: ' + str(ptime) + 'us'
+		cur_time = int(lines.strip('\n'))
+                ptime += cur_time
+                etime *= cur_time
+                time_arr.append(cur_time)
+	ptime /= cycle
+        etime = int(etime**(1.0/cycle))
+        bubblesort(time_arr)
+        print 'Median time:' + str(time_arr[cycle/2]) + 'us'
+        print 'Arithmetic mean time: ' + str(ptime) + 'us'
+        print 'Geometric mean time: ' + str(etime) + 'us'
 	time_file.close()
 	execute_cmd('rm %s' % time_path)
 	execute_cmd('cd %s; ./qsort_tbb' % path)			
