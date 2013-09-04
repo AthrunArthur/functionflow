@@ -231,6 +231,12 @@ private:
      */
     void Hysteresis(uint8_t lowThreshold, uint8_t highThreshold);
 
+	/**
+	 * \brief Parallel version of Hysteresis
+	 */
+	void ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold);
+	
+	void HysteresisPixel(long x, long y, uint8_t highThreshold, uint8_t lowThreshold);
     /**
      * \brief Support method in hysteresis thresholding operation.
      *

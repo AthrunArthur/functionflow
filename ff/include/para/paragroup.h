@@ -136,6 +136,13 @@ protected:
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
     
+    void add(const para< void >&  p)
+	{
+		if(!m_pEntities)
+			m_pEntities = std::make_shared<std::vector<para<void> > >();
+		m_pEntities->push_back(p);
+	}
+	
 protected:
 	friend internal::wait_all all(paragroup & pg);
 	friend internal::wait_any any(paragroup & pg);

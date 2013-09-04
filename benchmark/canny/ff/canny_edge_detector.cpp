@@ -454,14 +454,21 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
-    for (x = 0; x < height; x++) {
-        for (y = 0; y < width; y++) {
-            if (GetPixelValue(x, y) >= highThreshold) {
-                SetPixelValue(x, y, 255);
-                if(isPara)
-                    this->HysteresisRecursion_para(x, y, lowThreshold);
-                else
-                    this->HysteresisRecursion(x, y, lowThreshold);
+    if(isPara)
+    {
+
+    }
+    else {
+        for (x = 0; x < height; x++) {
+            for (y = 0; y < width; y++) {
+                if (GetPixelValue(x, y) >= highThreshold) {
+                    SetPixelValue(x, y, 255);
+                    /*if(isPara)
+                        this->HysteresisRecursion_para(x, y, lowThreshold);
+                    else
+                        this->*/
+                    HysteresisRecursion(x, y, lowThreshold);
+                }
             }
         }
     }
@@ -476,6 +483,35 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
         }
     }
 }
+
+void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
+{
+    ff::paragroup pg;
+    for (x = 1; x < height; x=x+3) {
+        for (y = 1; y < width; y= y+3) {
+
+            ff::para<void> p;
+            p([this]() {
+                HysteresisPixel(x, y, highThreshold, lowThreshold);
+            });
+            pg.add(p);
+        }
+    }
+    ff_wait(all(pg));
+}
+
+void CannyEdgeDetector::HysteresisPixel(long int x, long int y,uint8_t highThreshold, uint8_t lowThreshold)
+{
+    if (GetPixelValue(x, y) >= highThreshold) {
+        SetPixelValue(x, y, 255);
+        /*if(isPara)
+            this->HysteresisRecursion_para(x, y, lowThreshold);
+        else
+            this->*/
+        HysteresisRecursion(x, y, lowThreshold);
+    }
+}
+
 
 void CannyEdgeDetector::HysteresisRecursion(long x, long y, uint8_t lowThreshold)
 {
