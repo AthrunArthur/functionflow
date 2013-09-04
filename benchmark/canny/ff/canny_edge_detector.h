@@ -244,7 +244,7 @@ private:
      * \param y Pixel y coordinate.
      * \param lowThreshold Lower threshold of hysteresis (from range of 0-255).
      */
-    void HysteresisRecursion(long x, long y, uint8_t lowThreshold);
+    bool HysteresisRecursion(long x, long y, uint8_t lowThreshold);
     /**
      * \brief Support method in hysteresis thresholding operation in parallel.
      *

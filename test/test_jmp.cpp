@@ -8,7 +8,7 @@
 using namespace ff;
 int main()
 {
-    _DEBUG(ff::log<>::init(ff::INFO, "log.txt"))
+    _DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
     _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 
     jmp_buf_ptr jbp = make_shared_jmp_buf();

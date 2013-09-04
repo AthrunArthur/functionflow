@@ -121,7 +121,7 @@ void ff_test_paragroup()
 
 int main(int argc, char *argv[])
 {
-    _DEBUG(ff::log<>::init(ff::INFO, "log.txt"))
+    _DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
     _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 
     for(int i = 0; i < FF_TEST_TIME; ++i)

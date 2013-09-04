@@ -17,12 +17,12 @@ class nonblocking_stealing_queue
     const static uint64_t INITIAL_SIZE=1<<N;
 public:
     nonblocking_stealing_queue()
-    : array(new T[1<<N])
-    , head(0)
-    , tail(0)
-    , cap(1<<N)
-    , thieves(0)
-    , is_resizing(false)
+        : array(new T[1<<N])
+        , head(0)
+        , tail(0)
+        , cap(1<<N)
+        , thieves(0)
+        , is_resizing(false)
     {
     }
     ~nonblocking_stealing_queue()
@@ -35,22 +35,22 @@ public:
 
     void push_back(const T & val)
     {
-      auto t = tail.load(std::memory_order_acquire);
+        auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
         auto a = array.load(std::memory_order_relaxed);
         if(h - t == c)
         {
             resize(c<<1);
-	    t = tail.load(std::memory_order_acquire);
-	    h = head.load(std::memory_order_relaxed);
-	    
-	    c = cap.load(std::memory_order_relaxed);
-	    a = array.load(std::memory_order_relaxed);
+            t = tail.load(std::memory_order_acquire);
+            h = head.load(std::memory_order_relaxed);
+
+            c = cap.load(std::memory_order_relaxed);
+            a = array.load(std::memory_order_relaxed);
         }
         auto mask = c -1;
         a[h&mask] = val;
-        _DEBUG(LOG_INFO(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
+        _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
         head.store(h+1, std::memory_order_release);
     }
 
@@ -67,11 +67,11 @@ public:
                 h - t > INITIAL_SIZE)
         {
             resize(c>>1);
-	    t = tail.load(std::memory_order_acquire);
-	    h = head.load(std::memory_order_relaxed);
-	    
-	    c = cap.load(std::memory_order_relaxed);
-	    a = array.load(std::memory_order_relaxed);
+            t = tail.load(std::memory_order_acquire);
+            h = head.load(std::memory_order_relaxed);
+
+            c = cap.load(std::memory_order_relaxed);
+            a = array.load(std::memory_order_relaxed);
         }
         std::atomic<T *> & hp = get_hazard_pointer_for_cur_thrd<T>();
         scope_guard _sg([]() {}, [&hp]() {
@@ -97,7 +97,7 @@ public:
         head.store(pos, std::memory_order_release);
 
         val = a[pos&mask];
-        _DEBUG(LOG_INFO(queue)<<"mask:"<<mask<<" pos:"<<(pos&mask));
+        _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(pos&mask));
         return true;
     }
 
@@ -109,21 +109,44 @@ public:
         }, [this]() {
             thieves --;
         });
-	auto t = tail.load(std::memory_order_acquire);
+		
+		auto h = head.load(std::memory_order_acquire);
+		auto c = cap.load(std::memory_order_relaxed);
+		auto a = array.load(std::memory_order_relaxed);
+		auto mask = c - 1;
+		
+		steal_lock.lock();
+		auto t = tail.load(std::memory_order_acquire);
+		if(t == head)
+		{
+			steal_lock.unlock();
+			return false;
+		}
+		T * p = &(a[t&mask]);
+		tail.store(t + 1, std::memory_order_release);
+		steal_lock.unlock();
+		val = *p;
+		return true;
+
+		
+		
+		
+		/*
+        auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
         auto a = array.load(std::memory_order_relaxed);
-	
+
         if(t == h)
             return false;
         std::atomic<T *> & hp = get_hazard_pointer_for_cur_thrd<T>();
 
         auto mask = cap-1;
         do {
-	  h = head.load(std::memory_order_acquire);
+            h = head.load(std::memory_order_acquire);
             t = tail.load(std::memory_order_acquire);
             hp.store(&array[t&mask], std::memory_order_release);
-        } while(h> t && outstanding_hazard_pointer_for<T>(hp.load(std::memory_order_relaxed)));
+        } while(h> t && outstanding_hazard_pointer_for<T>(hp.load(std::memory_order_release)));
 
         if(h == t)
             return false;
@@ -131,11 +154,12 @@ public:
         val = *(hp.load(std::memory_order_relaxed));
         tail.store(t+1, std::memory_order_release);
         return true;
+		*/
     }
 protected:
     void		resize(uint64_t s)
     {
-        _DEBUG(LOG_INFO(queue)<<"origin size:"<<cap.load()<<" -->"<<s);
+        _DEBUG(LOG_INFO(queue)<<"enter! head:"<<head.load()<<" tail:"<<tail.load()<<" origin size:"<<cap.load()<<" -->"<<s);
         auto c1 = new T[s];
         auto mask = cap.load()-1;
 
@@ -158,16 +182,18 @@ protected:
         is_resizing.store(false, std::memory_order_release);
 
         delete[] temp;
+        _DEBUG(LOG_INFO(queue)<<"exit! head:"<<head.load()<<" tail:"<<tail.load()<<" origin size:"<<cap.load()<<" -->"<<s);
     }
 protected:
-  std::atomic_llong  head;  
-  std::atomic<T *> array;
+    std::atomic_llong  head;
+    std::atomic<T *> array;
     std::atomic_ullong cap;
     std::atomic<bool> is_resizing;
-    
+
     std::atomic<int> thieves;
-    
+
     std::atomic_llong  tail;
+	ff::spinlock		steal_lock;
 };//end class nonblocking_stealing_queue
 
 }//end namespace rt

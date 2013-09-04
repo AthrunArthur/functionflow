@@ -2,6 +2,7 @@
 #include <wx/image.h>
 #include <sstream>
 // #include <iostream>
+#include "common/log.h"
 #include "canny_edge_detector.h"
 
 using namespace std;
@@ -13,7 +14,7 @@ int main(int argc, char *argv[])
     wxImage::AddHandler(bmpLoader);
 //     wxImageHandler * jpegLoader = new wxJPEGHandler();
 //     wxImage::AddHandler(jpegLoader);
-    wxString inFileName(_T("../benchmark/canny/ff/pic/bmp/lena512.bmp"));
+    wxString inFileName(_T("../../benchmark/canny/ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
 //     wxString inFileName(_T("pic/jpg/adele1.jpg"));
 //     wxString outFileName = _T("out.jpg");
@@ -48,6 +49,8 @@ int main(int argc, char *argv[])
 
     //Pre initialization thread_pool when using parallelizing.
     if(bIsPara) {
+	_DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
+	_DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
         ff::para<int> a;
         int num = 10;
         a([&num]() {

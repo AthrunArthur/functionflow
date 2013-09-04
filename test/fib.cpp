@@ -23,7 +23,7 @@ int sfib(int n )
 
 int main(int argc, char *argv[])
 {
-	_DEBUG(ff::log<>::init(ff::INFO, "log.txt"))
+	_DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
 	_DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 	
 	int num = 20;	
