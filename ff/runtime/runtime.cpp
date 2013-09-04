@@ -122,6 +122,22 @@ bool		runtime::steal_one_task_and_run()
     }
     return b;
 }
+
+bool		runtime::is_idle()
+{
+	thread_local static int cur_id = get_thrd_id();
+	thread_local static size_t ts = m_oQueues.size();
+	if(m_oQueues[cur_id]->size() != 0)
+		return false;
+	
+    size_t dis = 1;
+    while((cur_id + dis)%ts !=cur_id)
+    {
+		if(m_oQueues[(cur_id + dis)%ts]->size() != 0)
+			return false;
+		dis ++;
+	}
+}
 #if 0
 bool		runtime::steal_one_task_and_run(size_t cur_id)
 {
@@ -167,4 +183,10 @@ bool		runtime::steal_one_task_and_run(size_t cur_id)
 }
 #endif
 }//end namespace rt
+
+bool is_idle()
+{
+	static rt::runtime_ptr r = rt::runtime::instance();
+	return r->is_idle();
+}
 }//end namespace ff

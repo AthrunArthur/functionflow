@@ -110,14 +110,13 @@ public:
             thieves --;
         });
 		
-		auto h = head.load(std::memory_order_acquire);
-		auto c = cap.load(std::memory_order_relaxed);
+		auto c = cap.load(std::memory_order_acquire);
 		auto a = array.load(std::memory_order_relaxed);
 		auto mask = c - 1;
 		
 		steal_lock.lock();
 		auto t = tail.load(std::memory_order_acquire);
-		if(t == head)
+		if(t == head.load(std::memory_order_acquire))
 		{
 			steal_lock.unlock();
 			return false;
@@ -156,6 +155,11 @@ public:
         return true;
 		*/
     }
+    
+    uint64_t	size()
+	{
+		return head.load(std::memory_order_acquire) - tail.load(std::memory_order_acquire);
+	}
 protected:
     void		resize(uint64_t s)
     {

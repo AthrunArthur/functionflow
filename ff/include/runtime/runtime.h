@@ -31,6 +31,7 @@ public:
     
     bool		take_one_task_and_run();
 
+	bool		is_idle();
 protected:
     //each thread run
     void			thread_run();
