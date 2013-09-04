@@ -456,7 +456,7 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
     start = chrono::system_clock::now();
     if(isPara)
     {
-
+      this->ParaHysteresis(lowThreshold,highThreshold);
     }
     else {
         for (x = 0; x < height; x++) {
@@ -491,7 +491,7 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
         for (y = 1; y < width; y= y+3) {
 
             ff::para<void> p;
-            p([this]() {
+            p([this,&lowThreshold,&highThreshold]() {
                 HysteresisPixel(x, y, highThreshold, lowThreshold);
             });
             pg.add(p);
