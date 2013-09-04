@@ -1,9 +1,11 @@
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
 
+#include <pthread.h>
+
 namespace ff {
 namespace rt {
-  std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
+std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
 runtime_ptr runtime::s_pInstance(nullptr);
 std::once_flag		runtime::s_oOnce;
 
@@ -50,11 +52,22 @@ void			runtime::init()
     }
     _DEBUG(LOG_INFO(thread)<<"runtime::init, thread num:"<<thrd_num)
     set_local_thrd_id(0);
+
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(0, &cpuset);
+    auto s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+
     for(int i = 1; i< thrd_num + 1; ++i)
     {
         s_pInstance->m_pTP->run([i]() {
             auto r = runtime::instance();
             set_local_thrd_id(i);
+            cpu_set_t cpuset;
+            CPU_ZERO(&cpuset);
+            CPU_SET(i, &cpuset);
+            auto s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+            _DEBUG(LOG_INFO(thread)<<"pthread_setaffinity_np ret: "<< s);
             r->thread_run();
         });
     }
@@ -73,7 +86,7 @@ bool		runtime::take_one_task_and_run()
 {
     task_base_ptr pTask;
     bool b = false;
-    
+
     thread_local static int i = get_thrd_id();
     b = m_oQueues[i]->pop(pTask);
     if(b)
@@ -81,8 +94,8 @@ bool		runtime::take_one_task_and_run()
         _DEBUG(LOG_INFO(thread)<<"take_one_task_and_run() id:"<<get_thrd_id()<<" get task... "<<pTask.get();)
         pTask->run();
     }
-    else{
-      b = steal_one_task_and_run();
+    else {
+        b = steal_one_task_and_run();
     }
     return b;
 }
@@ -104,7 +117,7 @@ void			runtime::thread_run()
 
 bool		runtime::steal_one_task_and_run()
 {
-  thread_local static int cur_id = get_thrd_id();
+    thread_local static int cur_id = get_thrd_id();
     size_t dis = 1;
     bool b = false;
     size_t ts = m_oQueues.size();
@@ -113,7 +126,7 @@ bool		runtime::steal_one_task_and_run()
     {
         if(m_oQueues[(cur_id + dis)%ts]->steal(pTask))
         {
-	  _DEBUG(LOG_INFO(thread)<<"runtime::steal_one_task_and_run() id:"<<cur_id<<"get one task and run...");
+            _DEBUG(LOG_INFO(thread)<<"runtime::steal_one_task_and_run() id:"<<cur_id<<"get one task and run...");
             pTask->run();
             b = true;
             break;
