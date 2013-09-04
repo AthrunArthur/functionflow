@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	execute_cmd(cmd)
 	item = 'canny'
 	para_n = 1
-	print 'file:qsort_tbb'
+	print 'file:canny_tbb'
 	print 'Parallel time:'
 	time_path = '%s/para_time.txt' % path
 	if os.path.exists(r'%s' %time_path):
