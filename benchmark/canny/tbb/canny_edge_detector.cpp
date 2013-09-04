@@ -455,14 +455,22 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
-    for (x = 0; x < height; x++) {
-        for (y = 0; y < width; y++) {
-            if (GetPixelValue(x, y) >= highThreshold) {
-                SetPixelValue(x, y, 255);
-                if(isPara)
-                    this->HysteresisRecursion_para(x, y, lowThreshold);
-                else
-                    this->HysteresisRecursion(x, y, lowThreshold);
+    if(isPara)
+    {
+        this->ParaHysteresis(lowThreshold,highThreshold);
+    }
+    else {
+
+        for (x = 0; x < height; x++) {
+            for (y = 0; y < width; y++) {
+                if (GetPixelValue(x, y) >= highThreshold) {
+                    SetPixelValue(x, y, 255);
+                    /*if(isPara)
+                        this->HysteresisRecursion_para(x, y, lowThreshold);
+                    else
+                        this->*/
+                    HysteresisRecursion(x, y, lowThreshold);
+                }
             }
         }
     }
@@ -478,10 +486,40 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
     }
 }
 
+void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
+{
+    concurrent_vector<std::tuple< uint32_t, uint32_t > > ts;
+    for (uint32_t tx = 0; tx < height; tx++) {
+        for (uint32_t ty = 0; ty < width; ty++) {
+
+            if(GetPixelValue(tx, ty) >= highThreshold)
+            {
+                ts.push_back(make_tuple(tx, ty));
+            }
+        }
+    }
+    parallel_for_each(ts.begin(), ts.end(),
+    [this,lowThreshold,highThreshold](std::tuple<uint32_t, uint32_t> pos) {
+        HysteresisPixel(get<0>(pos), get<1>(pos), highThreshold, lowThreshold);
+    });
+    ts.clear();
+}
+
+void CannyEdgeDetector::HysteresisPixel(long int tx, long int ty,uint8_t highThreshold, uint8_t lowThreshold)
+{
+    if (GetPixelValue(tx, ty) >= highThreshold) {
+        SetPixelValue(tx, ty, 255);
+        /*if(isPara)
+            this->HysteresisRecursion_para(x, y, lowThreshold);
+        else
+            this->*/
+        HysteresisRecursion(tx, ty, lowThreshold);
+    }
+}
+
 void CannyEdgeDetector::HysteresisRecursion(long x, long y, uint8_t lowThreshold)
 {
     uint8_t value = 0;
-//     std::cout << "!";
     for (long x1 = x - 1; x1 <= x + 1; x1++) {
         for (long y1 = y - 1; y1 <= y + 1; y1++) {
             if ((x1 < height) & (y1 < width) & (x1 >= 0) & (y1 >= 0)
@@ -500,7 +538,6 @@ void CannyEdgeDetector::HysteresisRecursion(long x, long y, uint8_t lowThreshold
 
 void CannyEdgeDetector::HysteresisRecursion_para(long x, long y, uint8_t lowThreshold)
 {
-//     std::cout << "?";
     std::vector<std::pair<long,long>> neighbor_vecs;
     for (long x1 = x - 1; x1 <= x + 1; x1++) {
         for (long y1 = y - 1; y1 <= y + 1; y1++) {
@@ -515,9 +552,8 @@ void CannyEdgeDetector::HysteresisRecursion_para(long x, long y, uint8_t lowThre
     [&lowThreshold,this](std::pair<long,long> pixel_pair) {
         uint8_t value = GetPixelValue(pixel_pair.first,pixel_pair.second);
         if(value != 255 && value >= lowThreshold) {
-//             std::cout << "!";
             SetPixelValue(pixel_pair.first,pixel_pair.second,255);
-//             this->HysteresisRecursion_para(pixel_pair.first,pixel_pair.second,lowThreshold);
+// 	    this->HysteresisRecursion_para(x1, y1, lowThreshold);
         }
     });
 }
