@@ -15,8 +15,8 @@ if __name__ == '__main__':
 	path = execute_cmd('pwd').strip('\n')
 	cmd = 'cd %s; make clean; make;' % path
 	execute_cmd(cmd)
-	item = 'qsort_tbb'
-	para_n = 4
+	item = 'canny'
+	para_n = 1
 	print 'file:qsort_tbb'
 	print 'Parallel time:'
 	time_path = '%s/para_time.txt' % path
@@ -42,7 +42,7 @@ if __name__ == '__main__':
         print 'Geometric mean time: ' + str(etime) + 'us'
 	time_file.close()
 	#execute_cmd('rm %s' % time_path)
-	execute_cmd('cd %s; ./%s' % (path, item))			
+	execute_cmd('cd %s; ./%s' % (path, item))
 	time_path2 = '%s/time.txt' % path
 	time_file = open(time_path2)
 	print 'Serial time:' + time_file.read().strip('\n') + 'us'

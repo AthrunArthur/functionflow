@@ -53,7 +53,7 @@ debug: $(SOURCES)
 	$(CXX) -O0 -g -DTBB_USE_DEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb_debug $(LIBS)
 
 clean:
-	$(RM) $(PROG) *.o *.d input.txt output.txt
+	$(RM) $(PROG) *.o *.d *.txt
 
 test:
 	$(run_cmd) ./$(PROG) $(ARGS)

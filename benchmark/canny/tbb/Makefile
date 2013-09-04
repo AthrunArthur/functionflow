@@ -53,7 +53,7 @@ debug: $(SOURCES)
 	$(CXX) -O0 -g -DTBB_USE_DEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb_debug $(LIBS)
 
 clean:
-	$(RM) $(PROG) *.o *.d *~ *core* out*
+	$(RM) $(PROG) *.o *.d *~ *core* out* para_time.txt time.txt
 
 test:
 	$(run_cmd) ./$(PROG) $(ARGS)

@@ -35,6 +35,9 @@ if __name__ == '__main__':
 				#para_n = matrix_n / 2
 			elif not cmp(item,'quicksort'):
 				para_n = 4
+			elif not cmp(item,'canny'):
+				#continue
+				para_n = 1
 			print 'file:%s' % item
 			print 'Parallel time:'
 			time_path = '%s/build/benchmark/para_time.txt' % path

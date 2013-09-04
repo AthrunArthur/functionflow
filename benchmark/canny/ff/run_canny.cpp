@@ -1,6 +1,7 @@
 #include <wx/wx.h>
 #include <wx/image.h>
 #include <sstream>
+#include <fstream>
 // #include <iostream>
 #include "common/log.h"
 #include "canny_edge_detector.h"
@@ -19,24 +20,27 @@ int main(int argc, char *argv[])
 //     wxString inFileName(_T("pic/jpg/adele1.jpg"));
 //     wxString outFileName = _T("out.jpg");
     string inFileStr;
-    bool bIsPara = true;//false;
+    
+    /*Record the running time.*/
+    ofstream out_time_file;
+    
+    bool bIsPara = false;//false;
+    
     if(argc > 1) {
         stringstream ss_argv;
+        int n;// n > 0 means parallel, otherwise serial.
         ss_argv << argv[1];
-        ss_argv >> inFileStr;
-        inFileName = wxString(inFileStr.c_str(), wxConvUTF8);
+        ss_argv >> n;
+        bIsPara = (n > 0)?true:false;     
     }
     if(argc > 2) {
         stringstream ss_argv;
-        int n;// n > 0 means parallel, otherwise serial.
         ss_argv << argv[2];
-        ss_argv >> n;
-        bIsPara = (n > 0)?true:false;
-        inFileName = wxString(inFileStr.c_str(), wxConvUTF8);
+        ss_argv >> inFileStr;
+	inFileName = wxString(inFileStr.c_str(), wxConvUTF8);
+    }    
 
-    }
-
-    cout << "Input File Name " << inFileName.mb_str() << endl;
+//     cout << "Input File Name " << inFileName.mb_str() << endl;
     if (!image.LoadFile(inFileName,wxBITMAP_TYPE_BMP)) {
 //     if (!image.LoadFile(inFileName,wxBITMAP_TYPE_JPEG)) {
         cout << "Cannot open "<< inFileName.mb_str() << "!" << endl;
@@ -70,5 +74,25 @@ int main(int argc, char *argv[])
     cout << "Elapsed time: " << canny->GetHysteresisTime() << "us" << endl;
     image.SaveFile(outFileName, wxBITMAP_TYPE_BMP);
 //     image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
+    
+    if(bIsPara) {
+        out_time_file.open("para_time.txt",ios::app);
+        if(!out_time_file.is_open()) {
+            cout << "Can't open the file para_time.txt" << endl;
+            return -1;
+        }
+        out_time_file << canny->GetHysteresisTime() << endl;
+        out_time_file.close();
+    }
+    else{
+      out_time_file.open("time.txt");
+        if(!out_time_file.is_open()) {
+            cout << "Can't open the file time.txt" << endl;
+            return -1;
+        }
+        out_time_file << canny->GetHysteresisTime() << endl;
+        out_time_file.close();
+    }
+    
     return 0;
 }
