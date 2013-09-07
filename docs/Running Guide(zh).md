@@ -3,6 +3,7 @@
 	./build.sh 
 
 2.编译benchmark:(在benchmark目录下)
+
  a.编译并运行所有benchmark程序：
 	
 		python runBM.py
