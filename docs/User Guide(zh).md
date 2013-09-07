@@ -119,14 +119,16 @@ Fibonacci的计算通常使用迭代，而不是递归，本处仅将其递归�
 2. a || b，表示等待a或b的结束;
 3. any(s)，其中s表示paragroup，包含多个para对象，表示等待s中任意一个对象的结束;
 4. all(s)，表示等待s中所有para对象的结束。
+
 其中a，b表示依赖表达式或para对象，s表示paragroup（下文介绍）。在依赖表达式中可以使用（）改变优先级。
 ##3.3 在para对象中使用依赖表达式
 在FF中，可以在使用para对象时指定该para对象开始的条件，即依赖表达式的结束，一个简单的例子如下
-
+	
 	para<void> a;
 	a([](){printf("hello world\n");});
 	para<void> b;
 	b[a]([](){printf("goodbye world\n");});
+	
 类似与之前的hello world的例子，本例同样指定了两个任务的先后关系，不同的是，任务b是在另一个线程中执行，而不是当前线程。	 一个更复杂的例子如下，在下例中，我们等待任意任务的结束，并使用其返回值。
 
 	para<int> a, b;
@@ -136,25 +138,32 @@ Fibonacci的计算通常使用迭代，而不是递归，本处仅将其递归�
 	c[a && b]([&a, &b](){printf("a+b=%d", a.get() + b.get());});
 ##3.4 使用单独的依赖表达式
 在FF中，单独的依赖表达式可以配合then函数，在主线程中等待依赖表达式的结束，并执行then函数中的内容。需要注意的是，then函数中的函数对象的原型必须满足依赖表达式的限制。考虑形如
+
 	(expr).then(f)
+	
 的依赖表达式使用，则expr与f的参数列表有如下关系，其中a，b分别为依赖表达式，其返回类型分别为TA，TB，记为
 
 	a: ->TA; b: ->TB
+	
 则对于不同的expr与f有如下关系（*需要补充关于paragroup部分的函数原型问题*）
 
 	expr:  a && b -----> f(TA, TB )
 	expr:  a || b -----> f(int index, std::tuple<TA, TB>)
+	
 其中index为0则表示a结束，为1则表示b结束。特别的，若其中TA，或TB的类型为void，则f的类型自动退化，退化为非void类型参数。下面是一些表达式，及对应的f的原型。
+
 例1：
 
 	a: ->int; b: -> double;
 	a && b ----> f(int, double)
 	a || b ----> f(int index, std::tuple<int, double>)
+	
 例2：
 
 	a: ->void; b: -> double;
 	a && b ----> f(double)
 	a || b ----> f(double)
+	
 例3：
  
 	a: ->void; b: -> double; c: ->int; d: ->string;
