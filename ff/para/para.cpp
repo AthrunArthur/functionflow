@@ -10,6 +10,8 @@ wait_all::wait_all(std::shared_ptr<std::vector<para<void> > > ps)
 
 exe_state wait_all::get_state()
 {
+	if(!all_ps)
+		m_iES = exe_state::exe_over;
 	if(m_iES != exe_state::exe_over)
 	{
 		m_iES = exe_state::exe_over;
@@ -36,6 +38,9 @@ wait_any::wait_any(std::shared_ptr<std::vector<para<void> > > ps)
 
 exe_state wait_any::get_state()
 {
+	if(!all_ps)
+		m_iES = exe_state::exe_over;
+	
 	if(m_iES != exe_state::exe_over)
 	{
 		m_iES = exe_state::exe_over;

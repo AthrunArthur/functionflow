@@ -49,9 +49,9 @@ public:
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
         return deduct_t::ret_func_and(std::forward<FT>(f), m_1, m_2);
     }
-    auto get() -> typename deduct_t::wrapper_type
+    auto get() -> typename deduct_t::and_type
     {
-        return deduct_t::wrap_ret_values(m_1, m_2);
+        return deduct_t::wrap_ret_for_and(m_1, m_2);
     }
     
     exe_state	get_state()
@@ -115,9 +115,9 @@ public:
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
         return deduct_t::ret_func_or(std::forward<FT>(f), m_1, m_2);
     }
-    auto get() -> typename deduct_t::wrapper_type
+    auto get() -> typename deduct_t::or_type
     {
-        return deduct_t::wrap_ret_values(m_1, m_2);
+        return deduct_t::wrap_ret_for_or(m_1, m_2);
     }
 
     exe_state	get_state()

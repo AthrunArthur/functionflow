@@ -88,6 +88,11 @@ protected:
     {
         return para_accepted_wait<paragroup,WT>(*this, std::forward<WT>(cond));
     }
+    
+    para<void> &  operator [](int index)
+	{
+		return (*m_pEntities)[index];
+	}
     ~paragroup()
 	{
 	}
@@ -141,6 +146,11 @@ protected:
 		if(!m_pEntities)
 			m_pEntities = std::make_shared<std::vector<para<void> > >();
 		m_pEntities->push_back(p);
+	}
+	
+	void clear()
+	{
+		m_pEntities.reset();
 	}
 	
 protected:
