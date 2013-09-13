@@ -93,6 +93,10 @@ protected:
 	{
 		return (*m_pEntities)[index];
 	}
+	size_t 	size() const
+	{
+		return m_pEntities->size();
+	}
     ~paragroup()
 	{
 	}

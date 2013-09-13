@@ -1,0 +1,9 @@
+digraph G{
+  node [shape=box]
+  para [label="para:\ntemplate<class WT> auto operator[](WT && cond);\ntemplate<class F> auto operator()(F && f);\nauto get();\nauto get_state();\nbool check_if_over();"];
+  accept_wait [label = "para_accepted_wait:\ntemplate<class F> auto operator()(F && f);"];
+  accept_call [label = "para_accepted_call:\ntemplate<class F> auto then(F && f);"];
+  para ->accept_wait [label = "call operator []"];
+  para->accept_call [label = "call operator ()"];
+  accept_wait->accept_call [label = "call operator ()"];
+}

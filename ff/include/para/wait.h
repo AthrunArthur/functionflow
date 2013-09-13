@@ -20,15 +20,16 @@ public:
 	typedef bin_wait_func_deducer<typename T1_t::ret_type, typename T2_t::ret_type> deduct_t;
     typedef typename deduct_t::and_type ret_type;
 public:
-    wait_and(T1_t && t1, T2_t && t2)
+    wait_and(T1 && t1, T2 && t2)
         : m_1(t1)
         , m_2(t2)
 		, m_iES(exe_state::exe_unknown){}
-    wait_and(T1_t & t1, T2_t & t2)
+    /*
+	 wait_and(T1_t & t1, T2_t & t2)
 	: m_1(t1)
 	, m_2(t2)
 	, m_iES(exe_state::exe_unknown){}
-
+*/
     template<class FT>
     auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
@@ -85,16 +86,17 @@ public:
 	typedef bin_wait_func_deducer<typename T1_t::ret_type, typename T2_t::ret_type> deduct_t;
     typedef typename deduct_t::or_type ret_type;
 public:
-    wait_or(T1_t && t1, T2_t && t2)
+    wait_or(T1 && t1, T2 && t2)
         : m_1(t1)
         , m_2(t2)
 		, m_iES(exe_state::exe_unknown){}
+    /*
     wait_or(T1_t & t1, T2_t & t2)
         : m_1(t1)
         , m_2(t2)
 		, m_iES(exe_state::exe_unknown){
     }
-
+*/
     template<class FT>
     auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
