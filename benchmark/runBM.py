@@ -28,21 +28,13 @@ if __name__ == '__main__':
 				#Shouldn't remove the item or the pointer may change, thus not deleting all the unmatched.
 				file_list[file_list.index(item)]=""
 	
-	#Get the random matrix
-	if 'lu' in file_list:
-		matrix_n = 10
-		rand_max = 5
-		print 'file:random'
-		execute_cmd('cd %s; ./random %s %s' % (path,matrix_n,rand_max))
-	#End of get the random matrix
-
 	for item in file_list:
 		ifile = r'%s/%s' % (path, item)
 		if os.path.isfile('%s' %ifile) and os.access('%s' % ifile, os.X_OK):
 			if not cmp(item,'random'):
 				continue
 			elif not cmp(item,'lu'):
-				para_n = matrix_n / 2
+				para_n = 1 
 			elif not cmp(item,'quicksort'):
 				para_n = 4
 			elif not cmp(item,'canny'):

@@ -9,9 +9,8 @@ add_definitions(-DNDEBUG)
 add_definitions(-DUSING_LOCK_FREE_QUEUE)
 # SET(DEBUG_DEFS "")
 
-# SET(LU_LIST LU/ff/LU_resolve.cpp)
+SET(LU_LIST LU/ff/lu_main.cpp)
 SET(QS_LIST quick_sort/ff/quick_sort.cpp)
-# SET(RANDOM LU/ff/gen_matrix.cpp)
 SET(CANNY_LIST canny/ff/run_canny.cpp
 		canny/ff/canny_edge_detector.cpp)
 
@@ -24,12 +23,10 @@ LINK_DIRECTORIES(${LIBS_LINK_DIRS})
 
 # ADD_DEFINITIONS(${DEBUG_DEFS})
 
-# ADD_EXECUTABLE(lu ${LU_LIST})
+ADD_EXECUTABLE(lu ${LU_LIST})
 ADD_EXECUTABLE(quicksort ${QS_LIST})
-# ADD_EXECUTABLE(random ${RANDOM})
 ADD_EXECUTABLE(canny ${CANNY_LIST})
 
-# TARGET_LINK_LIBRARIES(lu ff pthread)
+TARGET_LINK_LIBRARIES(lu ff pthread)
 TARGET_LINK_LIBRARIES(quicksort ff pthread)
-# TARGET_LINK_LIBRARIES(random ff pthread)
 TARGET_LINK_LIBRARIES(canny ${wxWidgets_LIBRARIES} ff pthread)
