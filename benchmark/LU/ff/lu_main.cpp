@@ -14,7 +14,6 @@ typedef matrix_impl<double, block, 32> Matrix;
 typedef matrix_impl<double, row_major> GeneralMatrix;
 
 #define MSIZE 2048
-// #define MSIZE 64
 
 
 GeneralMatrix  	standard(Matrix & m)
@@ -181,10 +180,10 @@ int main(int argc, char *argv[])
         for(int i=0; i<m.M(); i++) {
             for(int j=0; j<m.N(); j++) {
                 matrix_file << m(i,j) << '\t';
-                cout << m(i,j) << '\t';
+            //    cout << m(i,j) << '\t';
             }
             matrix_file << endl;
-            cout << endl;
+        //    cout << endl;
         }
     }
     else {
