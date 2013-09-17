@@ -32,7 +32,7 @@ PROG=lu
 
 # The C++ compiler
 CXX=g++
-CXXFLAGS =-std=c++0x 
+CXXFLAGS =-std=c++0x -DUSING_LOCK_FREE_QUEUE
 #`wx-config --libs` `wx-config --cxxflags`
 SOURCES = lu_main.cpp
 

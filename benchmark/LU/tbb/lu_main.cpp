@@ -80,14 +80,14 @@ void parallel(Matrix & m)
     if(m.M()%Matrix::block_size != 0)
         blocks ++;
 
+//   cout << "new" << endl;
 
-
-    concurrent_vector<int > diagonals_vec;
+//     concurrent_vector<int > diagonals_vec;
     for(int k= 0; k< blocks; k++) {
-        diagonals_vec.push_back(k);
-    }
+//         diagonals_vec.push_back(k);
+    
 
-    tbb::parallel_for_each(diagonals_vec.begin(), diagonals_vec.end(),[&seq_m,blocks](int k) {
+//     tbb::parallel_for_each(diagonals_vec.begin(), diagonals_vec.end(),[&seq_m,blocks](int k) {
         auto lut = get_block(seq_m, k, k);
         LUDecompose(lut,lut);
         GeneralMatrix linv(Matrix::block_size, Matrix::block_size);
@@ -136,9 +136,9 @@ void parallel(Matrix & m)
             sub(tt, rmul, tt);
         });
         pos_vec.clear();
-    });
-    diagonals_vec.clear();
-
+//     });
+//     diagonals_vec.clear();
+    }
 
 
     /*

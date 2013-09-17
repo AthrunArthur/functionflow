@@ -102,48 +102,89 @@ void parallel(Matrix & m)
             invU(lut, uinv);
         });
 
-        if(k == blocks -1)
+        if(k != blocks -1)
             ff_wait(il && iu);
-        ff::paragroup ir, ic;
-        for(int i = k+1; i < blocks; i++)
-        {
-            ff::para<> p1, p2;
-            p1[il]([&seq_m, &linv, k, i]() {
+        vector<int > index_vec;
+        for(int i=k; i< blocks; i++) {
+            index_vec.push_back(i);
+        }
+        if(index_vec.empty())
+            continue;
+        if(index_vec.size()==1) {
+            int i=index_vec[0];
+            GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
+            auto ltom = get_block(seq_m, k, i);
+            mul(linv, ltom, lmul);
+            set_block(seq_m,k, i, lmul);
+//             });
+
+//             p2([&seq_m, &uinv, i, k]() {
+            GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
+            auto utom = get_block(seq_m, i, k);
+            mul(utom, uinv, umul);
+            set_block(seq_m, i, k, umul);
+            continue;
+
+        }
+        else {
+            ff::paragroup ir;
+//             cout << "blocks " << blocks << endl;
+//             cout << "star for each" << k << endl;
+
+            ir.for_each(index_vec.begin(),index_vec.end(),[&seq_m,&linv,&uinv,k](int i) {
+//             ff::para<> p1, p2;
+//             p1([&seq_m, &linv, k, i]() {
                 GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
                 auto ltom = get_block(seq_m, k, i);
                 mul(linv, ltom, lmul);
                 set_block(seq_m,k, i, lmul);
-            });
+//             });
 
-            p2[iu]([&seq_m, &uinv, i, k]() {
+//             p2([&seq_m, &uinv, i, k]() {
                 GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
                 auto utom = get_block(seq_m, i, k);
                 mul(utom, uinv, umul);
                 set_block(seq_m, i, k, umul);
+//             });
+//             ff_wait(p1&&p2);
             });
-            ir.add(p1);
-            ic.add(p2);
+            ff::ff_wait(all(ir));
         }
-
-        ff::ff_wait(all(ir) && all(ic));
-
-        ff::paragroup im;
-        for(int i = k+1; i < blocks; i++)
-            for(int j = k+1; j < blocks; j++)
-            {
-                ff::para<> p1;
-                /*[ir[i-k] && ic[j-k]]*/
-                p1([&seq_m, i, j, k]() {
-                    GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
-                    auto tm = get_block(seq_m, i, k);
-                    auto tn = get_block(seq_m, k, j);
-
-                    mul(tm, tn, rmul);
-                    auto tt = get_block(seq_m, i, j);
-                    sub(tt, rmul, tt);
-                });
-                im.add(p1);
+        vector<tuple< int, int > > pos_vec;
+        for(int i=k+1; i<blocks; i++) {
+            for(int j=k+1; j<blocks; j++) {
+                pos_vec.push_back(make_tuple(i,j));
             }
+        }
+        if(pos_vec.empty())
+            continue;
+        if(pos_vec.size() == 1) {
+            int i=get<0>(pos_vec[0]),j=get<1>(pos_vec[0]);
+//             cout << "i=" << i << "j=" <<j << endl;
+            GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
+            auto tm = get_block(seq_m, i, k);
+            auto tn = get_block(seq_m, k, j);
+
+            mul(tm, tn, rmul);
+            auto tt = get_block(seq_m, i, j);
+            sub(tt, rmul, tt);
+            continue;
+        }
+        ff::paragroup im;
+//         cout << "star for each 2 "<< endl;
+        im.for_each(pos_vec.begin(),pos_vec.end(),[&seq_m,k](tuple< int, int > pos) {
+
+            int i=get<0>(pos),j=get<1>(pos);
+//             cout << "i=" << i << "j=" <<j << endl;
+            GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
+            auto tm = get_block(seq_m, i, k);
+            auto tn = get_block(seq_m, k, j);
+
+            mul(tm, tn, rmul);
+            auto tt = get_block(seq_m, i, j);
+            sub(tt, rmul, tt);
+
+        });
         ff::ff_wait(all(im));
     }
 }
@@ -180,10 +221,10 @@ int main(int argc, char *argv[])
         for(int i=0; i<m.M(); i++) {
             for(int j=0; j<m.N(); j++) {
                 matrix_file << m(i,j) << '\t';
-            //    cout << m(i,j) << '\t';
+                //    cout << m(i,j) << '\t';
             }
             matrix_file << endl;
-        //    cout << endl;
+            //    cout << endl;
         }
     }
     else {
