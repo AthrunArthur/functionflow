@@ -52,13 +52,13 @@ public:
     {
         if(m_pImpl)
             return m_pImpl->get_state();
-        return exe_state::exe_unknown;
+        return exe_state::exe_over;
     }
     bool	check_if_over()
     {
         if(m_pImpl)
             return m_pImpl->check_if_over();
-        return false;
+        return true;
     }
 
     internal::para_impl_ptr<RT> get_internal_impl() {

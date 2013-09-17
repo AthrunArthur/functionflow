@@ -84,98 +84,59 @@ void parallel(Matrix & m)
     GeneralMatrix uinv(Matrix::block_size, Matrix::block_size);
 
 
-
-
-    ff::para<> diagonals[blocks];
     for(int k = 0; k <blocks; k++)
     {
-        //std::cout<<"dia k:"<<k<<std::endl;
+        std::cout<<"dia k:"<<k<<std::endl;
         auto lut = get_block(seq_m, k, k);
-        diagonals[k]([&lut]() {
-            LUDecompose(lut, lut);
-        });
+        LUDecompose(lut, lut);
         ff::para<void> il, iu;
-        il[diagonals[k]]([&lut, &linv, k]() {
+        il([&lut, &linv, k]() {
             invL(lut, linv);
         });
-        iu[diagonals[k]]([&lut, &uinv, k]() {
+        iu([&lut, &uinv, k]() {
             invU(lut, uinv);
         });
 
-        if(k != blocks -1)
+        //if(k != blocks -1)
             ff_wait(il && iu);
-        vector<int > index_vec;
-        for(int i=k; i< blocks; i++) {
-            index_vec.push_back(i);
-        }
-        if(index_vec.empty())
-            continue;
-        if(index_vec.size()==1) {
-            int i=index_vec[0];
-            GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
-            auto ltom = get_block(seq_m, k, i);
-            mul(linv, ltom, lmul);
-            set_block(seq_m,k, i, lmul);
-//             });
 
-//             p2([&seq_m, &uinv, i, k]() {
-            GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
-            auto utom = get_block(seq_m, i, k);
-            mul(utom, uinv, umul);
-            set_block(seq_m, i, k, umul);
-            continue;
+        ff::paragroup ir;
+        cout << "blocks " << blocks << endl;
+        cout << "star for each" << k << endl;
 
-        }
-        else {
-            ff::paragroup ir;
-//             cout << "blocks " << blocks << endl;
-//             cout << "star for each" << k << endl;
-
-            ir.for_each(index_vec.begin(),index_vec.end(),[&seq_m,&linv,&uinv,k](int i) {
-//             ff::para<> p1, p2;
-//             p1([&seq_m, &linv, k, i]() {
+        ir.for_each_step(k ,blocks,[&seq_m,&linv,&uinv,k](int i) {
+            ff::para<> p1, p2;
+            //p1([&seq_m, &linv, k, i]() {
                 GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
                 auto ltom = get_block(seq_m, k, i);
                 mul(linv, ltom, lmul);
                 set_block(seq_m,k, i, lmul);
-//             });
+           // });
 
-//             p2([&seq_m, &uinv, i, k]() {
+            //p2([&seq_m, &uinv, i, k]() {
                 GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
                 auto utom = get_block(seq_m, i, k);
                 mul(utom, uinv, umul);
                 set_block(seq_m, i, k, umul);
-//             });
-//             ff_wait(p1&&p2);
-            });
-            ff::ff_wait(all(ir));
-        }
+            //});
+            //ff_wait(p1&&p2);
+        });
+	std::cout<<"star for_each_step over, size: "<<ir.size()<<std::endl;
+        ff::ff_wait(all(ir));
+
         vector<tuple< int, int > > pos_vec;
         for(int i=k+1; i<blocks; i++) {
             for(int j=k+1; j<blocks; j++) {
                 pos_vec.push_back(make_tuple(i,j));
             }
         }
-        if(pos_vec.empty())
-            continue;
-        if(pos_vec.size() == 1) {
-            int i=get<0>(pos_vec[0]),j=get<1>(pos_vec[0]);
-//             cout << "i=" << i << "j=" <<j << endl;
-            GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
-            auto tm = get_block(seq_m, i, k);
-            auto tn = get_block(seq_m, k, j);
 
-            mul(tm, tn, rmul);
-            auto tt = get_block(seq_m, i, j);
-            sub(tt, rmul, tt);
-            continue;
-        }
         ff::paragroup im;
-//         cout << "star for each 2 "<< endl;
+        cout << "star for each 2 "<< endl;
         im.for_each(pos_vec.begin(),pos_vec.end(),[&seq_m,k](tuple< int, int > pos) {
 
             int i=get<0>(pos),j=get<1>(pos);
-//             cout << "i=" << i << "j=" <<j << endl;
+             cout << "i=" << i << "j=" <<j << endl;
             GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
             auto tm = get_block(seq_m, i, k);
             auto tn = get_block(seq_m, k, j);
@@ -213,8 +174,10 @@ int main(int argc, char *argv[])
     }
     else {
         matrix_file.open(matrix_file_name.c_str(),ios::in);
+	std::cout<<"trying open file: "<< matrix_file_name<<std::endl;
     }
     if(!matrix_file.is_open()) {
+      std::cout<<"failed to open file: "<< matrix_file_name<<"! initing matrix now..."<<std::endl;
         // init matrix & write to file
         initMatrixForLU(m);
         matrix_file.open(matrix_file_name.c_str(),ios::out);
@@ -226,8 +189,10 @@ int main(int argc, char *argv[])
             matrix_file << endl;
             //    cout << endl;
         }
+        
     }
     else {
+      std::cout<<"reading matrix..."<<std::endl;
         // read file
         for(int i=0; !matrix_file.eof()&& i<m.M(); i++) {
             for(int j=0; !matrix_file.eof() && j<m.N(); j++) {
@@ -236,6 +201,8 @@ int main(int argc, char *argv[])
         }
     }
     matrix_file.close();
+    
+    std::cout<<"matrix initialized!"<<std::endl;
 
 
 
@@ -265,7 +232,7 @@ int main(int argc, char *argv[])
         }).then([](int x) {});
         ff::para<> b;
         b[a]([&num, &a]() {
-            num + a.get();
+            return num + a.get();
         }).then([]() {});
 
         //!Start test parallel version

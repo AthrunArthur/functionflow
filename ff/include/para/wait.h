@@ -32,7 +32,9 @@ public:
 */
     template<class FT>
     auto  then(FT && f)
-    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
+    -> typename std::enable_if<
+	  std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	  !utils::function_args_traits<FT>::is_no_args, void>::type
     {
 		if(!check_if_over())
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
@@ -42,7 +44,8 @@ public:
     template<class FT>
     auto  then(FT && f ) ->
     typename std::enable_if<
-	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+	      !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	      !utils::function_args_traits<FT>::is_no_args,
 	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
 	    >::type 
     {
@@ -50,6 +53,30 @@ public:
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
         return deduct_t::ret_func_and(std::forward<FT>(f), m_1, m_2);
     }
+    
+    template<class FT>
+    auto  then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	  utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+		if(!check_if_over())
+			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
+        f();
+    }
+
+    template<class FT>
+    auto  then(FT && f ) ->
+    typename std::enable_if<
+	      !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	      utils::is_no_args_function<FT>::value,
+	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+	    >::type 
+    {
+		if(!check_if_over())
+			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
+        return f();
+    }
+    
     auto get() -> typename deduct_t::and_type
     {
         return deduct_t::wrap_ret_for_and(m_1, m_2);
@@ -99,7 +126,10 @@ public:
 */
     template<class FT>
     auto  then(FT && f)
-    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
+    -> typename std::enable_if<
+      std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+      !utils::function_args_traits<FT>::is_no_args
+      , void>::type
     {
 		if(!check_if_over())
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
@@ -109,7 +139,8 @@ public:
     template<class FT>
     auto  then(FT && f ) ->
     typename std::enable_if<
-	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+	      !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	      !utils::function_args_traits<FT>::is_no_args, 
 	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
 	    >::type 
     {
@@ -117,6 +148,30 @@ public:
 			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
         return deduct_t::ret_func_or(std::forward<FT>(f), m_1, m_2);
     }
+    
+     template<class FT>
+    auto  then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	  utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+		if(!check_if_over())
+			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
+        f();
+    }
+
+    template<class FT>
+    auto  then(FT && f ) ->
+    typename std::enable_if<
+	      !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+	      utils::function_args_traits<FT>::is_no_args,
+	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+	    >::type 
+    {
+		if(!check_if_over())
+			::ff::rt::yield_and_ret_until([this](){return check_if_over();});
+        return f();
+    }
+    
     auto get() -> typename deduct_t::or_type
     {
         return deduct_t::wrap_ret_for_or(m_1, m_2);

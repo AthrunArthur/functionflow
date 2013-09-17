@@ -6,164 +6,218 @@
 
 namespace ff {
 
-	namespace internal{
-		class wait_all;
-		class wait_any;
-	}//end namespace internal
+namespace internal {
+class wait_all;
+class wait_any;
+}//end namespace internal
 enum group_optimizer
 {
-  auto_partition,
-  max_partition, 
-  //other may be here
+    auto_partition,
+    max_partition,
+    //other may be here
 };
 
 class paragroup {
 public:
-  typedef void ret_type;
+    typedef void ret_type;
 public:
-template<class PT, class WT>
-class para_accepted_wait
-{
-    para_accepted_wait & operator = (const para_accepted_wait<PT, WT> &) = delete;
-public:
-	typedef typename PT::ret_type ret_type;
-    para_accepted_wait(const para_accepted_wait<PT, WT> &) = default;
-    para_accepted_wait(PT & p, const WT & w)
-        : m_refP(p)	
-		, m_oWaiting(w){}
-
-	template<class Iterator_t, class Functor_t>
-    auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f) 
-    -> internal::para_accepted_call<paragroup, void>
+    template<class PT, class WT>
+    class para_accepted_wait
     {
-		int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
-		//TODO(A.A) we may have another partition approach!
-		uint64_t count = 0;
-        Iterator_t t = begin;
-        while(t!= end)
+        para_accepted_wait & operator = (const para_accepted_wait<PT, WT> &) = delete;
+    public:
+        typedef typename PT::ret_type ret_type;
+        para_accepted_wait(const para_accepted_wait<PT, WT> &) = default;
+        para_accepted_wait(PT & p, const WT & w)
+            : m_refP(p)
+            , m_oWaiting(w) {}
+
+        template<class Iterator_t, class Functor_t>
+        auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+        -> internal::para_accepted_call<paragroup, void>
         {
-			t++;
-			count ++;
+            int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
+            //TODO(A.A) we may have another partition approach!
+            uint64_t count = 0;
+            Iterator_t t = begin;
+            while(t!= end)
+            {
+                t++;
+                count ++;
+            }
+            uint64_t step = count/ concurrency;
+            if(!(count %concurrency))
+                step ++;
+
+            t = begin;
+            m_refP.m_pEntities = std::make_shared<std::vector<para<void> > >();
+            while(t!=end)
+            {
+                Iterator_t tmp = t;
+                count = 0;
+                while(tmp != end && count<step)
+                {
+                    tmp ++;
+                    count ++;
+                }
+                para<void> p;
+                p[m_oWaiting]([t, tmp, &f]() {
+                    Iterator_t lt = t;
+                    while(lt != tmp)
+                    {
+                        f(*lt);
+                        lt ++;
+                    }
+                });
+                m_refP.m_pEntities->push_back(std::move(p));
+
+                t=tmp;
+            }
+            return internal::para_accepted_call<paragroup, ret_type>(m_refP);
         }
-        uint64_t step = count/ concurrency;
-		if(!(count %concurrency))
-			step ++;
-        
-		t = begin;
-		m_refP.m_pEntities = std::make_shared<std::vector<para<void> > >();
-		while(t!=end)
-		{
-			Iterator_t tmp = t;
-			count = 0;
-			while(tmp != end && count<step)
-			{
-				tmp ++;
-				count ++;
-			}
-			para<void> p;
-			p[m_oWaiting]([t, tmp, &f](){
-				Iterator_t lt = t;
-				while(lt != tmp)
-				{
-					f(*lt);
-					lt ++;
-				}
-			});
-			m_refP.m_pEntities->push_back(std::move(p));
-			
-			t=tmp;
-		}
-        return internal::para_accepted_call<paragroup, ret_type>(m_refP);
-    }
-    
-protected:
-    PT & m_refP;
-	WT	m_oWaiting;
-};//end class para_accepted_wait;
-	
+
+    protected:
+        PT & m_refP;
+        WT	m_oWaiting;
+    };//end class para_accepted_wait;
+
     //void		push(const para<RT> & p) {}
-    
+
     template <class WT>
     para_accepted_wait<paragroup,WT> operator[](WT && cond)
     {
         return para_accepted_wait<paragroup,WT>(*this, std::forward<WT>(cond));
     }
-    
+
     para<void> &  operator [](int index)
-	{
-		return (*m_pEntities)[index];
-	}
-	size_t 	size() const
-	{
-		return m_pEntities->size();
-	}
-    ~paragroup()
-	{
-	}
-    
-    template<class Iterator_t, class Functor_t>
-    auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f) 
-    -> internal::para_accepted_call<paragroup, void>
     {
-		int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
-		//TODO(A.A) we may have another partition approach!
-		uint64_t count = 0;
-        Iterator_t t = begin;
+        return (*m_pEntities)[index];
+    }
+    size_t 	size() const
+    {
+        return m_pEntities->size();
+    }
+    ~paragroup()
+    {
+    }
+
+    template<class IT, class Functor_t>
+    auto for_each_step(IT begin, IT end, Functor_t && f) 
+    -> internal::para_accepted_call<paragroup, void>{
+      return for_each(begin, end, [](IT i)->IT {return i++;}, std::forward<Functor_t>(f));
+    }
+    
+    template<class IT, class Step_t, class Functor_t>
+    auto for_each(IT begin, IT end, Step_t && stepper, Functor_t && f) 
+    -> internal::para_accepted_call<paragroup, void>{
+      int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
+        //TODO(A.A) we may have another partition approach!
+        uint64_t count = 0;
+        IT t = begin;
         while(t!= end)
         {
-			t++;
-			count ++;
+            t++;
+            count ++;
         }
         uint64_t step = count/ concurrency;
-		if(!(count %concurrency))
-			step ++;
-        
-		t = begin;
-		m_pEntities = std::make_shared<std::vector<para<void> > >();
-		while(t!=end)
-		{
-			Iterator_t tmp = t;
-			count = 0;
-			while(tmp != end && count<step)
-			{
-				tmp ++;
-				count ++;
-			}
-			para<void> p;
-			p([t, tmp, &f](){
-				Iterator_t lt = t;
-				while(lt != tmp)
-				{
-					f(*lt);
-					lt ++;
-				}
-			});
-			m_pEntities->push_back(p);
-			
-			t=tmp;
-		}
+        if(count %concurrency)
+            step ++;
+
+        t = begin;
+        m_pEntities = std::make_shared<std::vector<para<void> > >();
+	std::cout<<"for_each, step:"<<step<<", count:"<<count<<"concurrency:"<<concurrency<<std::endl;
+        while(t!=end)
+        {
+	  std::cout<<"for_each, t:"<<t<<", end:"<<end<<std::endl;
+            IT tmp = t;
+            count = 0;
+            while(tmp != end && count<step)
+            {
+                tmp ++;
+                count ++;
+            }
+            para<void> p;
+            p([t, tmp, &f, &stepper]() {
+                IT lt = t;
+                while(lt != tmp)
+                {
+                    f(lt);
+                    lt =stepper(lt);
+                }
+            });
+            m_pEntities->push_back(p);
+
+            t=tmp;
+        }
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
     
-    void add(const para< void >&  p)
-	{
-		if(!m_pEntities)
-			m_pEntities = std::make_shared<std::vector<para<void> > >();
-		m_pEntities->push_back(p);
-	}
-	
-	void clear()
-	{
-		m_pEntities.reset();
-	}
-	
-protected:
-	friend internal::wait_all all(paragroup & pg);
-	friend internal::wait_any any(paragroup & pg);
-    std::shared_ptr<std::vector<para<void> > > & all_entities(){return m_pEntities;};
     
+    template<class Iterator_t, class Functor_t>
+    auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+    -> internal::para_accepted_call<paragroup, void>
+    {
+        int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
+        //TODO(A.A) we may have another partition approach!
+        uint64_t count = 0;
+        Iterator_t t = begin;
+        while(t!= end)
+        {
+            t++;
+            count ++;
+        }
+        uint64_t step = count/ concurrency;
+        if(count %concurrency)
+            step ++;
+
+        t = begin;
+        m_pEntities = std::make_shared<std::vector<para<void> > >();
+        while(t!=end)
+        {
+            Iterator_t tmp = t;
+            count = 0;
+            while(tmp != end && count<step)
+            {
+                tmp ++;
+                count ++;
+            }
+            para<void> p;
+            p([t, tmp, &f]() {
+                Iterator_t lt = t;
+                while(lt != tmp)
+                {
+                    f(*lt);
+                    lt ++;
+                }
+            });
+            m_pEntities->push_back(p);
+
+            t=tmp;
+        }
+        return internal::para_accepted_call<paragroup, ret_type>(*this);
+    }
+
+    void add(const para< void >&  p)
+    {
+        if(!m_pEntities)
+            m_pEntities = std::make_shared<std::vector<para<void> > >();
+        m_pEntities->push_back(p);
+    }
+
+    void clear()
+    {
+        m_pEntities.reset();
+    }
+
 protected:
-	std::shared_ptr<std::vector<para<void> > >	m_pEntities;
+    friend internal::wait_all all(paragroup & pg);
+    friend internal::wait_any any(paragroup & pg);
+    std::shared_ptr<std::vector<para<void> > > & all_entities() {
+        return m_pEntities;
+    };
+
+protected:
+    std::shared_ptr<std::vector<para<void> > >	m_pEntities;
 };//end class paragroup
 
 

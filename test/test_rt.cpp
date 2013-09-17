@@ -118,17 +118,38 @@ void ff_test_paragroup()
     */
 }
 
+void ff_test_basic()
+{
+  para<int> a, b;
+  ff_wait(a);
+  
+  paragroup pg;
+  ff_wait(all(pg));
+  
+  std::vector<int> s;
+  paragroup pg1;
+  pg1.for_each(s.begin(), s.end(), [](int p){p ++;});
+  ff_wait(all(pg1));
+  
+  paragroup pg2;
+  s.push_back(1);
+  pg2.for_each(s.begin(), s.end(), [](int p){p ++;});
+  ff_wait(all(pg2));
+}
+
 
 int main(int argc, char *argv[])
 {
     _DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
     _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 
+    /*
     for(int i = 0; i < FF_TEST_TIME; ++i)
     {
         ff_test_para();
         ff_test_paragroup();
     }
-
+*/
+    ff_test_basic();
     return 0;
 }
