@@ -1,9 +1,9 @@
 #ifndef COMMON_LOG_H_
 #define COMMON_LOG_H_
 //#define SYNC_WRITING_LOG
-
-//#include "ff/log.h"
-
+#ifdef FUNCTION_FLOW_DEBUG
+#include "ff/log.h"
+#endif
 
 
 

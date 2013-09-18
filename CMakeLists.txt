@@ -3,17 +3,32 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 MESSAGE(STATUS "This is BINARY dir" ${PROJECT_BINARY_DIR})
 MESSAGE(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
 add_definitions(-std=c++11)
-#add_definitions(-g)
-add_definitions(-O2)
-add_definitions(-DNDEBUG)
+
+if(Release)
+	message(STATUS "This is a Release version!")
+	add_definitions(-O2)
+	add_definitions(-DNDEBUG)
+else(Release)
+	message(STATUS "This is a Debug version!")
+	add_definitions(-g)
+	add_definitions(-DFUNCTION_FLOW_DEBUG)
+	include_directories(${PROJECT_SOURCE_DIR}/libs)
+	if(NOT EXISTS ${PROJECT_SOURCE_DIR}/libs/ff)
+		message(STATUS "require ff, start downloading...")
+		file(DOWNLOAD https://github.com/AthrunArthur/ff/archive/master.zip ${PROJECT_SOURCE_DIR}/libs/ff.zip)
+		exec_program(unzip ${PROJECT_SOURCE_DIR}/libs ARGS ff.zip */ff/* -d ffcommon)
+		exec_program(cp ${PROJECT_SOURCE_DIR}/libs ARGS -r ffcommon/ff-master/ff/ ff/)
+		exec_program(rm ${PROJECT_SOURCE_DIR}/libs ARGS -rf ffcommon/)
+	endif(NOT EXISTS ${PROJECT_SOURCE_DIR}/libs/ff)
+endif(Release)
+
 add_definitions(-DUSING_LOCK_FREE_QUEUE)
-SET(DEBUG_DEFS "")
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+
 
 include_directories(${PROJECT_SOURCE_DIR}/ff/include)
-#include_directories(/root/projects/ff)
-link_directories(ff/build)
-#SET(LIBS_LINK_DIRS "/home/athrun/boost_1_46_1/stage/lib")
-#SET(LIBS_LINK_LIBS boost_date_time boost_thread log4cplus)
+link_directories(${PROJECT_SOURCE_DIR}/ff/bin)
+
 SET(ff_src ff/runtime/env.cpp 
   ff/runtime/runtime.cpp 
   ff/para/para.cpp 
@@ -25,7 +40,3 @@ target_link_libraries(ff_s pthread)
 
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
 
-#add_subdirectory(test)
-#add_subdirectory(benchmark)
-#add_subdirectory(test)
-add_subdirectory(benchmark)

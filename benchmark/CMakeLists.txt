@@ -18,7 +18,7 @@ find_package(wxWidgets COMPONENTS core base REQUIRED)
 include( "${wxWidgets_USE_FILE}")		
 		
 include_directories(${PROJECT_SOURCE_DIR}/../ff/include)		
-SET(LIBS_LINK_DIRS ${PROJECT_SOURCE_DIR}/../build)
+SET(LIBS_LINK_DIRS ${PROJECT_SOURCE_DIR}/../bin)
 LINK_DIRECTORIES(${LIBS_LINK_DIRS})
 
 # ADD_DEFINITIONS(${DEBUG_DEFS})
