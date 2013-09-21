@@ -6,6 +6,7 @@
 #include "para/exception.h"
 #include "para/para_impl.h"
 #include "runtime/rtcmn.h"
+#include "common/log.h"
 
 
 namespace ff {

@@ -3,6 +3,7 @@
 #include "common/common.h"
 #include "para/para.h"
 #include "para/para_helper.h"
+#include "common/log.h"
 
 namespace ff {
 
@@ -91,11 +92,19 @@ public:
 
     para<void> &  operator [](int index)
     {
-        return (*m_pEntities)[index];
+      _DEBUG(
+	if(!m_pEntities)
+	{ 
+	  LOG_FATAL(para)<<" m_pEntities is null";
+	}
+      )
+        return (*m_pEntities)[index]; 
     }
     size_t 	size() const
     {
+      if(m_pEntities)
         return m_pEntities->size();
+      return 0;
     }
     ~paragroup()
     {
@@ -194,6 +203,7 @@ public:
 
             t=tmp;
         }
+        _DEBUG(LOG_INFO(para)<<"paragroup contains " <<size()<<" tasks!" )
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
 

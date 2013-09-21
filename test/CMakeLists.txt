@@ -41,3 +41,6 @@ TARGET_LINK_LIBRARIES(test_rt ${LIBS_LINK_LIBS})
 
 ADD_EXECUTABLE(test_then test_then.cpp)
 TARGET_LINK_LIBRARIES(test_then ${LIBS_LINK_LIBS})
+
+ADD_EXECUTABLE(test_ws test_work_steal.cpp)
+TARGET_LINK_LIBRARIES(test_ws ${LIBS_LINK_LIBS})

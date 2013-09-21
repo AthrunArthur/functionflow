@@ -2,6 +2,7 @@
 #define FF_RUNTIME_HAZARD_POINTER_H_
 #include "runtime/env.h"
 #include <mutex>
+#include <boost/concept_check.hpp>
 
 //! This hazard pointer is specifical for FF!!
 namespace ff {
@@ -12,18 +13,21 @@ class hp_owner
 {
 public:
     hp_owner()
-        : m_pPointer(nullptr) {
-        std::call_once(s_oflag, []() {
-            s_pPointers = new std::atomic<T *>[ff::rt::rt_concurrency()];
+    : m_oflag(){
+        std::call_once(m_oflag, [this]() {
+            m_pPointers = new std::atomic<T *>[ff::rt::rt_concurrency()];
         });
-        m_pPointer = & s_pPointers[ff::rt::get_thrd_id()];
     }
 
+    ~hp_owner(){
+      delete [] m_pPointers;
+    }
+    
     std::atomic<T *> & get_hazard_pointer() {
-        return *m_pPointer;
+        return m_pPointers[ff::rt::get_thrd_id()];
     }
 
-    static bool  outstanding_hazard_pointer_for(T * p)
+    bool  outstanding_hazard_pointer_for(T * p)
     {
         thread_local static thrd_id_t id = ff::rt::get_thrd_id();
         if(!p)
@@ -32,34 +36,16 @@ public:
         {
             if(i == id)
                 continue;
-            if(s_pPointers[i].load(std::memory_order_acquire) == p)
+            if(m_pPointers[i].load(std::memory_order_acquire) == p)
                 return true;
         }
         return false;
     }
 protected:
-    static std::once_flag s_oflag;
-    static std::atomic<T *>*  s_pPointers;
-    std::atomic<T *> * m_pPointer;
+    std::once_flag m_oflag;
+    std::atomic<T *>*  m_pPointers;
 };//end class hp_owner
 
-template<class T>
-std::once_flag hp_owner<T>::s_oflag;
-template<class T>
-std::atomic<T *> * hp_owner<T>::s_pPointers = nullptr;
-
-template <class T>
-std::atomic<T *> &  get_hazard_pointer_for_cur_thrd()
-{
-    thread_local static hp_owner<T> hp;
-    return hp.get_hazard_pointer();
-}
-
-template <class T>
-bool outstanding_hazard_pointer_for( T * p)
-{
-    return hp_owner<T>::outstanding_hazard_pointer_for(p);
-}
 }//end namespace rt
 }//end namespace ff
 

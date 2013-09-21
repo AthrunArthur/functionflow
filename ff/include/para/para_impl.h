@@ -4,6 +4,7 @@
 #include "common/common.h"
 #include "runtime/taskbase.h"
 #include "runtime/rtcmn.h"
+#include "common/log.h"
 
 namespace ff {
 namespace internal
@@ -167,7 +168,9 @@ std::is_void<ret_type>::value,
     internal::para_impl_ptr<ret_type>
     >::type
 {
-    return std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
+  auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
+  _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
+    return p;
 }
 template <class ret_type, class F>
 auto make_para_impl(F&& f)
@@ -176,7 +179,9 @@ auto make_para_impl(F&& f)
 internal::para_impl_ptr<ret_type>
 >::type
 {
-    return std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
+  auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
+  _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
+    return p;
 }
 #endif
 

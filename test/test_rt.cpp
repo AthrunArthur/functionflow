@@ -6,7 +6,7 @@
 #include "common/log.h"
 
 using namespace ff;
-#define FF_TEST_TIME 10000
+#define FF_TEST_TIME 100
 
 
 int inc(int t)
@@ -140,16 +140,16 @@ void ff_test_basic()
 
 int main(int argc, char *argv[])
 {
-    _DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
+    _DEBUG(ff::fflog<>::init(ff::TRACE, "log.txt"))
     _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 
-    /*
+    
     for(int i = 0; i < FF_TEST_TIME; ++i)
     {
         ff_test_para();
         ff_test_paragroup();
     }
-*/
+
     ff_test_basic();
     return 0;
 }

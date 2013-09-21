@@ -6,8 +6,10 @@
 #include <atomic>
 #include <thread>
 #include <type_traits>
-#include <iostream>
 #include <cassert>
+#ifdef FUNCTION_FLOW_DEBUG
+#include <iostream>
+#endif
 
 #define CACHE_LINE_SIZE 64
 
