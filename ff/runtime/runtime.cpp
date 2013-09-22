@@ -4,6 +4,7 @@
 #include <pthread.h>
 
 namespace ff {
+
 namespace rt {
 std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
 runtime_ptr runtime::s_pInstance(nullptr);
@@ -79,13 +80,13 @@ void			runtime::init()
     _DEBUG(LOG_INFO(rt)<<"runtime::init over"<<thrd_num)
 }
 
-
 void	runtime::schedule(task_base_ptr p)
 {
     thread_local static int i = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
     m_oQueues[i] ->push_back(p);
 }
+
 
 bool		runtime::take_one_task_and_run()
 {
@@ -104,7 +105,7 @@ bool		runtime::take_one_task_and_run()
     }
     return b;
 }
-
+//#if 0
 void			runtime::thread_run()
 {
     bool flag = false;
@@ -157,53 +158,10 @@ bool		runtime::is_idle()
             return false;
         dis ++;
     }
+    return true;
 }
-#if 0
-bool		runtime::steal_one_task_and_run(size_t cur_id)
-{
-    size_t dis = 1;
-    bool b = false;
-    size_t ts = m_oQueues.size();
-    task_base_ptr pTask;
-    // while((cur_id + dis)%ts !=cur_id)
-    // {
-    if(m_oQueues[(cur_id + dis)%ts]->steal(pTask))
-    {
-        pTask->run();
-        b = true;
-        //      break;
-    }
-    else //steal work from m_pGlobalTasks
-    {
-        task_block_ptr tbp;
-        if(m_pGlobalTasks->steal_block(tbp))
-        {
-            m_pLQueue->internal_tasks().copy_from(tbp.get());
-            if(m_pLQueue->pop(pTask))
-            {
-                pTask->run();
-                b = true;
-            }
-        }
-        else
-        {
-            //std::cout<<"have to get a task from global..size:"<<m_pGlobalTasks->size()<<std::endl;
-            if(m_pGlobalTasks->pop(pTask))
-            {
-                pTask->run();
-                b = true;
-            }
-            //if(b == false)
-            //std::cout<<"\t but failed.."<<std::endl;
-        }
-    }
-    //   dis ++;
-    //}
-    return b;
-}
-#endif
-}//end namespace rt
 
+}//end namespace rt
 bool is_idle()
 {
     static rt::runtime_ptr r = rt::runtime::instance();

@@ -156,7 +156,7 @@ public:
 	h = head.load(std::memory_order_acquire);
 	if(h == t)
 	  return false;
-        val = *(hp.load(std::memory_order_relaxed));
+        val = *(hp.load(std::memory_order_acquire));
         tail.store(t+1);
         return true;
 	
@@ -173,7 +173,7 @@ protected:
         auto c1 = new T[s];
         auto mask = cap.load(std::memory_order_relaxed)-1;
 
-        auto old_tail = tail.load(std::memory_order_release);
+        auto old_tail = tail.load(std::memory_order_acquire);
         int64_t i = old_tail, j = 0;
         auto h = head.load(std::memory_order_relaxed);
         T * temp = array.load(std::memory_order_relaxed);
@@ -184,7 +184,7 @@ protected:
 
         is_resizing.store(true);
         while(thieves.load() != 0) yield();
-        auto t2 = tail.load(std::memory_order_release);
+        auto t2 = tail.load(std::memory_order_acquire);
         array.store(c1, std::memory_order_relaxed);
         cap.store(s, std::memory_order_relaxed);
 	tail.store(t2 - old_tail, std::memory_order_release);
