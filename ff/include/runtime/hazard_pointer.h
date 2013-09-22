@@ -2,7 +2,6 @@
 #define FF_RUNTIME_HAZARD_POINTER_H_
 #include "runtime/env.h"
 #include <mutex>
-#include <boost/concept_check.hpp>
 
 //! This hazard pointer is specifical for FF!!
 namespace ff {

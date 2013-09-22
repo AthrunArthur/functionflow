@@ -36,31 +36,31 @@ public:
 
     void push_back(const T & val)
     {
-        auto t = tail.load(std::memory_order_acquire);
-        auto h = head.load(std::memory_order_relaxed);
-        auto c = cap.load(std::memory_order_relaxed);
-        auto a = array.load(std::memory_order_relaxed);
+        auto t = tail.load();
+        auto h = head.load();
+        auto c = cap.load();
+        auto a = array.load();
         if(h - t == c)
         {
             resize(c<<1);
-            t = tail.load(std::memory_order_acquire);
-            h = head.load(std::memory_order_relaxed);
+            t = tail.load();
+            h = head.load();
 
-            c = cap.load(std::memory_order_relaxed);
-            a = array.load(std::memory_order_relaxed);
+            c = cap.load();
+            a = array.load();
         }
         auto mask = c -1;
         a[h&mask] = val;
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
-        head.store(h+1, std::memory_order_release);
+        head.store(h+1);
     }
 
     bool pop(T & val)
     {
-        auto t = tail.load(std::memory_order_acquire);
-        auto h = head.load(std::memory_order_acquire);
-        auto c = cap.load(std::memory_order_relaxed);
-        auto a = array.load(std::memory_order_relaxed);
+        auto t = tail.load();
+        auto h = head.load();
+        auto c = cap.load();
+        auto a = array.load();
 	auto h_h = h;
 	auto t_h = t;
 	
@@ -71,33 +71,33 @@ public:
                 h - t > INITIAL_SIZE)
         {
             resize(c>>1);
-            t = tail.load(std::memory_order_acquire);
-            h = head.load(std::memory_order_acquire);
+            t = tail.load();
+            h = head.load();
 
-            c = cap.load(std::memory_order_relaxed);
-            a = array.load(std::memory_order_relaxed);
+            c = cap.load();
+            a = array.load();
         }
         std::atomic<T *> & hp = m_hp.get_hazard_pointer();
         scope_guard _sg([]() {}, [&hp]() {
-            hp.store(nullptr, std::memory_order_release);
+            hp.store(nullptr);
         });
 
         auto mask = c - 1;
         auto pos = h - 1;
-        hp.store(&a[pos & mask], std::memory_order_release);
+        hp.store(&a[pos & mask]);
 
         if(h - t-2<=thieves &&
-                m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)))
+                m_hp.outstanding_hazard_pointer_for(hp.load()))
         {
             return false;
         }
-        t = tail.load(std::memory_order_acquire);
+        t = tail.load();
         if(h == t)
         {
             return false;
         }
 
-        head.store(pos, std::memory_order_release);
+        head.store(pos);
 	
         val = a[pos&mask];
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(pos&mask));
@@ -106,7 +106,7 @@ public:
 
     bool steal(T & val)
     {
-        while(is_resizing.load(std::memory_order_acquire)) yield();
+        while(is_resizing.load()) yield();
         scope_guard _sg([this]() {
             thieves ++;
         }, [this]() {
@@ -132,10 +132,10 @@ public:
         return true;
 	*/
 	
-	auto t = tail.load(std::memory_order_acquire);
-        auto h = head.load(std::memory_order_acquire);
-        auto c = cap.load(std::memory_order_relaxed);
-        auto a = array.load(std::memory_order_relaxed);
+	auto t = tail.load();
+        auto h = head.load();
+        auto c = cap.load();
+        auto a = array.load();
 
 	auto h_h = h;
 	auto t_h = t;
@@ -144,32 +144,32 @@ public:
             return false;
         std::atomic<T *> & hp = m_hp.get_hazard_pointer();
 	scope_guard _sg1([]() {}, [&hp]() {
-            hp.store(nullptr, std::memory_order_release);
+            hp.store(nullptr);
         });
 	
         auto mask = cap-1;
         do {
-            h = head.load(std::memory_order_acquire);
-            t = tail.load(std::memory_order_acquire);
-            hp.store(&a[t&mask], std::memory_order_release);
-        } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_release)));
+            h = head.load();
+            t = tail.load();
+            hp.store(&a[t&mask]);
+        } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load()));
 
 	
-        if(m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_release)) )
+        if(m_hp.outstanding_hazard_pointer_for(hp.load()) )
             return false;
 
-	h = head.load(std::memory_order_acquire);
+	h = head.load();
 	if(h == t)
 	  return false;
-        val = *(hp.load(std::memory_order_acquire));
-        tail.store(t+1, std::memory_order_release);
+        val = *(hp.load());
+        tail.store(t+1);
         return true;
 	
     }
 
     uint64_t	size()
     {
-        return head.load(std::memory_order_acquire) - tail.load(std::memory_order_acquire);
+        return head.load() - tail.load();
     }
 protected:
     void		resize(uint64_t s)
@@ -187,14 +187,14 @@ protected:
             c1[j] = temp[i&mask];
         }
 
-        is_resizing.store(true, std::memory_order_release);
-        while(thieves.load(std::memory_order_relaxed) != 0) yield();
-        auto t2 = tail.load(std::memory_order_relaxed);
-        array.store(c1, std::memory_order_relaxed);
-        tail.store(t2 - old_tail, std::memory_order_relaxed);
-        head.store( j, std::memory_order_relaxed);
-        cap.store(s, std::memory_order_relaxed);
-        is_resizing.store(false, std::memory_order_release);
+        is_resizing.store(true);
+        while(thieves.load() != 0) yield();
+        auto t2 = tail.load();
+        array.store(c1);
+        tail.store(t2 - old_tail);
+        head.store( j);
+        cap.store(s);
+        is_resizing.store(false);
 
         delete[] temp;
         _DEBUG(LOG_INFO(queue)<<"exit! head:"<<head.load()<<" tail:"<<tail.load()<<" origin size:"<<cap.load()<<" -->"<<s);

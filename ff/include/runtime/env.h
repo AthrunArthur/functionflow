@@ -16,7 +16,7 @@ inline size_t  hardware_concurrency(){
 }
 inline size_t rt_concurrency()
 {
-	return hardware_concurrency();
+	return hardware_concurrency() + 1;
 }
 
 thrd_id_t get_thrd_id();
