@@ -488,6 +488,7 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 
 void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
+    task_group tg;
     concurrent_vector<std::tuple< uint32_t, uint32_t > > ts;
     for (uint32_t tx = 0; tx < height; tx++) {
         for (uint32_t ty = 0; ty < width; ty++) {
@@ -497,12 +498,18 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
                 ts.push_back(make_tuple(tx, ty));
             }
         }
+        if(ts.size() >= 1000 ||(tx==height -1))
+        {
+            tg.run([this,ts,lowThreshold,highThreshold]() {
+                parallel_for_each(ts.begin(), ts.end(),
+                [this,lowThreshold,highThreshold](std::tuple<uint32_t, uint32_t> pos) {
+                    HysteresisPixel(get<0>(pos), get<1>(pos), highThreshold, lowThreshold);
+                });
+            });
+	    ts.clear();
+        }
     }
-    parallel_for_each(ts.begin(), ts.end(),
-    [this,lowThreshold,highThreshold](std::tuple<uint32_t, uint32_t> pos) {
-        HysteresisPixel(get<0>(pos), get<1>(pos), highThreshold, lowThreshold);
-    });
-    ts.clear();
+    tg.wait();
 }
 
 void CannyEdgeDetector::HysteresisPixel(long int tx, long int ty,uint8_t highThreshold, uint8_t lowThreshold)
