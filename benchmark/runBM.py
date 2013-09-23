@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	if not os.path.exists(r'%s/build' %path):
 		execute_cmd('cd %s; mkdir build;' %path)
 	path = '%s/build' %path
-	cmd = 'cd %s; rm -rf *;cmake ../; make;' % path
+	cmd = 'cd %s; rm -rf *;cmake -DAll=1 ../; make;' % path
 	execute_cmd(cmd)
 
 	file_all = execute_cmd('ls %s' % path)
