@@ -1,6 +1,6 @@
 #include "common/common.h"
 #include "para/wait.h"
-
+#include "common/log.h"
 namespace ff{
 namespace internal{
 
@@ -16,8 +16,12 @@ exe_state wait_all::get_state()
 	{
 		m_iES = exe_state::exe_over;
 		for(auto p = all_ps->begin(); p != all_ps->end();++p)
-			m_iES = m_iES && p->get_state();
+		{
+		  _DEBUG(LOG_TRACE(para)<<"item state is "<< p->get_state())
+		  m_iES = m_iES && p->get_state();
+		}
 	}
+	_DEBUG(LOG_TRACE(para)<<"state is "<< m_iES)
 	return m_iES;
 }
 

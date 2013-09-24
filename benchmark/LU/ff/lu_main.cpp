@@ -86,9 +86,10 @@ void parallel(Matrix & m)
 
     for(int k = 0; k <blocks; k++)
     {
-        std::cout<<"dia k:"<<k<<std::endl;
         auto lut = get_block(seq_m, k, k);
         LUDecompose(lut, lut);
+	if(k == blocks -1 )
+	  continue;
         ff::para<void> il, iu;
         il([&lut, &linv, k]() {
             invL(lut, linv);
@@ -97,14 +98,11 @@ void parallel(Matrix & m)
             invU(lut, uinv);
         });
 
-        //if(k != blocks -1)
-            ff_wait(il && iu);
+        ff_wait(il && iu);
 
         ff::paragroup ir;
-        cout << "blocks " << blocks << endl;
-        cout << "star for each" << k << endl;
-
-        ir.for_each_step(k ,blocks,[&seq_m,&linv,&uinv,k](int i) {
+     
+	ir.for_each_step(k+1 ,blocks,[&seq_m,&linv,&uinv,k](int i) {
             ff::para<> p1, p2;
             //p1([&seq_m, &linv, k, i]() {
                 GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
@@ -112,7 +110,6 @@ void parallel(Matrix & m)
                 mul(linv, ltom, lmul);
                 set_block(seq_m,k, i, lmul);
            // });
-
             //p2([&seq_m, &uinv, i, k]() {
                 GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
                 auto utom = get_block(seq_m, i, k);
@@ -121,7 +118,7 @@ void parallel(Matrix & m)
             //});
             //ff_wait(p1&&p2);
         });
-	std::cout<<"star for_each_step over, size: "<<ir.size()<<std::endl;
+	
         ff::ff_wait(all(ir));
 
         vector<tuple< int, int > > pos_vec;
@@ -132,11 +129,9 @@ void parallel(Matrix & m)
         }
 
         ff::paragroup im;
-        cout << "star for each 2 "<< endl;
         im.for_each(pos_vec.begin(),pos_vec.end(),[&seq_m,k](tuple< int, int > pos) {
 
             int i=get<0>(pos),j=get<1>(pos);
-             cout << "i=" << i << "j=" <<j << endl;
             GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
             auto tm = get_block(seq_m, i, k);
             auto tn = get_block(seq_m, k, j);
@@ -189,7 +184,6 @@ int main(int argc, char *argv[])
             matrix_file << endl;
             //    cout << endl;
         }
-        
     }
     else {
       std::cout<<"reading matrix..."<<std::endl;
@@ -203,8 +197,7 @@ int main(int argc, char *argv[])
     matrix_file.close();
     
     std::cout<<"matrix initialized!"<<std::endl;
-
-
+	
 
     chrono::time_point<chrono::system_clock> start, end;
     int elapsed_seconds;
@@ -222,7 +215,7 @@ int main(int argc, char *argv[])
 
     if(bIsPara) {
         //warm up ff runtime
-        _DEBUG(ff::fflog<>::init(ff::TRACE, "log.txt"))
+        _DEBUG(ff::fflog<>::init(ff::ERROR, "log.txt"))
         _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 
         ff::para<int> a;

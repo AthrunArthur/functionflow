@@ -68,21 +68,24 @@ protected:
 void	schedule(task_base_ptr p);
 
 template <class Func>
-void 	yield_and_ret_until(Func f)
+void 	yield_and_ret_until(Func && f)
 {
     _DEBUG(LOG_INFO(rt)<<"yield_and_ret_until(), enter...";)
     thread_local static int cur_id = get_thrd_id();
     thread_local static runtime_ptr r = runtime::instance();
-    while(!f())
+    bool b = f();
+    while(!b)
     {
         if(r->take_one_task_and_run())
         {
-            //LOG_INFO(rt)<<"yield_and_ret_until(), recursively run...";
+            _DEBUG(LOG_TRACE(rt)<<"yield_and_ret_until(), recursively run a job, done!")
         }
         else {
 	  _DEBUG(LOG_TRACE(rt)<<"can't take task, just yield...")
             yield();
         }
+        b = f();
+	_DEBUG(LOG_TRACE(rt)<<"try check f() and get "<<b)
     }
     _DEBUG(LOG_INFO(rt)<<"exit!")
 }

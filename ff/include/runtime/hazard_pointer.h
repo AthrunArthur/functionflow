@@ -3,6 +3,9 @@
 #include "runtime/env.h"
 #include <mutex>
 #include <atomic>
+#ifdef FUNCTION_FLOW_DEBUG
+#include <sstream>
+#endif
 
 //! This hazard pointer is specifical for FF!!
 namespace ff {
@@ -41,6 +44,17 @@ public:
         }
         return false;
     }
+#ifdef FUNCTION_FLOW_DEBUG
+    std::string	str()
+    {
+      std::stringstream ss;
+      for(int i = 0; i < ff::rt::rt_concurrency(); ++i)
+      {
+	ss<<i<<":"<<m_pPointers[i].load()<<";";
+      }
+      return ss.str();
+    }
+#endif
 protected:
     std::once_flag m_oflag;
     std::atomic<T *>*  m_pPointers;

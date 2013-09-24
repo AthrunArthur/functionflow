@@ -111,24 +111,6 @@ public:
             thieves --;
         });
 
-	/*
-        auto c = cap.load(std::memory_order_acquire);
-        auto a = array.load(std::memory_order_relaxed);
-        auto mask = c - 1;
-
-        steal_lock.lock();
-        auto t = tail.load(std::memory_order_acquire);
-        if(t == head.load(std::memory_order_acquire))
-        {
-            steal_lock.unlock();
-            return false;
-        }
-        T * p = &(a[t&mask]);
-        tail.store(t + 1, std::memory_order_release);
-        steal_lock.unlock();
-        val = *p;
-        return true;
-	*/
 	
 	auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_acquire);
@@ -143,23 +125,35 @@ public:
         });
 	
         auto mask = cap-1;
+	int i = 1;
+	
         do {
+	  _DEBUG(
+	  i ++;
+	  if(i > 10000) 
+	    LOG_FATAL(queue)<<"stuck here! head: "<<head.load()<<", tail: "<<tail.load()<<", hp:"<<m_hp.str();
+	  )
             h = head.load(std::memory_order_acquire);
             t = tail.load(std::memory_order_acquire);
-            hp.store(&a[t&mask], std::memory_order_release);
+	    if(!m_hp.outstanding_hazard_pointer_for(&a[t&mask]))
+	      hp.store(&a[t&mask], std::memory_order_release);
+	    else
+	      hp.store(nullptr, std::memory_order_release);
         } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)));
 
 	
-        if(m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
+        if(hp.load(std::memory_order_relaxed) == nullptr || 
+	    m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
             return false;
 
 	h = head.load(std::memory_order_acquire);
 	if(h == t)
 	  return false;
-        val = *(hp.load(std::memory_order_acquire));
-        tail.store(t+1);
-        return true;
-	
+        val = *(hp.load(std::memory_order_relaxed));
+	if(tail.compare_exchange_strong(t, t+1))
+	  return true;
+	else
+	  return false;	
     }
 
     uint64_t	size()

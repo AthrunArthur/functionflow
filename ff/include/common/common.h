@@ -7,16 +7,16 @@
 #include <thread>
 #include <type_traits>
 #include <cassert>
-//#ifdef FUNCTION_FLOW_DEBUG
+#ifdef FUNCTION_FLOW_DEBUG
 #include <iostream>
-//#endif
+#endif
 
 #define CACHE_LINE_SIZE 64
 
 namespace ff {
 
 enum exe_state {
-    exe_wait,
+    exe_wait = 1,
     exe_over,
     exe_run,
     exe_unknown,

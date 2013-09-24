@@ -123,9 +123,9 @@ int main(int argc, char *argv[])
   threadpool tp;
   tp.run(runner);
   tp.run([](){steal(1);});
-  //tp.run([](){steal(3);});
+  tp.run([](){steal(2);});
   
-  std::chrono::seconds dura( 500 );
+  std::chrono::seconds dura( 1 );
     std::this_thread::sleep_for( dura );
    quit.store(true);
    std::cout<<"wait all threads quiting..."<<std::endl;

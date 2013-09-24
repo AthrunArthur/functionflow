@@ -113,7 +113,7 @@ public:
     template<class IT, class Functor_t>
     auto for_each_step(IT begin, IT end, Functor_t && f) 
     -> internal::para_accepted_call<paragroup, void>{
-      return for_each(begin, end, [](IT i)->IT {return i++;}, std::forward<Functor_t>(f));
+      return for_each(begin, end, [](IT i)->IT {return i+1;}, std::forward<Functor_t>(f));
     }
     
     template<class IT, class Step_t, class Functor_t>
@@ -134,10 +134,8 @@ public:
 
         t = begin;
         m_pEntities = std::make_shared<std::vector<para<void> > >();
-	std::cout<<"for_each, step:"<<step<<", count:"<<count<<"concurrency:"<<concurrency<<std::endl;
         while(t!=end)
         {
-	  std::cout<<"for_each, t:"<<t<<", end:"<<end<<std::endl;
             IT tmp = t;
             count = 0;
             while(tmp != end && count<step)
@@ -147,17 +145,21 @@ public:
             }
             para<void> p;
             p([t, tmp, &f, &stepper]() {
+	      _DEBUG(LOG_INFO(para) <<"for_each generated task start running...")
                 IT lt = t;
                 while(lt != tmp)
                 {
+		  _DEBUG(LOG_INFO(para) <<"for_each generated task run step f("<< lt<<")")
                     f(lt);
                     lt =stepper(lt);
                 }
+                _DEBUG(LOG_INFO(para) <<"for_each generated task run over!")
             });
             m_pEntities->push_back(p);
 
             t=tmp;
         }
+        _DEBUG(LOG_INFO(para)<<"for_each generates "<<m_pEntities->size()<<" para<> tasks")
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
     
