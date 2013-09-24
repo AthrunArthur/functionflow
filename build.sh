@@ -7,6 +7,6 @@ mkdir "$buildDir"
 fi 
 cd $path/build
 rm -rf *
-cmake ../
+cmake -DRelease=1 ../
 make
 
