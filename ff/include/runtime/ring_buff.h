@@ -6,6 +6,7 @@
 #include "runtime/rtcmn.h"
 #include "common/spin_lock.h"
 #include "common/log.h"
+#include <boost/config/posix_features.hpp>
 
 namespace ff {
 namespace rt {
@@ -23,7 +24,7 @@ public:
         , cap(1<<N)
         , thieves(0)
         , is_resizing(false)
-	, m_hp()
+        , m_hp()
     {
     }
     ~nonblocking_stealing_queue()
@@ -61,7 +62,7 @@ public:
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
         auto a = array.load(std::memory_order_relaxed);
-	
+
         if(h == t)
             return false;
 
@@ -96,7 +97,7 @@ public:
         }
 
         head.store(pos, std::memory_order_release);
-	
+
         val = a[pos&mask];
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(pos&mask));
         return true;
@@ -111,49 +112,56 @@ public:
             thieves --;
         });
 
-	
-	auto t = tail.load(std::memory_order_acquire);
+
+        auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_acquire);
         auto c = cap.load(std::memory_order_relaxed);
         auto a = array.load(std::memory_order_relaxed);
-	
+
         if(t == h)
             return false;
         std::atomic<T *> & hp = m_hp.get_hazard_pointer();
-	scope_guard _sg1([]() {}, [&hp]() {
+        scope_guard _sg1([]() {}, [&hp]() {
             hp.store(nullptr, std::memory_order_release);
         });
-	
+
         auto mask = cap-1;
+
+        bool ready = false;
 	int i = 1;
-	
-        do {
-	  _DEBUG(
-	  i ++;
-	  if(i > 10000) 
-	    LOG_FATAL(queue)<<"stuck here! head: "<<head.load()<<", tail: "<<tail.load()<<", hp:"<<m_hp.str();
-	  )
+        while(!ready)
+        {
+            i++;
+	    if(i>10)
+	      return false;
+
+            do {
+                _DEBUG(
+                    i ++;
+                    if(i > 10000)
+                    LOG_FATAL(queue)<<"stuck here! head: "<<head.load()<<", tail: "<<tail.load()<<", hp:"<<m_hp.str();
+                )
+                    h = head.load(std::memory_order_acquire);
+                t = tail.load(std::memory_order_acquire);
+                if(!m_hp.outstanding_hazard_pointer_for(&a[t&mask]))
+                    hp.store(&a[t&mask], std::memory_order_release);
+                else
+                    hp.store(nullptr, std::memory_order_release);
+            } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)));
+
+
+            if(hp.load(std::memory_order_relaxed) == nullptr ||
+                    m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
+                //return false;
+	      continue;
+
             h = head.load(std::memory_order_acquire);
-            t = tail.load(std::memory_order_acquire);
-	    if(!m_hp.outstanding_hazard_pointer_for(&a[t&mask]))
-	      hp.store(&a[t&mask], std::memory_order_release);
-	    else
-	      hp.store(nullptr, std::memory_order_release);
-        } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)));
-
-	
-        if(hp.load(std::memory_order_relaxed) == nullptr || 
-	    m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
-            return false;
-
-	h = head.load(std::memory_order_acquire);
-	if(h == t)
-	  return false;
-        val = *(hp.load(std::memory_order_relaxed));
-	if(tail.compare_exchange_strong(t, t+1))
-	  return true;
-	else
-	  return false;	
+            if(h == t)
+                return false;
+            val = *(hp.load(std::memory_order_relaxed));
+            if(tail.compare_exchange_strong(t, t+1, std::memory_order_release, std::memory_order_relaxed))
+                return true;
+        }
     }
 
     uint64_t	size()
@@ -181,9 +189,9 @@ protected:
         auto t2 = tail.load(std::memory_order_acquire);
         array.store(c1, std::memory_order_relaxed);
         cap.store(s, std::memory_order_relaxed);
-	tail.store(t2 - old_tail, std::memory_order_release);
+        tail.store(t2 - old_tail, std::memory_order_release);
         head.store( j, std::memory_order_release);
-        
+
         is_resizing.store(false);
 
         delete[] temp;
