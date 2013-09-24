@@ -169,7 +169,7 @@ int main(int argc, char *argv[])
     }
     else {
         matrix_file.open(matrix_file_name.c_str(),ios::in);
-	std::cout<<"trying open file: "<< matrix_file_name<<std::endl;
+// 	std::cout<<"trying open file: "<< matrix_file_name<<std::endl;
     }
     if(!matrix_file.is_open()) {
       std::cout<<"failed to open file: "<< matrix_file_name<<"! initing matrix now..."<<std::endl;
@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
         }
     }
     else {
-      std::cout<<"reading matrix..."<<std::endl;
+//       std::cout<<"reading matrix..."<<std::endl;
         // read file
         for(int i=0; !matrix_file.eof()&& i<m.M(); i++) {
             for(int j=0; !matrix_file.eof() && j<m.N(); j++) {
@@ -196,7 +196,7 @@ int main(int argc, char *argv[])
     }
     matrix_file.close();
     
-    std::cout<<"matrix initialized!"<<std::endl;
+//     std::cout<<"matrix initialized!"<<std::endl;
 	
 
     chrono::time_point<chrono::system_clock> start, end;
@@ -275,13 +275,6 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-    /*print the LU matrix -- wrong!*/
-//     for(int i=0; i<m.M(); i++) {
-//         for(int j=0; j<m.N(); j++) {
-//             out_file << m(i,j) << '\t';
-//         }
-//         out_file << endl;
-//     }
-
+  
     return 0;
 }

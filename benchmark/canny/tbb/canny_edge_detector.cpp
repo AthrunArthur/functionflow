@@ -489,7 +489,8 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
     task_group tg;
-    concurrent_vector<std::tuple< uint32_t, uint32_t > > ts;
+//     concurrent_vector<std::tuple< uint32_t, uint32_t > > ts;
+    vector< std::tuple< uint32_t, uint32_t > > ts;
     for (uint32_t tx = 0; tx < height; tx++) {
         for (uint32_t ty = 0; ty < width; ty++) {
 

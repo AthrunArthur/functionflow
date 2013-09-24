@@ -140,66 +140,6 @@ void parallel(Matrix & m)
 //     diagonals_vec.clear();
     }
 
-
-    /*
-        ff::para<> diagonals[blocks];
-        for(int k = 0; k <blocks; k++)
-        {
-            auto lut = get_block(seq_m, k, k);
-            diagonals[k]([&lut]() {
-                LUDecompose(lut, lut);
-            });
-            ff::para<void> il, iu;
-            il[diagonals[k]]([&lut, &linv, k]() {
-                invL(lut, linv);
-            });
-            iu[diagonals[k]]([&lut, &uinv, k]() {
-                invU(lut, uinv);
-            });
-
-            if(k == blocks -1)
-                ff_wait(il && iu);
-            ff::paragroup ir, ic;
-            for(int i = k+1; i < blocks; i++)
-            {
-                ff::para<> p1, p2;
-                p1[il]([&seq_m, &linv, k, i]() {
-                    GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
-                    auto ltom = get_block(seq_m, k, i);
-                    mul(linv, ltom, lmul);
-                    set_block(seq_m,k, i, lmul);
-                });
-
-                p2[iu]([&seq_m, &uinv, i, k]() {
-                    GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
-                    auto utom = get_block(seq_m, i, k);
-                    mul(utom, uinv, umul);
-                    set_block(seq_m, i, k, umul);
-                });
-                ir.add(p1);
-                ic.add(p2);
-            }
-
-            ff::ff_wait(all(ir) && all(ic));
-
-            ff::paragroup im;
-            for(int i = k+1; i < blocks; i++)
-                for(int j = k+1; j < blocks; j++)
-                {
-                    ff::para<> p1;
-                    p1([&seq_m, i, j, k]() {
-                        GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
-                        auto tm = get_block(seq_m, i, k);
-                        auto tn = get_block(seq_m, k, j);
-
-                        mul(tm, tn, rmul);
-                        auto tt = get_block(seq_m, i, j);
-                        sub(tt, rmul, tt);
-                    });
-                    im.add(p1);
-                }
-            ff::ff_wait(all(im));
-        }*/
 }
 int main(int argc, char *argv[])
 {
@@ -262,7 +202,7 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-        cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
+        cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     }
 
     else {
@@ -301,13 +241,6 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-    /*print the LU matrix -- wrong!*/
-//     for(int i=0; i<m.M(); i++) {
-//         for(int j=0; j<m.N(); j++) {
-//             out_file << m(i,j) << '\t';
-//         }
-//         out_file << endl;
-//     }
-
+    
     return 0;
 }
