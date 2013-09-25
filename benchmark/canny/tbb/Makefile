@@ -32,7 +32,7 @@ PROG=canny
 
 # The C++ compiler
 CXX=g++
-CXXFLAGS =-std=c++0x `wx-config --libs` `wx-config --cxxflags`
+CXXFLAGS =-std=c++11 `wx-config --libs` `wx-config --cxxflags`
 SOURCES = run_canny.cpp canny_edge_detector.cpp
 
 ifeq ($(shell uname), Linux)

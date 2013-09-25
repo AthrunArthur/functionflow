@@ -32,7 +32,7 @@ PROG=qsort_tbb
 
 # The C++ compiler
 CXX=g++
-CXXFLAGS =-std=c++0x
+CXXFLAGS =-std=c++11
 SOURCES = quick_sort_tbb.cpp
 
 ifeq ($(shell uname), Linux)
