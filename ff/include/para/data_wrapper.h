@@ -15,7 +15,8 @@ namespace ff
 	public:
 		typedef std::function<T (const T&, const T&)> Functor_t;
 		template<class FT>
-		accumulator(T && value, FT && functor)
+// 		accumulator(T && value, FT && functor)
+		accumulator(const T & value, FT && functor)
 		: m_oValue(std::move(value))
 		, Functor(std::move(functor)){
 			for(int i = 0; i < ::ff::rt::rt_concurrency(); ++i)
@@ -35,9 +36,11 @@ namespace ff
 		}
 		
 		template<class TT>
-		accumulator<T>& increase(TT && value){
+// 		accumulator<T>& increase(TT && value){
+		accumulator<T>& increase(const TT & value){
 		  T * plocal = m_pAllValues[ff::rt::get_thrd_id()];
-		  *plocal = std::move(Functor(*plocal, std::forward<TT>(value)));
+// 		  *plocal = std::move(Functor(*plocal, std::forward<TT>(value)));
+		  *plocal = std::move(Functor(*plocal, value));
 		  return *this;
 		}
 		

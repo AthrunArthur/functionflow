@@ -49,3 +49,12 @@ if(CANNY OR All)
   ADD_EXECUTABLE(canny ${CANNY_LIST})
   TARGET_LINK_LIBRARIES(canny ${wxWidgets_LIBRARIES} ff pthread)
 endif(CANNY OR All)
+
+if(KMEANS OR All)
+  message(STATUS "Building kmeans...")
+  SET(KMEANS_LIST kmeans/ff/main.cpp
+		kmeans/ff/Lloyd.cpp
+		kmeans/ff/point.cpp)
+  ADD_EXECUTABLE(kmeans ${KMEANS_LIST})
+  TARGET_LINK_LIBRARIES(kmeans ff pthread) 
+endif(KMEANS OR All)

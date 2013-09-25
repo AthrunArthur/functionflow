@@ -39,6 +39,8 @@ if __name__ == '__main__':
 				para_n = 4
 			elif not cmp(item,'canny'):
 				para_n = 1
+			elif not cmp(item,'kmeans'):
+				para_n = 1
 			print 'file:%s' % item
 			print 'Parallel time:'
 			time_path = '%s/para_time.txt' % path

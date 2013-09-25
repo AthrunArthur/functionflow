@@ -6,7 +6,6 @@
 #include "runtime/rtcmn.h"
 #include "common/spin_lock.h"
 #include "common/log.h"
-#include <boost/config/posix_features.hpp>
 
 namespace ff {
 namespace rt {
