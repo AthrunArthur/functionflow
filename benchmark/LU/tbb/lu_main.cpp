@@ -15,6 +15,67 @@ typedef matrix_impl<double, row_major> GeneralMatrix;
 
 #define MSIZE 2048
 
+template <class M1, class M2>
+bool check_Matrix(const M1 & m1, const M2& m2) {
+    bool equal = true;
+    for(int i = 0; i<m1.M(); i++)
+        for(int j = 0; j< m1.N(); j++)
+        {
+            if(std::abs(m1(i, j) - m2(i, j) ) / std::abs(m2(i, j)) > 0.1)
+            {
+                equal = false;
+            }
+        }
+    return equal;
+}
+
+template <class M1, class M2>
+void check_LU_res(const M1 & m, const M2& lu)
+{
+    GeneralMatrix l(m.M(), m.N());
+    GeneralMatrix u(m.M(), m.N());
+    for(int i = 0; i < lu.M(); i++)
+    {
+        for(int j = 0; j< lu.N(); j++)
+        {
+            if(i>j)
+            {
+                l(i, j) = lu(i, j);
+                u(i, j) = 0;
+            }
+            else if(i == j)
+            {
+                l(i, j) = 1;
+                u(i, j) = lu(i, j);
+            }
+            else
+            {
+                l(i, j) = 0;
+                u(i, j) = lu(i, j);
+            }
+        }
+    }
+
+    bool equal = true;
+    GeneralMatrix m1(m.M(), m.N());
+    mul(l, u, m1);
+    for(int i = 0; i<m.M(); i++)
+        for(int j = 0; j< m.N(); j++)
+        {
+            if(std::abs(m1(i, j) - m(i, j) ) / m(i, j) > 0.1)
+            {
+                equal = false;
+            }
+        }
+    if(!check_Matrix(m1,m))
+    {
+        std::cout<<"wrong answer!"<<std::endl;
+    }
+    else
+    {
+        std::cout<<"right answer, wahahahaha!"<<std::endl;
+    }
+}
 
 GeneralMatrix  	standard(Matrix & m)
 {
@@ -70,6 +131,7 @@ void sequential(Matrix & m)
                 sub(tt, rmul, tt);
             }
     }
+//     check_LU_res(m,seq_m);
 }
 
 void parallel(Matrix & m)
@@ -80,14 +142,7 @@ void parallel(Matrix & m)
     if(m.M()%Matrix::block_size != 0)
         blocks ++;
 
-//   cout << "new" << endl;
-
-//     concurrent_vector<int > diagonals_vec;
     for(int k= 0; k< blocks; k++) {
-//         diagonals_vec.push_back(k);
-    
-
-//     tbb::parallel_for_each(diagonals_vec.begin(), diagonals_vec.end(),[&seq_m,blocks](int k) {
         auto lut = get_block(seq_m, k, k);
         LUDecompose(lut,lut);
         GeneralMatrix linv(Matrix::block_size, Matrix::block_size);
@@ -100,7 +155,7 @@ void parallel(Matrix & m)
             invU(lut, uinv);
         });
         concurrent_vector<int > index_vec;
-        for(int i=k; i< blocks; i++) {
+        for(int i=k+1; i< blocks; i++) {
             index_vec.push_back(i);
         }
         tbb::parallel_for_each(index_vec.begin(),index_vec.end(),[&seq_m,&linv,&uinv,k](int i) {
@@ -136,10 +191,8 @@ void parallel(Matrix & m)
             sub(tt, rmul, tt);
         });
         pos_vec.clear();
-//     });
-//     diagonals_vec.clear();
     }
-
+//     check_LU_res(m,seq_m);
 }
 int main(int argc, char *argv[])
 {
