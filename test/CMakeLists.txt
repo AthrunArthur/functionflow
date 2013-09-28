@@ -3,29 +3,44 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 MESSAGE(STATUS "This is BINARY dir" ${PROJECT_BINARY_DIR})
 MESSAGE(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
 add_definitions(-std=c++11)
-add_definitions(-g)
-add_definitions(-DUSING_LOCK_FREE_QUEUE)
-add_definitions(-DFUNCTION_FLOW_DEBUG)
 
+#add_definitions(-DUSING_LOCK_FREE_QUEUE)
+add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
+
+
+if(Release)
+	message(STATUS "This is a Release version!")
+	add_definitions(-O2)
+	add_definitions(-DNDEBUG)
+else(Release)
+    add_definitions(-g)
+    add_definitions(-DFUNCTION_FLOW_DEBUG)
+    include_directories(${PROJECT_SOURCE_DIR}/../libs)
+endif(Release)
 
 include_directories(${PROJECT_SOURCE_DIR}/../ff/include)
-include_directories(${PROJECT_SOURCE_DIR}/../libs)
 
-find_package(Boost REQUIRED)
+
+find_package(Boost)
 if(Boost_FOUND)
 	message(STATUS "found boost: ${Boost_LIBRARY_DIRS}")
 	include_directories(${Boost_INCLUDE_DIR})
 	link_directories(${Boost_LIBRARY})
+	SET(LIBS_LINK_LIBS boost_test_exec_monitor ff pthread)
 else (Boost_FOUND)
-	message(FATAL_ERROR "can't find boost")
+	message(STATUS "can't find boost")
+	SET(LIBS_LINK_LIBS ff pthread)
 endif (Boost_FOUND)
 
 link_directories(${PROJECT_SOURCE_DIR}/../bin)
-SET(LIBS_LINK_LIBS boost_test_exec_monitor ff pthread)
+
+
 
 ###########################
+if(Boost_FOUND)
 ADD_EXECUTABLE(test test_interface.cpp)
 TARGET_LINK_LIBRARIES(test ${LIBS_LINK_LIBS})
+endif (Boost_FOUND)
 
 ADD_EXECUTABLE(helloworld hello_world.cpp)
 TARGET_LINK_LIBRARIES(helloworld ${LIBS_LINK_LIBS})

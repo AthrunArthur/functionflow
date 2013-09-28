@@ -5,15 +5,6 @@
 #include "runtime/taskbase.h"
 #include "runtime/rtcmn.h"
 #include "common/log.h"
-#ifdef FUNCTION_FLOW_DEBUG
-#include <set>
-#endif
-
-
-#ifdef FUNCTION_FLOW_DEBUG
-static std::set<void *> g_runned_funcs;
-static std::mutex g_hash_mutex;
-#endif
 
 namespace ff {
 namespace internal
@@ -68,21 +59,6 @@ public:
 	}
     virtual void	run()
     {
-#ifdef FUNCTION_FLOW_DEBUG
-g_hash_mutex.lock();
-if(g_runned_funcs.find(this)!=g_runned_funcs.end())
-{
-  //assert(0);
-  std::cout<<"shit!"<<std::endl;
-  _DEBUG(LOG_FATAL(para)<<"this function has been runned! "<<this)
-  g_hash_mutex.unlock();
-}
-else
-{
-  g_runned_funcs.insert(this);
-  g_hash_mutex.unlock();
-}
-#endif
 	m_iES = exe_state::exe_run;
         m_oRet.set(m_oFunc());
         m_iES.store(exe_state::exe_over);
@@ -133,21 +109,6 @@ public:
 	
     virtual void	run()
     {
-#ifdef FUNCTION_FLOW_DEBUG
-g_hash_mutex.lock();
-if(g_runned_funcs.find(this)!=g_runned_funcs.end())
-{
-  //assert(0);
-  std::cout<<"shit"<<std::endl;
-  _DEBUG(LOG_FATAL(para)<<"this function has been runned! "<<this)
-  g_hash_mutex.unlock();
-}
-else
-{
-  g_runned_funcs.insert(this);
-  g_hash_mutex.unlock();
-}
-#endif
         //LOG_INFO(para)<<"para_impl::run(), "<<this;
 	m_iES = exe_state::exe_run;
         m_oFunc();
@@ -292,3 +253,4 @@ void	schedule(para_impl_wait_ptr<WT>  p)
 }//end namespace internal
 }//end namespace ff
 #endif
+

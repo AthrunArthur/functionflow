@@ -8,7 +8,6 @@
 #include <mutex>
 #include <chrono>
 #include <algorithm>
-#include <boost/concept_check.hpp>
 using namespace ff::rt;
 typedef nonblocking_stealing_queue<int, 8> work_stealing_queue;
 //typedef mutex_stealing_queue<int> work_stealing_queue;
@@ -125,7 +124,7 @@ int main(int argc, char *argv[])
   tp.run([](){steal(1);});
   tp.run([](){steal(2);});
   
-  std::chrono::seconds dura( 1 );
+  std::chrono::seconds dura( 15 );
     std::this_thread::sleep_for( dura );
    quit.store(true);
    std::cout<<"wait all threads quiting..."<<std::endl;

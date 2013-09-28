@@ -10,6 +10,7 @@
 
 #include "canny_edge_detector.h"
 #include "common/log.h"
+#include "algorithm"
 
 CannyEdgeDetector::CannyEdgeDetector(bool bIsPara):isPara(bIsPara)
 {
@@ -82,12 +83,13 @@ uint8_t* CannyEdgeDetector::ProcessImage(uint8_t* source_bitmap, unsigned int wi
     return source_bitmap;
 }
 
-inline uint8_t CannyEdgeDetector::GetPixelValue(unsigned int x, unsigned int y)
+
+uint8_t CannyEdgeDetector::GetPixelValue(unsigned int x, unsigned int y)
 {
     return (uint8_t) *(workspace_bitmap + (unsigned long) (x * width + y));
 }
 
-inline void CannyEdgeDetector::SetPixelValue(unsigned int x, unsigned int y,
+void CannyEdgeDetector::SetPixelValue(unsigned int x, unsigned int y,
         uint8_t value)
 {
     workspace_bitmap[(unsigned long) (x * width + y)] = value;
@@ -495,7 +497,9 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
     ff::paragroup pg;
-    std::vector<std::tuple< uint32_t, uint32_t > > ts;
+    typedef std::vector<std::tuple<uint32_t, uint32_t> > pos_t;
+    pos_t ts;
+
     for (uint32_t tx = 0; tx < height; tx++) {
         for (uint32_t ty = 0; ty < width; ty++) {
 
@@ -509,18 +513,22 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
         //if(ts.size() >= 1000 ||(tx==height -1))
         {
             ff::para<void> p;
-            p([this, ts, lowThreshold, highThreshold]() {
+	    p([this, ts, lowThreshold, highThreshold]() {
+	      
                 ff::paragroup pp;
+		
                 pp.for_each(ts.begin(), ts.end(), [this, lowThreshold, highThreshold](std::tuple<uint32_t, uint32_t> pos) {
+		  //std::cout<<get<0>(pos)<<", "<<get<1>(pos)<<std::endl;
                     HysteresisPixel(get<0>(pos), get<1>(pos), highThreshold, lowThreshold);
+		    //std::cout<<"done: "<<get<0>(pos)<<", "<<get<1>(pos)<<std::endl;
                 });
                 ff_wait(all(pp));
             });
             pg.add(p);
             ts.clear();
         }
-
     }
+    std::cout<<"all done!"<<std::endl;
     _DEBUG(LOG_INFO(main)<<"add all para entities");
     ff_wait(all(pg));
 }

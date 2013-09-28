@@ -1,7 +1,7 @@
 #ifndef FF_COMMON_SPIN_LOCK_H_
 #define FF_COMMON_SPIN_LOCK_H_
-#include <atomic>
-
+#include "common/common.h"
+#include "runtime/rtcmn.h"
 namespace ff{
   class spinlock
   {
@@ -14,7 +14,7 @@ namespace ff{
     spinlock & operator=(const spinlock &) = delete;
     
     inline void lock(){
-      while(flag.test_and_set(std::memory_order_acquire));
+      while(flag.test_and_set(std::memory_order_acquire)) ff::rt::yield();
     }
     inline void unlock(){
       flag.clear(std::memory_order_release);

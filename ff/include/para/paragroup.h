@@ -134,6 +134,8 @@ public:
 
         t = begin;
         m_pEntities = std::make_shared<std::vector<para<void> > >();
+	
+	
         while(t!=end)
         {
             IT tmp = t;
@@ -144,7 +146,7 @@ public:
                 count ++;
             }
             para<void> p;
-            p([t, tmp, &f, &stepper]() {
+            p([t, tmp, f, stepper]() {
 	      _DEBUG(LOG_INFO(para) <<"for_each generated task start running...")
                 IT lt = t;
                 while(lt != tmp)
@@ -183,6 +185,7 @@ public:
 
         t = begin;
         m_pEntities = std::make_shared<std::vector<para<void> > >();
+
         while(t!=end)
         {
             Iterator_t tmp = t;
@@ -193,7 +196,7 @@ public:
                 count ++;
             }
             para<void> p;
-            p([t, tmp, &f]() {
+            p([t, tmp, f]() {
                 Iterator_t lt = t;
                 while(lt != tmp)
                 {

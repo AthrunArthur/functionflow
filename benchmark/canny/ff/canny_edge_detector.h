@@ -163,7 +163,7 @@ private:
      * \param y Pixel y coordinate.
      * \return Pixel (x, y) value.
      */
-    inline uint8_t GetPixelValue(unsigned int x, unsigned int y);
+    uint8_t GetPixelValue(unsigned int x, unsigned int y);
 
     /**
      * \brief Sets (x, y) pixel to certain value.
@@ -174,7 +174,7 @@ private:
      * \param y Pixel y coordinate.
      * \param value Pixel value (0-255).
      */
-    inline void SetPixelValue(unsigned int x, unsigned int y, uint8_t value);
+    void SetPixelValue(unsigned int x, unsigned int y, uint8_t value);
 
     /**
      * \brief Initializes arrays for use by the algorithm.

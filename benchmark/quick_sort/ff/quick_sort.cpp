@@ -51,7 +51,7 @@ void quick_sort(int *data,int start,int end)
 /* parallel quick sort using ff::para. */
 void para_quick_sort(int * data,int i,int j,int para_len)
 {
-
+//std::cout<<i<<","<<j<<std::endl;
     int r;
     if(j-i <= para_len)/*The length is too small.*/
         quick_sort(data,i,j);
