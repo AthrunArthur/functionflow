@@ -6,6 +6,7 @@
 #include "para/para.h"
 #include "para/paragroup.h"
 #include "para/wait.h"
+#include "common/scope_guard.h"
 
 namespace ff{
 

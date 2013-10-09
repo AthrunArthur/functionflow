@@ -59,3 +59,14 @@ if(KMEANS OR All)
   ADD_EXECUTABLE(kmeans ${KMEANS_LIST})
   TARGET_LINK_LIBRARIES(kmeans ff pthread) 
 endif(KMEANS OR All)
+
+if(PBZIP OR All)
+  message(STATUS "Building pbzip2...")
+  SET(PBZIP_LIST pbzip/ff/main.cpp)
+  find_package (BZip2 REQUIRED)
+  include_directories(${BZIP_INCLUDE_DIRS})
+  
+  ADD_EXECUTABLE(pbzip ${PBZIP_LIST})
+  target_link_libraries(pbzip ${LIBS} ${BZIP2_LIBRARIES})
+  
+endif(PBZIP OR All)
