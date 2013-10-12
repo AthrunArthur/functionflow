@@ -70,3 +70,10 @@ if(PBZIP OR All)
   target_link_libraries(pbzip ${LIBS} ${BZIP2_LIBRARIES})
   
 endif(PBZIP OR All)
+
+if(NQUEEN OR All)
+  message(STATUS "Building kmeans...")
+  SET(NQUEEN_LIST n_queen/ff/n_queen_ff.cpp)
+  ADD_EXECUTABLE(nqueen ${NQUEEN_LIST})
+  TARGET_LINK_LIBRARIES(nqueen ff pthread) 
+endif(NQUEEN OR All)
