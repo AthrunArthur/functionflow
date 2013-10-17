@@ -120,8 +120,8 @@ public:
         auto c = cap.load(std::memory_order_acquire);
         auto a = array.load(std::memory_order_relaxed);
 
-        if(t == h)
-            return false;
+//        if(t == h)
+//            return false;
         std::atomic<T *> & hp = m_hp.get_hazard_pointer();
         scope_guard _sg1([]() {}, [&hp]() {
             hp.store(nullptr, std::memory_order_release);
@@ -134,7 +134,7 @@ public:
         while(!ready)
         {
             i++;
-	    if(i>3) //here is a experience value!
+	    if(i>16)//3) //here is a experience value!
 	      return false;
 
             do {

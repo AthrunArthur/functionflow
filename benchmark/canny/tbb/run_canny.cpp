@@ -14,12 +14,12 @@ int main(int argc, char *argv[])
     wxImage image;
     wxImageHandler * bmpLoader = new wxBMPHandler();
     wxImage::AddHandler(bmpLoader);
-//     wxImageHandler * jpegLoader = new wxJPEGHandler();
-//     wxImage::AddHandler(jpegLoader);
+//    wxImageHandler * jpegLoader = new wxJPEGHandler();
+//    wxImage::AddHandler(jpegLoader);
     wxString inFileName(_T("../ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
-//     wxString inFileName(_T("pic/jpg/adele1.jpg"));
-//     wxString outFileName = _T("out.jpg");
+//    wxString inFileName(_T("../ff/pic/jpg/child.jpg"));
+//    wxString outFileName = _T("out.jpg");
 
     string inFileStr;
     bool bIsPara = false;
@@ -42,7 +42,7 @@ int main(int argc, char *argv[])
 
 //     cout << "Input File Name " << inFileName.mb_str() << endl;
     if (!image.LoadFile(inFileName,wxBITMAP_TYPE_BMP)) {
-//     if (!image.LoadFile(inFileName,wxBITMAP_TYPE_JPEG)) {
+//    if (!image.LoadFile(inFileName,wxBITMAP_TYPE_JPEG)) {
         cout << "Cannot open "<< inFileName.mb_str() << "!" << endl;
         return -1;
     }
@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
 
     cout << "Elapsed time: " << canny->GetHysteresisTime() << "us" << endl;
     image.SaveFile(outFileName, wxBITMAP_TYPE_BMP);
-//     image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
+//    image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
     
     if(bIsPara) {
         out_time_file.open("para_time.txt",ios::app);

@@ -36,7 +36,7 @@ if __name__ == '__main__':
 			elif not cmp(item,'lu'):
 				para_n = 1 
 			elif not cmp(item,'quicksort'):
-				para_n = 4
+				para_n = 256
 			elif not cmp(item,'canny'):
 				para_n = 1
 			elif not cmp(item,'kmeans'):

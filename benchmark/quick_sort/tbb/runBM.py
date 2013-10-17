@@ -16,7 +16,7 @@ if __name__ == '__main__':
 	cmd = 'cd %s; make clean; make;' % path
 	execute_cmd(cmd)
 	item = 'qsort_tbb'
-	para_n = 4
+	para_n = 256
 	print 'file:qsort_tbb'
 	print 'Parallel time:'
 	time_path = '%s/para_time.txt' % path
