@@ -23,7 +23,7 @@ typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
 #endif
 
 #ifdef USING_LOCK_FREE_QUEUE
-typedef nonblocking_stealing_queue<task_base_ptr, 7> work_stealing_queue;
+typedef nonblocking_stealing_queue<task_base_ptr, 6> work_stealing_queue;
 #endif
 
 #ifdef USING_FF_SPIN_STEAL_QUEUE
