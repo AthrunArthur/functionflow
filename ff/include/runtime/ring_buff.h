@@ -84,7 +84,7 @@ public:
         auto pos = h - 1;
         hp.store(&a[pos & mask], std::memory_order_release);
 
-        if(/*h - t-2<=thieves &&*/
+        if(h - t-2<=thieves &&
                 m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)))
         {
             return false;
@@ -112,12 +112,12 @@ public:
             thieves --;
         });
 
-	if(thieves.load() >=2 )
-	  return false;
+	//if(thieves.load() >=2 )
+	//  return false;
 
-        auto t = tail.load(std::memory_order_acquire);
-        auto h = head.load(std::memory_order_acquire);
-        auto c = cap.load(std::memory_order_relaxed);
+        int64_t t = 0;
+        int64_t h = 0;
+        auto c = cap.load(std::memory_order_acquire);
         auto a = array.load(std::memory_order_relaxed);
 
         if(t == h)
@@ -134,7 +134,7 @@ public:
         while(!ready)
         {
             i++;
-	    if(i>10)
+	    if(i>3) //here is a experience value!
 	      return false;
 
             do {
@@ -143,7 +143,7 @@ public:
                     if(i > 10000)
                     LOG_FATAL(queue)<<"stuck here! head: "<<head.load()<<", tail: "<<tail.load()<<", hp:"<<m_hp.str();
                 )
-                    h = head.load(std::memory_order_acquire);
+                h = head.load(std::memory_order_acquire);
                 t = tail.load(std::memory_order_acquire);
                 if(!m_hp.outstanding_hazard_pointer_for(&a[t&mask]))
                     hp.store(&a[t&mask], std::memory_order_release);
@@ -154,25 +154,26 @@ public:
 
             if(hp.load(std::memory_order_relaxed) == nullptr ||
                     m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
-                return false;
-	      //continue;
+                //return false;
+	      continue;
 
             h = head.load(std::memory_order_acquire);
             if(h == t)
-                return false;
+                continue;
             val = *(hp.load(std::memory_order_relaxed));
-            if(tail.compare_exchange_strong(t, t+1/*, std::memory_order_release, std::memory_order_relaxed*/))
+            if(tail.compare_exchange_strong(t, t+1, std::memory_order_release, std::memory_order_relaxed))
 	    {
 	      return true;
 	    }
 	    //else
 	    //  return false;
         }
+        return false;
     }
 
     uint64_t	size()
     {
-        return head.load() - tail.load();
+        return head.load(std::memory_order_acquire) - tail.load(std::memory_order_acquire);
     }
 protected:
     void		resize(uint64_t s)
