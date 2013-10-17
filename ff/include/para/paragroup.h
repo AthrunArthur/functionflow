@@ -47,16 +47,23 @@ public:
                 count ++;
             }
             uint64_t step = count/ concurrency;
-            if(!(count %concurrency))
-                step ++;
+            uint64_t ls = count % concurrency;//added
+//            if(!(count %concurrency))
+//                step ++;
 
             t = begin;
             m_refP.m_pEntities = std::make_shared<std::vector<para<void> > >();
+			uint16_t counter = 0;//added
             while(t!=end)
             {
                 Iterator_t tmp = t;
                 count = 0;
-                while(tmp != end && count<step)
+				uint64_t upperbound = step;//added
+				if(counter < ls)
+					upperbound ++;//added
+				counter ++;//added
+                while(tmp != end && count<upperbound)//added
+//                while(tmp != end && count<step)
                 {
                     tmp ++;
                     count ++;
@@ -129,18 +136,25 @@ public:
             count ++;
         }
         uint64_t step = count/ concurrency;
-        if(count %concurrency)
-            step ++;
+        uint64_t ls = count % concurrency;//added
+//        if(count %concurrency)
+//            step ++;
 
         t = begin;
         m_pEntities = std::make_shared<std::vector<para<void> > >();
 	
 	
+		uint16_t counter = 0;//added
         while(t!=end)
         {
             IT tmp = t;
             count = 0;
-            while(tmp != end && count<step)
+			uint64_t upperbound = step;//added
+			if(counter < ls)
+				upperbound ++;//added
+			counter ++;//added
+            while(tmp != end && count<upperbound)//added
+//            while(tmp != end && count<step)
             {
                 tmp ++;
                 count ++;
@@ -180,17 +194,24 @@ public:
             count ++;
         }
         uint64_t step = count/ concurrency;
-        if(count %concurrency)
-            step ++;
+        uint64_t ls = count % concurrency;//added
+//        if(count %concurrency)
+//            step ++;
 
         t = begin;
         m_pEntities = std::make_shared<std::vector<para<void> > >();
 
+		uint16_t counter = 0;//added
         while(t!=end)
         {
             Iterator_t tmp = t;
             count = 0;
-            while(tmp != end && count<step)
+			uint64_t upperbound = step;//added
+			if(counter < ls)
+				upperbound ++;//added
+			counter ++;//added
+            while(tmp != end && count<upperbound)//added
+//            while(tmp != end && count<step)
             {
                 tmp ++;
                 count ++;
