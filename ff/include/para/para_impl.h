@@ -40,7 +40,7 @@ template<class RT>
 class para_impl : public ff::rt::task_base
 {
 public:
-	template <class F>
+    template <class F>
     para_impl(F && f)
         : ff::rt::task_base(TKind::user_t)
         , m_oRet(*this)
@@ -48,18 +48,10 @@ public:
         , m_iES(exe_state::exe_unknown) {}
 
     virtual ~para_impl()
-	{
-		/*
-		while(get_state() != exe_state::exe_over)
-        {
-            ::ff::rt::yield_and_ret_until([this]() {
-                return check_if_over();
-            });
-        }*/
-	}
+    {}
     virtual void	run()
     {
-	m_iES = exe_state::exe_run;
+        m_iES = exe_state::exe_run;
         m_oRet.set(m_oFunc());
         m_iES.store(exe_state::exe_over);
     }
@@ -89,28 +81,21 @@ template<>
 class para_impl<void> : public ff::rt::task_base
 {
 public:
-	template< class F>
+    template< class F>
     para_impl(F && f)
         : ff::rt::task_base(TKind::user_t)
         , m_iES(exe_state::exe_unknown)
-        , m_oFunc(std::move(f)) 
-		{}
+        , m_oFunc(std::move(f))
+    {}
 
-	virtual ~para_impl()
-	{
-		/*
-		while(get_state() != exe_state::exe_over)
-        {
-            ::ff::rt::yield_and_ret_until([this]() {
-                return check_if_over();
-            });
-        }*/
-	}
-	
+    virtual ~para_impl()
+    {
+    }
+
     virtual void	run()
     {
         //LOG_INFO(para)<<"para_impl::run(), "<<this;
-	m_iES = exe_state::exe_run;
+        m_iES = exe_state::exe_run;
         m_oFunc();
         m_iES.store(exe_state::exe_over);
     }
@@ -140,19 +125,19 @@ template<class ret_type, class F>
 auto make_para_impl(F && f)
 -> typename std::enable_if<
 std::is_void<ret_type>::value,
-	internal::para_impl_ptr<ret_type>
-	>::type
+    internal::para_impl_ptr<ret_type>
+    >::type
 {
-	return new para_impl<ret_type>(std::forward<F>(f));
+    return new para_impl<ret_type>(std::forward<F>(f));
 }
 template<class ret_type, class F>
 auto make_para_impl(F&& f)
 -> typename std::enable_if<
 !std::is_void<ret_type>::value,
-	internal::para_impl_ptr<ret_type>
+internal::para_impl_ptr<ret_type>
 >::type
 {
-	return new para_impl<ret_type>(std::forward<F>(f));
+    return new para_impl<ret_type>(std::forward<F>(f));
 }
 #endif
 
@@ -168,8 +153,8 @@ std::is_void<ret_type>::value,
     internal::para_impl_ptr<ret_type>
     >::type
 {
-  auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
-  _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
+    auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
+    _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
     return p;
 }
 template <class ret_type, class F>
@@ -179,8 +164,8 @@ auto make_para_impl(F&& f)
 internal::para_impl_ptr<ret_type>
 >::type
 {
-  auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
-  _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
+    auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
+    _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
     return p;
 }
 #endif
@@ -194,21 +179,21 @@ public:
         : ff::rt::task_base(TKind::user_t)
         , m_iES(exe_state::exe_unknown)
         , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
-	//, m_pFunc(p)
+        //, m_pFunc(p)
         , m_oWaitingPT(w) {}
 
     template<class RT>
     para_impl_wait(WT && w, const para_impl_ptr<RT> & p)
         : ff::rt::task_base(TKind::user_t)
-	, m_pFunc(p)
-	, m_oWaitingPT(w){}
+        , m_pFunc(p)
+        , m_oWaitingPT(w) {}
 
     virtual ~para_impl_wait()
-	{
-	}
+    {
+    }
     virtual void run()
     {
-	m_iES=exe_state::exe_run;
+        m_iES=exe_state::exe_run;
         if(m_oWaitingPT.get_state() != exe_state::exe_over)
         {
             ::ff::rt::yield_and_ret_until([this]() {

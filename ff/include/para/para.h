@@ -12,120 +12,50 @@
 namespace ff {
 
 using namespace ff::utils;
-template<typename RT = void>
-class para {
+
+namespace internal {
+template<typename DT, typename RT>
+class para_common {
 public:
     typedef RT  ret_type;
 public:
 #include "para/para_accepted_wait.h"
-    para()
+    para_common()
         : m_pImpl(nullptr) {};
-
-    ~para()
+    ~para_common()
     {
     }
     template<class WT>
-    para_accepted_wait<para<RT>, WT> operator[](WT && cond)
+    para_accepted_wait<DT, WT> operator[](WT && cond)
     {
-        return para_accepted_wait<para<RT>, WT>(*this,std::forward<WT>(cond));
+        return para_accepted_wait<DT, WT>(*(static_cast<DT *>(this)),std::forward<WT>(cond));
     }
     template<class F>
-    auto		exe(F && f) -> internal::para_accepted_call<para<RT>, RT>
+    auto		exe(F && f) -> para_accepted_call<DT, ret_type>
     {
         if(m_pImpl)
             throw used_para_exception();
-        m_pImpl = internal::make_para_impl<ret_type>(std::forward<F>(f));
-        internal::schedule(m_pImpl);
-        return internal::para_accepted_call<para<RT>, RT>(*this);
+        m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
+        schedule(m_pImpl);
+        return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
-    auto		operator ()(F && f) -> internal::para_accepted_call<para<RT>, RT>
-    {
-        return exe(std::forward<F>(f));
-    }
-#if USING_MIMO_QUEUE
-    template<class F>
-    auto		exe(F && f, int32_t thrd_id) -> internal::para_accepted_call<para<RT>, RT>
-    {
-        if(m_pImpl)
-            throw used_para_exception();
-        m_pImpl = internal::make_para_impl<ret_type>(std::forward<F>(f));
-        internal::schedule(m_pImpl, thrd_id);
-        return internal::para_accepted_call<para<RT>, RT>(*this);
-    }
-    template<class F>
-    auto		operator ()(F && f, int32_t thrd_id) -> internal::para_accepted_call<para<RT>, RT>
-    {
-        return exe(std::forward<F>(f), thrd_id);
-    }
-#endif
-    auto get() -> typename std::enable_if< !std::is_void<RT>::value,RT>::type &
-    {
-        return m_pImpl->get();
-    }
-
-    exe_state	get_state()
-    {
-        if(m_pImpl)
-            return m_pImpl->get_state();
-        return exe_state::exe_over;
-    }
-    bool	check_if_over()
-    {
-        if(m_pImpl)
-            return m_pImpl->check_if_over();
-        return true;
-    }
-
-    internal::para_impl_ptr<RT> get_internal_impl() {
-        return m_pImpl;
-    }
-protected:
-    internal::para_impl_ptr<RT> m_pImpl;
-};//end class para;
-
-template<>
-class para<void> {
-public:
-    typedef void  ret_type;
-public:
-#include "para/para_accepted_wait.h"
-    para()
-        : m_pImpl(nullptr) {};
-    ~para()
-    {
-    }
-    template<class WT>
-    para_accepted_wait<para<ret_type>, WT> operator[](WT && cond)
-    {
-        return para_accepted_wait<para<ret_type>, WT>(*this,std::forward<WT>(cond));
-    }
-    template<class F>
-    auto		exe(F && f) -> internal::para_accepted_call<para<ret_type>, ret_type>
-    {
-        if(m_pImpl)
-            throw used_para_exception();
-        m_pImpl = internal::make_para_impl<ret_type>(std::forward<F>(f));
-        internal::schedule(m_pImpl);
-        return internal::para_accepted_call<para<ret_type>, ret_type>(*this);
-    }
-    template<class F>
-    auto		operator ()(F && f) -> internal::para_accepted_call<para<ret_type>, ret_type>
+    auto		operator ()(F && f) -> para_accepted_call<DT, ret_type>
     {
         return exe(std::forward<F>(f));
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
-    auto		exe(F && f, int32_t thrd_id) -> internal::para_accepted_call<para<ret_type>, ret_type>
+    auto		exe(F && f, int32_t thrd_id) -> para_accepted_call<DT, ret_type>
     {
         if(m_pImpl)
             throw used_para_exception();
-        m_pImpl = internal::make_para_impl<ret_type>(std::forward<F>(f));
-        internal::schedule(m_pImpl, thrd_id);
-        return internal::para_accepted_call<para<ret_type>, ret_type>(*this);
+        m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
+        schedule(m_pImpl, thrd_id);
+        return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
-    auto		operator ()(F && f, int32_t thrd_id) -> internal::para_accepted_call<para<ret_type>, ret_type>
+    auto		operator ()(F && f, int32_t thrd_id) -> para_accepted_call<DT, ret_type>
     {
         return exe(std::forward<F>(f), thrd_id);
     }
@@ -148,6 +78,21 @@ public:
     }
 protected:
     internal::para_impl_ptr<ret_type> m_pImpl;
+};//end class para_common
+
+}//end namespace internal
+
+template<typename RT = void>
+class para : public internal::para_common<para<RT>, RT > {
+public:
+    auto get() -> typename std::enable_if< !std::is_void<RT>::value,RT>::type &
+    {
+        return internal::para_common<para<RT>,RT >::m_pImpl->get();
+    }
+};//end class para;
+
+template<>
+class para<void> : public internal::para_common<para<void>, void > {
 };//end class para;
 
 
