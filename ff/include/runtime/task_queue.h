@@ -13,6 +13,11 @@
 #ifdef USING_FF_SPIN_STEAL_QUEUE
 #include "runtime/spin_steal_queue.h"
 #endif
+
+#ifdef USING_MIMO_QUEUE
+#include "runtime/mimo_queue.h"
+#endif
+
 #include "runtime/env.h"
 
 namespace ff {
@@ -30,6 +35,9 @@ typedef nonblocking_stealing_queue<task_base_ptr, 6> work_stealing_queue;
 typedef spin_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
+#ifdef USING_MIMO_QUEUE
+typedef mimo_lock_free_queue<task_base_ptr, 6> work_stealing_queue;
+#endif
 typedef work_stealing_queue * work_stealing_queue_ptr;
 typedef std::vector<ctx_pdict_ptr> local_stack_queue;
 

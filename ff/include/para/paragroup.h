@@ -4,6 +4,8 @@
 #include "para/para.h"
 #include "para/para_helper.h"
 #include "common/log.h"
+#include "runtime/env.h"
+
 
 namespace ff {
 
@@ -33,56 +35,30 @@ public:
             : m_refP(p)
             , m_oWaiting(w) {}
 
+
         template<class Iterator_t, class Functor_t>
         auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
-        -> internal::para_accepted_call<paragroup, void>
+        -> typename std::enable_if<
+        std::is_arithmetic<
+        typename std::remove_cv<Iterator_t>::type>::value,
+                 internal::para_accepted_call<paragroup, void>>::type
         {
-            int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
-            //TODO(A.A) we may have another partition approach!
-            uint64_t count = 0;
-            Iterator_t t = begin;
-            while(t!= end)
-            {
-                t++;
-                count ++;
-            }
-            uint64_t step = count/ concurrency;
-            uint64_t ls = count % concurrency;//added
-//            if(!(count %concurrency))
-//                step ++;
-
-            t = begin;
-            m_refP.m_pEntities = std::make_shared<std::vector<para<void> > >();
-			uint16_t counter = 0;//added
-            while(t!=end)
-            {
-                Iterator_t tmp = t;
-                count = 0;
-				uint64_t upperbound = step;//added
-				if(counter < ls)
-					upperbound ++;//added
-				counter ++;//added
-                while(tmp != end && count<upperbound)//added
-//                while(tmp != end && count<step)
-                {
-                    tmp ++;
-                    count ++;
-                }
-                para<void> p;
-                p[m_oWaiting]([t, tmp, &f]() {
-                    Iterator_t lt = t;
-                    while(lt != tmp)
-                    {
-                        f(*lt);
-                        lt ++;
-                    }
-                });
-                m_refP.m_pEntities->push_back(std::move(p));
-
-                t=tmp;
-            }
+            for_each_impl(begin, end, std::forward<Functor_t>(f), m_refP.m_pEntities);
             return internal::para_accepted_call<paragroup, ret_type>(m_refP);
         }
+
+        template<class Iterator_t, class Functor_t>
+        auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+        -> typename std::enable_if<
+        !std::is_arithmetic<typename std::remove_cv<Iterator_t>::type>::value,
+        internal::para_accepted_call<paragroup, void>>::type
+        {
+            for_each_impl(begin, end, [f](const Iterator_t & t) {
+                f(*t);
+            }, m_refP.m_pEntities);
+            return internal::para_accepted_call<paragroup, ret_type>(m_refP);
+        }
+
 
     protected:
         PT & m_refP;
@@ -99,137 +75,44 @@ public:
 
     para<void> &  operator [](int index)
     {
-      _DEBUG(
-	if(!m_pEntities)
-	{ 
-	  LOG_FATAL(para)<<" m_pEntities is null";
-	}
-      )
-        return (*m_pEntities)[index]; 
+        _DEBUG(
+            if(!m_pEntities)
+    {
+        LOG_FATAL(para)<<" m_pEntities is null";
+        }
+        )
+        return (*m_pEntities)[index];
     }
     size_t 	size() const
     {
-      if(m_pEntities)
-        return m_pEntities->size();
-      return 0;
+        if(m_pEntities)
+            return m_pEntities->size();
+        return 0;
     }
     ~paragroup()
     {
     }
 
-    template<class IT, class Functor_t>
-    auto for_each_step(IT begin, IT end, Functor_t && f) 
-    -> internal::para_accepted_call<paragroup, void>{
-      return for_each(begin, end, [](IT i)->IT {return i+1;}, std::forward<Functor_t>(f));
-    }
-    
-    template<class IT, class Step_t, class Functor_t>
-    auto for_each(IT begin, IT end, Step_t && stepper, Functor_t && f) 
-    -> internal::para_accepted_call<paragroup, void>{
-      int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
-        //TODO(A.A) we may have another partition approach!
-        uint64_t count = 0;
-        IT t = begin;
-        while(t!= end)
-        {
-            t++;
-            count ++;
-        }
-        uint64_t step = count/ concurrency;
-        uint64_t ls = count % concurrency;//added
-//        if(count %concurrency)
-//            step ++;
-
-        t = begin;
-        m_pEntities = std::make_shared<std::vector<para<void> > >();
-	
-	
-		uint16_t counter = 0;//added
-        while(t!=end)
-        {
-            IT tmp = t;
-            count = 0;
-			uint64_t upperbound = step;//added
-			if(counter < ls)
-				upperbound ++;//added
-			counter ++;//added
-            while(tmp != end && count<upperbound)//added
-//            while(tmp != end && count<step)
-            {
-                tmp ++;
-                count ++;
-            }
-            para<void> p;
-            p([t, tmp, f, stepper]() {
-	      _DEBUG(LOG_INFO(para) <<"for_each generated task start running...")
-                IT lt = t;
-                while(lt != tmp)
-                {
-		  _DEBUG(LOG_INFO(para) <<"for_each generated task run step f("<< lt<<")")
-                    f(lt);
-                    lt =stepper(lt);
-                }
-                _DEBUG(LOG_INFO(para) <<"for_each generated task run over!")
-            });
-            m_pEntities->push_back(p);
-
-            t=tmp;
-        }
-        _DEBUG(LOG_INFO(para)<<"for_each generates "<<m_pEntities->size()<<" para<> tasks")
-        return internal::para_accepted_call<paragroup, ret_type>(*this);
-    }
-    
-    
     template<class Iterator_t, class Functor_t>
     auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
-    -> internal::para_accepted_call<paragroup, void>
+    -> typename std::enable_if<
+    std::is_arithmetic<
+    typename std::remove_cv<Iterator_t>::type>::value,
+             internal::para_accepted_call<paragroup, void>>::type
     {
-        int concurrency = std::thread::hardware_concurrency();//TODO(A.A) this may be optimal.
-        //TODO(A.A) we may have another partition approach!
-        uint64_t count = 0;
-        Iterator_t t = begin;
-        while(t!= end)
-        {
-            t++;
-            count ++;
-        }
-        uint64_t step = count/ concurrency;
-        uint64_t ls = count % concurrency;//added
-//        if(count %concurrency)
-//            step ++;
+        for_each_impl(begin, end, std::forward<Functor_t>(f), m_pEntities);
+        return internal::para_accepted_call<paragroup, ret_type>(*this);
+    }
 
-        t = begin;
-        m_pEntities = std::make_shared<std::vector<para<void> > >();
-
-		uint16_t counter = 0;//added
-        while(t!=end)
-        {
-            Iterator_t tmp = t;
-            count = 0;
-			uint64_t upperbound = step;//added
-			if(counter < ls)
-				upperbound ++;//added
-			counter ++;//added
-            while(tmp != end && count<upperbound)//added
-//            while(tmp != end && count<step)
-            {
-                tmp ++;
-                count ++;
-            }
-            para<void> p;
-            p([t, tmp, f]() {
-                Iterator_t lt = t;
-                while(lt != tmp)
-                {
-                    f(*lt);
-                    lt ++;
-                }
-            });
-            m_pEntities->push_back(p);
-
-            t=tmp;
-        }
-        _DEBUG(LOG_INFO(para)<<"paragroup contains " <<size()<<" tasks!" )
+    template<class Iterator_t, class Functor_t>
+    auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+    -> typename std::enable_if<
+    !std::is_arithmetic<typename std::remove_cv<Iterator_t>::type>::value,
+    internal::para_accepted_call<paragroup, void>>::type
+    {
+        for_each_impl(begin, end, [f](const Iterator_t & t) {
+            f(*t);
+        }, m_pEntities);
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
 
@@ -244,7 +127,70 @@ public:
     {
         m_pEntities.reset();
     }
+protected:
+    typedef std::shared_ptr<std::vector<para<void> > > Entities_t;
+    template<class Iterator_t, class Functor_t>
+    static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es)
+    {
+      thread_local  static ff::rt::thrd_id_t this_id = ff::rt::get_thrd_id();
+        int concurrency = ff::rt::rt_concurrency();//TODO(A.A) this may be optimal.
+        //TODO(A.A) we may have another partition approach!
+        uint64_t count = 0;
+        Iterator_t t = begin;
+        while(t!= end)
+        {
+            t++;
+            count ++;
+        }
+        uint64_t step = count/ concurrency;
+        uint64_t ls = count % concurrency;
 
+        t = begin;
+        es = std::make_shared<std::vector<para<void> > >();
+
+
+        uint16_t counter = 0;//added
+        int32_t thrd_id = 0;
+        while(t!=end && thrd_id < concurrency)
+        {
+	  if(thrd_id == this_id){
+	    thrd_id ++;
+	    continue;
+	  }
+            Iterator_t tmp = t;
+            count = 0;
+            uint64_t upperbound = step;//added
+            if(counter < ls)
+                upperbound ++;
+            counter ++;
+            while(tmp != end && count<upperbound)
+            {
+                tmp ++;
+                count ++;
+            }
+            para<void> p;
+            p([t, tmp, f]() {
+                _DEBUG(LOG_INFO(para) <<"for_each generated task start running...")
+                Iterator_t lt = t;
+                while(lt != tmp)
+                {
+                    _DEBUG(LOG_INFO(para) <<"for_each generated task run step f("<< lt<<")")
+                    f(lt);
+                    lt ++;
+                }
+                _DEBUG(LOG_INFO(para) <<"for_each generated task run over!")
+            }
+#ifdef USING_MIMO_QUEUE
+            , thrd_id
+#endif
+             );
+            es->push_back(p);
+            thrd_id ++;
+            t=tmp;
+        }
+        while(t != end){f(t); t++;}
+        _DEBUG(LOG_INFO(para)<<"for_each generates "<<es->size()<<" para<> tasks")
+    }
 protected:
     friend internal::wait_all all(paragroup & pg);
     friend internal::wait_any any(paragroup & pg);

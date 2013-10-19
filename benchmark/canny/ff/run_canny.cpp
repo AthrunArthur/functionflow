@@ -15,7 +15,8 @@ int main(int argc, char *argv[])
     wxImage::AddHandler(bmpLoader);
 //    wxImageHandler * jpegLoader = new wxJPEGHandler();
 //    wxImage::AddHandler(jpegLoader);
-    wxString inFileName(_T("../../benchmark/canny/ff/pic/bmp/lena512.bmp"));
+    wxString inFileName(_T("/home/athrun/designBig.bmp"));
+    //wxString inFileName(_T("../../benchmark/canny/ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
 //    wxString inFileName(_T("../canny/ff/pic/jpg/child.jpg"));
 //    wxString outFileName = _T("out.jpg");

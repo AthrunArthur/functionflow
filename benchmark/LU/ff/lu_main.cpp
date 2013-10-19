@@ -164,7 +164,7 @@ void parallel(Matrix & m)
 
         ff::paragroup ir;
      
-	ir.for_each_step(k+1 ,blocks,[&seq_m,&linv,&uinv,k](int i) {
+	ir.for_each(k+1 ,blocks,[&seq_m,&linv,&uinv,k](int i) {
             ff::para<> p1, p2;
             //p1([&seq_m, &linv, k, i]() {
                 GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);

@@ -23,6 +23,7 @@ int N=13;	//Queen number
 
 //static tick_count t0;
 int  sum=0;	//Solution number
+accumulator<int> psum(0, [](const int & x, const int& y){return x + y;});
 inline int abs(int x)
 {
 	return x<0?-x:x;
@@ -38,9 +39,10 @@ void queen_parallel(int* x,int t)
 {   
     if(t>N && N>0) 
     {
-	NqueenMutex.lock();
-	sum++;
-	NqueenMutex.unlock();
+	//NqueenMutex.lock();
+	//sum++;
+	//NqueenMutex.unlock();
+      psum.increase(1);
     }  
     else  
       for(int i=1;i<=N;i++)   
@@ -132,9 +134,13 @@ int main(int argc, char *argv[])
 	//QueenTask& a = *new(task::allocate_root()) QueenTask(p,1);
     	//task::spawn_root_and_wait(a);
 		queen_para(p,1);
+		//psum.get();
 	}
 	end = chrono::system_clock::now();
-	std::cout<<"Result:"<<sum<<std::endl;
+	if(n_div == 0)
+	  std::cout<<"Result:"<<sum<<std::endl;
+	else
+	  std::cout<<"Result:"<<psum.get()<<std::endl;
 	int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
 	cout << "Elapsed time: " << elapsed_seconds << "us" << endl;

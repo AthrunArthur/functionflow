@@ -15,7 +15,13 @@ void schedule(task_base_ptr p)
 {   static runtime_ptr r = runtime::instance();
     r->schedule(p);
 }
-
+#ifdef USING_MIMO_QUEUE
+void schedule(task_base_ptr p, thrd_id_t target_thrd)
+{
+  static runtime_ptr r = runtime::instance();
+    r->schedule(p, target_thrd);
+}
+#endif
 void yield()
 {
 //	std::this_thread::sleep_for(std::chrono::nanoseconds(1));
@@ -86,8 +92,15 @@ void	runtime::schedule(task_base_ptr p)
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
     m_oQueues[i] ->push_back(p);
 }
-
-
+#ifdef USING_MIMO_QUEUE
+void runtime::schedule(task_base_ptr p, thrd_id_t target_thrd)
+{
+  thread_local static int i = get_thrd_id();
+  //target_thrd = get_idle();
+  if(i == target_thrd || ! m_oQueues[target_thrd]->concurrent_push(p))
+    m_oQueues[target_thrd]->push_back(p);
+}
+#endif
 bool		runtime::take_one_task_and_run()
 {
     task_base_ptr pTask;
@@ -159,6 +172,30 @@ bool		runtime::is_idle()
         dis ++;
     }
     return true;
+}
+
+thrd_id_t	runtime::get_idle()
+{
+  thread_local static int cur_id = get_thrd_id();
+    thread_local static size_t ts = m_oQueues.size();
+    size_t dis = 1;
+    thrd_id_t idle_id = (cur_id + 1) %ts;
+    auto idle_queue_size = m_oQueues[(cur_id + 1)%ts]->size();
+    while((cur_id + dis) %ts != cur_id)
+    {
+      auto id = (cur_id + dis)%ts;
+      auto t = m_oQueues[id]->size();
+      
+      dis ++;
+      if(t == 0)
+	return id;
+      if( t < idle_queue_size )
+      {
+	idle_id = id;
+	idle_queue_size = t;
+      }
+    }
+    return idle_id;
 }
 
 }//end namespace rt

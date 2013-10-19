@@ -1,5 +1,5 @@
-#ifndef FF_RNTIME_RING_BUFF_H_
-#define FF_RNTIME_RING_BUFF_H_
+#ifndef FF_RNTIME_MIMO_QUEUE_H_
+#define FF_RNTIME_MIMO_QUEUE_H_
 #include "common/common.h"
 #include "common/scope_guard.h"
 #include "runtime/hazard_pointer.h"
@@ -12,11 +12,11 @@ namespace rt {
 
 //N , 2^N.
 template <class T, size_t N>
-class nonblocking_stealing_queue
+class mimo_lock_free_queue
 {
     const static uint64_t INITIAL_SIZE=1<<N;
 public:
-    nonblocking_stealing_queue()
+    mimo_lock_free_queue()
         : array(new T[1<<N])
         , head(0)
         , tail(0)
@@ -26,7 +26,7 @@ public:
         , m_hp()
     {
     }
-    ~nonblocking_stealing_queue()
+    ~mimo_lock_free_queue()
     {
         if(array != nullptr)
         {
@@ -34,8 +34,27 @@ public:
         }
     }
 
+    bool concurrent_push(const T & val)
+    {
+      scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
+      auto t = tail.load(std::memory_order_acquire);
+        auto h = head.load(std::memory_order_relaxed);
+        auto c = cap.load(std::memory_order_relaxed);
+        auto a = array.load(std::memory_order_relaxed);
+        if(h - t == c-1)
+        {
+            return false;
+        }
+        auto mask = c - 1;
+        a[h&mask] = val;
+        _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
+        head.store(h+1, std::memory_order_release);
+	return true;
+    }
+    
     void push_back(const T & val)
     {
+      scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
         auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
@@ -49,7 +68,7 @@ public:
             c = cap.load(std::memory_order_relaxed);
             a = array.load(std::memory_order_relaxed);
         }
-        auto mask = c -1;
+        auto mask = c - 1;
         a[h&mask] = val;
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
         head.store(h+1, std::memory_order_release);
@@ -116,7 +135,7 @@ public:
 	//  return false;
 
         long long t = 0;
-        long long  h = 0;
+        long long h = 0;
         auto c = cap.load(std::memory_order_acquire);
         auto a = array.load(std::memory_order_relaxed);
 
@@ -214,7 +233,7 @@ protected:
 
     std::atomic_llong  tail;
     ff::rt::hp_owner<T> m_hp;
-    //ff::spinlock		steal_lock;
+    ff::spinlock		lock_for_push_back;
 };//end class nonblocking_stealing_queue
 
 }//end namespace rt

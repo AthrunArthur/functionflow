@@ -16,6 +16,10 @@ namespace ff{
     inline void lock(){
       while(flag.test_and_set(std::memory_order_acquire)) ff::rt::yield();
     }
+    
+    inline bool try_lock(){
+      return !flag.test_and_set(std::memory_order_acquire);
+    }
     inline void unlock(){
       flag.clear(std::memory_order_release);
     }

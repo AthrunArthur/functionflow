@@ -28,10 +28,14 @@ public:
     static runtime_ptr 	instance();
 
     void	schedule(task_base_ptr p);
-    
+#ifdef USING_MIMO_QUEUE
+    void	schedule(task_base_ptr p, thrd_id_t target_thrd);
+#endif
     bool		take_one_task_and_run();
 
 	bool		is_idle();
+	
+	thrd_id_t	get_idle();
 protected:
     //each thread run
     void			thread_run();
@@ -66,6 +70,9 @@ protected:
 };
 
 void	schedule(task_base_ptr p);
+#ifdef USING_MIMO_QUEUE
+void schedule(task_base_ptr p, thrd_id_t target_thrd);
+#endif
 
 template <class Func>
 void 	yield_and_ret_until(Func && f)

@@ -38,7 +38,8 @@ namespace ff
 		template<class TT>
 // 		accumulator<T>& increase(TT && value){
 		accumulator<T>& increase(const TT & value){
-		  T * plocal = m_pAllValues[ff::rt::get_thrd_id()];
+		  thread_local static ff::rt::thrd_id_t id = ff::rt::get_thrd_id();
+		  T * plocal = m_pAllValues[id];
 // 		  *plocal = std::move(Functor(*plocal, std::forward<TT>(value)));
 		  *plocal = std::move(Functor(*plocal, value));
 		  return *this;

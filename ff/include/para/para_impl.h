@@ -250,6 +250,20 @@ void	schedule(para_impl_wait_ptr<WT>  p)
     ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
 //  ::ff::rt::schedule(p);
 }
+#ifdef USING_MIMO_QUEUE
+template<class RT>
+void	schedule(para_impl_ptr<RT>  p, int32_t thrd_id)
+{
+    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p), thrd_id);
+//    ::ff::rt::schedule(p);
+}
+template<class WT>
+void	schedule(para_impl_wait_ptr<WT>  p, int32_t thrd_id)
+{
+    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p), thrd_id);
+//  ::ff::rt::schedule(p);
+}
+#endif
 }//end namespace internal
 }//end namespace ff
 #endif
