@@ -13,13 +13,9 @@
 #include <vector>
 #include <iostream>//needed
 #include <chrono>
-#include <tbb/parallel_for_each.h>
-#include <tbb/task_scheduler_init.h>
-// #include <tbb/concurrent_vector.h>//concurrent_vector
-#include "tbb/task_group.h"//task_group
 #include <tuple>//std::tuple
+#include <omp.h>
 
-using namespace tbb;
 using namespace std;//chrono needed
 
 typedef unsigned char uint8_t;

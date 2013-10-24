@@ -159,19 +159,19 @@ void parallel(Matrix & m)
             index_vec.push_back(i);
         }
         tbb::parallel_for_each(index_vec.begin(),index_vec.end(),[&seq_m,&linv,&uinv,k](int i) {
-            tbb::parallel_invoke(
-            [&seq_m, &linv, k, i]() {
+            //tbb::parallel_invoke(
+            //[&seq_m, &linv, k, i]() {
                 GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
                 auto ltom = get_block(seq_m, k, i);
                 mul(linv, ltom, lmul);
                 set_block(seq_m,k, i, lmul);
-            },
-            [&seq_m, &uinv, i, k]() {
+            //},
+            //[&seq_m, &uinv, i, k]() {
                 GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
                 auto utom = get_block(seq_m, i, k);
                 mul(utom, uinv, umul);
                 set_block(seq_m, i, k, umul);
-            });
+            //});
         });
         index_vec.clear();
         concurrent_vector<tuple< int, int > > pos_vec;

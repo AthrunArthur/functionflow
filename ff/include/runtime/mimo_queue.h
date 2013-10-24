@@ -59,8 +59,8 @@ public:
 
     bool concurrent_push(const T & val)
     {
-      scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
-      auto t = tail.load(std::memory_order_acquire);
+		scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
+		auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
         auto a = array.load(std::memory_order_relaxed);

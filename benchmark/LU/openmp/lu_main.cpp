@@ -1,14 +1,13 @@
 #include "matrix.h"
 #include <chrono>
 #include <iostream>
-#include "ff.h"
-#include "common/log.h"
 #include <fstream>
 #include <sstream>
-
+#include <vector>
+#include <omp.h>
+#include <tuple>
 
 using namespace std;
-using namespace ff;
 
 typedef matrix_impl<double, block, 32> Matrix;
 typedef matrix_impl<double, row_major> GeneralMatrix;
@@ -136,76 +135,64 @@ void sequential(Matrix & m)
 
 void parallel(Matrix & m)
 {
-    Matrix seq_m(m);
+    Matrix seq_m(m);//output seq_m
 
     int blocks = m.M()/Matrix::block_size;
     if(m.M()%Matrix::block_size != 0)
         blocks ++;
 
-    GeneralMatrix linv(Matrix::block_size, Matrix::block_size);
-    GeneralMatrix uinv(Matrix::block_size, Matrix::block_size);
-
-
-    for(int k = 0; k <blocks; k++)
-    {
+    for(int k= 0; k< blocks; k++) {
         auto lut = get_block(seq_m, k, k);
-        LUDecompose(lut, lut);
-	if(k == blocks -1 )
-	  continue;
-        ff::para<void> il, iu;
-        il([&lut, &linv, k]() {
-            invL(lut, linv);
-        });
-        iu([&lut, &uinv, k]() {
-            invU(lut, uinv);
-        });
+        LUDecompose(lut,lut);
+        GeneralMatrix linv(Matrix::block_size, Matrix::block_size);
+        GeneralMatrix uinv(Matrix::block_size, Matrix::block_size);
+		#pragma omp parallel
+		{
+			#pragma omp task
+			{
+			    invL(lut, linv);
+			}
+			#pragma omp task
+			{
+			    invU(lut, uinv);
+			}
+			#pragma omp taskwait
+		}
+		int i;
+		#pragma omp parallel for
+		for(i=k+1; i< blocks; i++) {
+			#pragma omp task
+			{
+				GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
+		        auto ltom = get_block(seq_m, k, i);
+			    mul(linv, ltom, lmul);
+				set_block(seq_m,k, i, lmul);
+			}
+			#pragma omp task
+			{
+				GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
+		        auto utom = get_block(seq_m, i, k);
+			    mul(utom, uinv, umul);
+				set_block(seq_m, i, k, umul);
+			}
+			#pragma omp taskwait
+		}
 
-        ff_wait(il && iu);
+        int j;
+		for(i=k+1; i<blocks; i++) {
+			#pragma omp parallel for
+			for(j=k+1; j<blocks; j++) {
+				GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
+			    auto tm = get_block(seq_m, i, k);
+			    auto tn = get_block(seq_m, k, j);
 
-        ff::paragroup ir;
-     
-	ir.for_each(k+1 ,blocks,[&seq_m,&linv,&uinv,k](int i) {
-            //ff::para<> p1, p2;
-            //p1([&seq_m, &linv, k, i]() {
-                GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
-                auto ltom = get_block(seq_m, k, i);
-                mul(linv, ltom, lmul);
-                set_block(seq_m,k, i, lmul);
-            //});
-            //p2([&seq_m, &uinv, i, k]() {
-                GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
-                auto utom = get_block(seq_m, i, k);
-                mul(utom, uinv, umul);
-                set_block(seq_m, i, k, umul);
-            //});
-            //ff_wait(p1&&p2);
-        });
-	
-        ff::ff_wait(all(ir));
-
-        vector<tuple< int, int > > pos_vec;
-        for(int i=k+1; i<blocks; i++) {
-            for(int j=k+1; j<blocks; j++) {
-                pos_vec.push_back(make_tuple(i,j));
-            }
+				mul(tm, tn, rmul);
+			    auto tt = get_block(seq_m, i, j);
+				sub(tt, rmul, tt);
+	        }
         }
-
-        ff::paragroup im;
-        im.for_each(pos_vec.begin(),pos_vec.end(),[&seq_m,k](tuple< int, int > pos) {
-
-            int i=get<0>(pos),j=get<1>(pos);
-            GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
-            auto tm = get_block(seq_m, i, k);
-            auto tn = get_block(seq_m, k, j);
-
-            mul(tm, tn, rmul);
-            auto tt = get_block(seq_m, i, j);
-            sub(tt, rmul, tt);
-
-        });
-        ff::ff_wait(all(im));
     }
-//     check_LU_res(m,seq_m);
+    //check_LU_res(m,seq_m);
 }
 int main(int argc, char *argv[])
 {
@@ -221,7 +208,7 @@ int main(int argc, char *argv[])
 
     Matrix m(MSIZE, MSIZE);
     //init m here!
-    string matrix_file_name = "../LU/ff/matrix.txt";
+    string matrix_file_name = "../ff/matrix.txt";
     string out_file_name = "lu_matrix.txt";
 //     string time_file_name = "para_time.txt";
     fstream matrix_file;
@@ -232,10 +219,8 @@ int main(int argc, char *argv[])
     }
     else {
         matrix_file.open(matrix_file_name.c_str(),ios::in);
-// 	std::cout<<"trying open file: "<< matrix_file_name<<std::endl;
     }
     if(!matrix_file.is_open()) {
-      std::cout<<"failed to open file: "<< matrix_file_name<<"! initing matrix now..."<<std::endl;
         // init matrix & write to file
         initMatrixForLU(m);
         matrix_file.open(matrix_file_name.c_str(),ios::out);
@@ -249,7 +234,6 @@ int main(int argc, char *argv[])
         }
     }
     else {
-//       std::cout<<"reading matrix..."<<std::endl;
         // read file
         for(int i=0; !matrix_file.eof()&& i<m.M(); i++) {
             for(int j=0; !matrix_file.eof() && j<m.N(); j++) {
@@ -258,48 +242,29 @@ int main(int argc, char *argv[])
         }
     }
     matrix_file.close();
-    
-//     std::cout<<"matrix initialized!"<<std::endl;
-	
+
+
 
     chrono::time_point<chrono::system_clock> start, end;
     int elapsed_seconds;
-    //!Start test standard version
-    /*
-    start = chrono::system_clock::now();
-    standard(m);
-    end = chrono::system_clock::now();
-    elapsed_seconds = chrono::duration_cast<chrono::microseconds>
-                          (end-start).count();
-    cout << "standard elapsed time: " << elapsed_seconds << "us" << endl;
-    */
-    //!End test standard version
-
 
     if(bIsPara) {
-        //warm up ff runtime
-        _DEBUG(ff::fflog<>::init(ff::ERROR, "log.txt"))
-        _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
-
-        ff::para<int> a;
-        int num = 10;
-        a([&num]() {
-            return num;
-        }).then([](int x) {});
-        ff::para<> b;
-        b[a]([&num, &a]() {
-            return num + a.get();
-        }).then([]() {});
-
         //!Start test parallel version
         start = chrono::system_clock::now();
-        parallel(m);
+		omp_set_num_threads(8);
+//		#pragma omp parallel
+//		{
+//			#pragma omp single
+//			{
+		        parallel(m);
+//			}
+//			#pragma omp taskwait
+//		}
+
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-        cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
-        _DEBUG(LOG_INFO(main)<<"main exit, id:"<<ff::rt::get_thrd_id());
-
+        cout << "omp elapsed time: " << elapsed_seconds << "us" << endl;
     }
 
     else {
@@ -338,6 +303,6 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-  
+    
     return 0;
 }

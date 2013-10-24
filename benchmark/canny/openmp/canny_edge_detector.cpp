@@ -17,7 +17,6 @@ CannyEdgeDetector::CannyEdgeDetector(bool bIsPara):isPara(bIsPara)
     x = (unsigned int) 0;
     y = (unsigned int) 0;
     mask_halfsize = (unsigned int) 0;
-    task_scheduler_init init;
 }
 
 CannyEdgeDetector::~CannyEdgeDetector()
@@ -457,7 +456,13 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
     start = chrono::system_clock::now();
     if(isPara)
     {
-        this->ParaHysteresis(lowThreshold,highThreshold);
+		omp_set_num_threads(8);
+		#pragma omp parallel
+		#pragma omp single
+		{
+				this->ParaHysteresis(lowThreshold,highThreshold);
+		}
+		#pragma omp taskwait
     }
     else {
 
@@ -488,11 +493,10 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 
 void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
-    task_group tg;
-//     concurrent_vector<std::tuple< uint32_t, uint32_t > > ts;
-    typedef vector< std::tuple< uint32_t, uint32_t > > pos_t;
+	typedef vector< std::tuple< uint32_t, uint32_t > > pos_t;
 	pos_t ts;
     for (uint32_t tx = 0; tx < height; tx++) {
+		ts.clear();
         for (uint32_t ty = 0; ty < width; ty++) {
 
             if(GetPixelValue(tx, ty) >= highThreshold)
@@ -502,20 +506,17 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
         }
         if(ts.size() >= 1000 ||(tx==height -1))
         {
-            tg.run([this,ts,lowThreshold,highThreshold]() {
-//					pos_t tmpTs(ts);
-//					for(pos_t::iterator iter = tmpTs.begin(); iter != tmpTs.end(); iter++){
-//	                    HysteresisPixel(get<0>(*iter), get<1>(*iter), highThreshold, lowThreshold);
-//					}
-                parallel_for_each(ts.begin(), ts.end(),
-                [this,lowThreshold,highThreshold](std::tuple<uint32_t, uint32_t> pos) {
-                    HysteresisPixel(get<0>(pos), get<1>(pos), highThreshold, lowThreshold);
-                });
-            });
-	    ts.clear();
+			#pragma omp task
+			{
+				pos_t tmpTs(ts);
+
+					for(pos_t::iterator iter = tmpTs.begin(); iter != tmpTs.end(); iter++){
+	                    HysteresisPixel(get<0>(*iter), get<1>(*iter), highThreshold, lowThreshold);
+					}
+			}
         }
     }
-    tg.wait();
+//	#pragma omp taskwait
 }
 
 void CannyEdgeDetector::HysteresisPixel(long int tx, long int ty,uint8_t highThreshold, uint8_t lowThreshold)
