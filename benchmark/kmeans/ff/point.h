@@ -18,9 +18,11 @@ class Point {
 
 		friend const Point operator+(const Point & leftP, const Point & rightP);
 		friend const Point operator/(const Point & p, const double n);
+		friend const Point operator*(const Point & p, const double n);
 		friend Point & operator+=(Point & leftP, const Point rightP);
 		
 	private:
 };
 
+typedef vector<Point> Points;
 #endif

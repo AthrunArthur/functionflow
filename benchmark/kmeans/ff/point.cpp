@@ -75,3 +75,13 @@ const Point operator/(const Point& p, const double n)
     return p3;
 }
 
+const Point operator*(const Point& p, const double n)
+{
+    vector<double> vec;
+    for (int i = 0; i < p.dimension; i++) {
+        vec.push_back(p.coordinate[i]*n);
+    }
+    Point p3(vec);
+    return p3;
+}
+
