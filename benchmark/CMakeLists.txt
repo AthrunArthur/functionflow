@@ -79,3 +79,11 @@ if(NQUEEN OR All)
   ADD_EXECUTABLE(nqueen ${NQUEEN_LIST})
   TARGET_LINK_LIBRARIES(nqueen ff pthread) 
 endif(NQUEEN OR All)
+
+if(PHASH OR All)
+  message(STATUS "Building kmeans...")
+  SET(PHASH_LIST parallel_hash_insert/ff/main.cpp
+	  parallel_hash_insert/ff/HashTable.cpp)
+  ADD_EXECUTABLE(phash ${PHASH_LIST})
+  TARGET_LINK_LIBRARIES(phash ff pthread) 
+endif(PHASH OR All)

@@ -43,6 +43,8 @@ if __name__ == '__main__':
 				para_n = 1
 			elif not cmp(item,'nqueen'):
 				para_n = 1
+			elif not cmp(item,'phash'):
+				para_n = 1
 			print 'file:%s' % item
 			print 'Parallel time:'
 			time_path = '%s/para_time.txt' % path
@@ -68,6 +70,8 @@ if __name__ == '__main__':
 			print 'Geometric mean time: ' + str(etime) + 'us'
 			time_file.close()
 			execute_cmd('rm %s' % time_path)
+			if not cmp(item,'phash'):
+				continue;
 			execute_cmd('cd %s; ./%s' % (path, item))			
 			time_path2 = '%s/time.txt' % path
 			time_file = open(time_path2)
