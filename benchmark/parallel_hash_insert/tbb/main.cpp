@@ -6,8 +6,9 @@
 #include<omp.h>
 #include"HashTable.h"
 #include<stdio.h>
-#include <tbb/task_group.h>
 #include <tbb/task_scheduler_init.h>
+#include <tbb/concurrent_vector.h>
+#include <tbb/parallel_for_each.h>
 
 #define FAILED 0
 #define SUCCESS 1
@@ -58,14 +59,14 @@ void resize_table_if_overflow(HashTable * H)
 			new_buckets[i] = new List();
 		}
 		
-		task_group _tg;
+		concurrent_vector<int> vec_i;
 		for(int i = 0; i < H->mNumBuckets; ++i)
 		{
-			_tg.run([H,i](){
-				rehash_list(H, H->mBuckets[i], new_buckets, new_n);
-					});
+			vec_i.push_back(i);
 		}
-		_tg.wait();
+		parallel_for_each(vec_i.begin(),vec_i.end(),[H](int i){
+					rehash_list(H, H->mBuckets[i], new_buckets, new_n);				
+				});
 		H->Clear();
 		H->mBuckets = new_buckets;
 		H->mNumBuckets = new_n;
@@ -109,9 +110,7 @@ void myInit()
 
 int main()
 {
-	cout << "before init" << endl;
 	myInit();
-	cout << "init" << endl;
     task_scheduler_init init;
 	HashTable * h = new HashTable(10,20);
 	
@@ -119,16 +118,14 @@ int main()
 	ofstream out_time_file;
 	chrono::time_point<chrono::system_clock> start, end;
 	start = chrono::system_clock::now();
-	cout << "start" << endl;
-	task_group tg;
+	concurrent_vector<int> vec_i;
 	for(int i = 0; i < 8; ++i)
 	{
-		tg.run([&h](){
-			random_inserts_serial(h, 2000000);	
-				});
+		vec_i.push_back(i);
 	}
-	tg.wait();
-	
+	parallel_for_each(vec_i.begin(),vec_i.end(),[h](int i){
+				random_inserts_serial(h, 2000000);	
+			});
 	end = chrono::system_clock::now();
 	int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
 						  (end-start).count();
