@@ -26,34 +26,36 @@
 
 # GNU Makefile that builds and runs example.
 run_cmd=
-PROG=parallel_hash_insert
-#ARGS=4
-#PERF_RUN_ARGS=4
+PROG=kmeans
+# ARGS=4
+# PERF_RUN_ARGS=4
 
 # The C++ compiler
 CXX=g++
-CXXFLAGS =-std=c++11
-SOURCES = main.cpp HashTable.cpp
+CXXFLAGS =-std=c++11 -DUSING_LOCK_FREE_QUEUE
+
+SOURCES = main.cpp point.cpp Lloyd.cpp
 
 ifeq ($(shell uname), Linux)
 ifeq ($(target), android)
 LIBS+= --sysroot=$(SYSROOT)
 run_cmd=../../common/android.linux.launcher.sh
 else
-LIBS+= -lrt 
+LIBS+= -lrt -lgsl -lgslcblas
 endif
 endif
 
-all:	release  test   
+
+all:	release test
 
 release: $(SOURCES)
-	$(CXX)  -O2 -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb $(LIBS)
+	$(CXX) -O2 -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -fopenmp $(LIBS)
 
 debug: $(SOURCES)
 	$(CXX) -O0 -g -DTBB_USE_DEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb_debug $(LIBS)
 
 clean:
-	$(RM) $(PROG) *.o *.d *.txt
+	$(RM) $(PROG) *.o *.d *~ *core* out* *.txt
 
 test:
 	$(run_cmd) ./$(PROG) $(ARGS)
@@ -64,3 +66,4 @@ perf_build: $(SOURCES)
 -std=c++0x -I. -c
 perf_run:
 	./$(PROG) $(PERF_RUN_ARGS)
+

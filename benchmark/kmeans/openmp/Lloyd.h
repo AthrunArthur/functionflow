@@ -2,8 +2,6 @@
 #define LLOYD_H
 
 #include "point.h"
-#include <tbb/task_scheduler_init.h>
-#include <tbb/task_group.h>
 
 
 using namespace std;
