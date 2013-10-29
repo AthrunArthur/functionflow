@@ -47,7 +47,7 @@ endif
 all:	release  test   
 
 release: $(SOURCES)
-	$(CXX) -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -fopenmp $(LIBS)
+	$(CXX) -O2 -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -fopenmp $(LIBS)
 
 debug: $(SOURCES)
 	$(CXX) -O0 -g -DTBB_USE_DEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb_debug $(LIBS)

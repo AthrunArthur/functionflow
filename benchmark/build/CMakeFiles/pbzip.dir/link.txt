@@ -1,0 +1,1 @@
+/usr/bin/c++    -pthread    CMakeFiles/pbzip.dir/pbzip/ff/main.cpp.o  -o pbzip -rdynamic -L//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin -lff -lpthread -lbz2 -Wl,-rpath,//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin 

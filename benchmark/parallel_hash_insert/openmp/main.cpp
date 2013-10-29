@@ -47,7 +47,7 @@ void resize_table_if_overflow(HashTable * H)
 			return ;
 		}
 		new_n = H->mNumBuckets * 2;
-		printf("thread %d new_n = %d \n", omp_get_thread_num(), new_n);
+		//printf("thread %d new_n = %d \n", omp_get_thread_num(), new_n);
 		new_buckets =  (List **) new List*[new_n];
 		for(int i = 0; i < new_n; ++i)
 		{

@@ -3,7 +3,6 @@
 #include<string>
 #include<cstdlib>
 #include<chrono>
-#include<omp.h>
 #include"HashTable.h"
 #include<stdio.h>
 #include <tbb/task_scheduler_init.h>

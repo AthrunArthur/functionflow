@@ -508,8 +508,8 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
             }
         }
         
-        if(ff::is_idle() ||(tx==height -1))
-        //if(ts.size() >= 1000 ||(tx==height -1))
+        //if(ff::is_idle() ||(tx==height -1))
+        if(ts.size() >= 1000 ||(tx==height -1))
         {
             ff::para<void> p;
 	    p([this, ts, lowThreshold, highThreshold]() {
@@ -527,10 +527,10 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
             ts.clear();
         }
     }
-    std::cout<<"all done!"<<std::endl;
+//    std::cout<<"all done!"<<std::endl;
     _DEBUG(LOG_INFO(main)<<"add all para entities");
     ff_wait(all(pg));
-	std::cout << "all done2!" << std::endl;
+//	std::cout << "all done2!" << std::endl;
 }
 
 void CannyEdgeDetector::HysteresisPixel(long int tx, long int ty,uint8_t highThreshold, uint8_t lowThreshold)
