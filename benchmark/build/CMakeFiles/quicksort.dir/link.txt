@@ -1,1 +1,0 @@
-/usr/bin/c++    -pthread    CMakeFiles/quicksort.dir/quick_sort/ff/quick_sort.cpp.o  -o quicksort -rdynamic -L//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin -lff -lpthread -Wl,-rpath,//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin 

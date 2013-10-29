@@ -1,1 +1,0 @@
-/usr/bin/c++    -pthread    CMakeFiles/lu.dir/LU/ff/lu_main.cpp.o  -o lu -rdynamic -L//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin -lff -lpthread -Wl,-rpath,//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin 

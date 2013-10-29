@@ -1,7 +1,0 @@
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/canny.dir
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/kmeans.dir
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/lu.dir
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/nqueen.dir
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/pbzip.dir
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/phash.dir
-//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/build/CMakeFiles/quicksort.dir

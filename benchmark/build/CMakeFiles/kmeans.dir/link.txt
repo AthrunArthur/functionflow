@@ -1,1 +1,0 @@
-/usr/bin/c++    -pthread    CMakeFiles/kmeans.dir/kmeans/ff/main.cpp.o CMakeFiles/kmeans.dir/kmeans/ff/Lloyd.cpp.o CMakeFiles/kmeans.dir/kmeans/ff/point.cpp.o  -o kmeans -rdynamic -L//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin -lff -lpthread -Wl,-rpath,//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/benchmark/../bin 
