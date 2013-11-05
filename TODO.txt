@@ -1,0 +1,6 @@
+This is a TODO list which involves performance and features.
+
+2013-11-04
+1. As FF still gains poor performance on n-queen, we need do something here. n-queen is a problem which involves recursive parallelism and accumulator. As I know, performance of accumulator in FF has better performance than implementations like mutex, spinlock and atomic. So the only crucial performance lose shall be recursive parallelism. Hinted from the result (8% less than TBB), we must do somthing to recursive parallelism.
+
+2. FF also gains poor performance on kmeans. Kmeans is an application which only adopts for_each in FF, or task_group in TBB. The poor performance means we still have lot of things to do on data parallel in FF, for example data partition, granularity, data locality, etc.
