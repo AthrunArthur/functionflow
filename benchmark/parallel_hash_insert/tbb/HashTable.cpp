@@ -3,6 +3,7 @@ List::List()
 {
 	Clear();
 	pthread_mutex_init(&mLock, 0);
+	pthread_spin_init(&sLock, 0);
 };
 
 List::~List()
@@ -13,12 +14,14 @@ List::~List()
 int 
 List::Insert(int value)
 {
-	pthread_mutex_lock(&mLock);
+//	pthread_mutex_lock(&mLock);
+	pthread_spin_lock(&sLock);
 	++mNumValues;
 	mList.push_back(value);
 //	cout << "insert"<< value <<endl;
 //	cout<< mList[0] << endl;
-	pthread_mutex_unlock(&mLock);
+//	pthread_mutex_unlock(&mLock);
+	pthread_spin_unlock(&sLock);
 	return mNumValues;
 }
 
@@ -27,6 +30,8 @@ List::Clear()
 {
 	mList.clear();
 	mNumValues = 0;
+	pthread_spin_destroy(&sLock);
+	pthread_mutex_destroy(&mLock);
 }
 /*end of List
  *
@@ -72,6 +77,8 @@ void
 HashTable::Insert(int value)
 {
 	int idx = Hashcode(value, mNumBuckets);
+	//cout << value << endl;
+//	cout << idx << endl;
 	//cout << "idx = " << idx << endl;
 	int ret = mBuckets[idx]->Insert(value);
 	if (ret > mMaxTop)

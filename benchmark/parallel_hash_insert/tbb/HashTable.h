@@ -10,7 +10,8 @@ public:
 	int mNumValues;
 	vector<int> mList;
 	pthread_mutex_t mLock;
-	
+	pthread_spinlock_t sLock;
+
 public:
 	List();
 	~List();
@@ -23,7 +24,7 @@ public:
 	int mNumBuckets;
 	List** mBuckets;
 	int mTopBound;
-	int mMaxTop;
+	volatile int mMaxTop;
 	
 public:
 	pthread_rwlock_t mResizeLock;

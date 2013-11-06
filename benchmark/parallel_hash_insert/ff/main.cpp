@@ -3,14 +3,14 @@
 #include<string>
 #include<cstdlib>
 #include<chrono>
-#include<omp.h>
 #include"HashTable.h"
-#include "ff.h"
+#include "../../../ff/include/ff.h"
 #include<stdio.h>
 #include"Helper.hpp"
 #define FAILED 0
 #define SUCCESS 1
 #define NUM_CORES 8
+#define MAXN 10000000
 using namespace std;
 using namespace ff;
 // added here
@@ -19,7 +19,7 @@ pthread_cond_t init_cond, done_cond;
 pthread_mutex_t init_mutex, done_mutex;
 List** new_buckets;
 int    new_n;
-
+int numbers[MAXN];
 
 void rehash_list(HashTable* H, int startIndex , int endIndex, List** new_buckets, int new_n)
 {
@@ -36,6 +36,7 @@ void rehash_list(HashTable* H, int startIndex , int endIndex, List** new_buckets
 
 bool is_overflow(HashTable *H)
 {
+//	cout << "H->mMaddxTop" << H->mMaxTop << endl;
 	if(H->mMaxTop > H->mTopBound)
 		return true;
 	return false;
@@ -55,7 +56,7 @@ void resize_table_if_overflow(HashTable * H)
 		}
 		new_n = H->mNumBuckets * 2;
 		int i = 0;
-		//printf("thread %d new_n = %d \n", omp_get_thread_num(), new_n);
+		//cout << "new_N" << new_n << endl;
 		new_buckets =  (List **) new List*[new_n];
 		for(i = 0; i < new_n; ++i)
 		{
@@ -68,9 +69,7 @@ void resize_table_if_overflow(HashTable * H)
 		for(i = 0; i < NUM_CORES; ++i)
 		{
 			endIndex = (i == NUM_CORES - 1) ? H->mNumBuckets - 1 : startIndex + cnt - 1;
-			
 			helperPush(0 , [=](){rehash_list(H,startIndex, endIndex, new_buckets, new_n);});
-			
 			startIndex += cnt;
 			//ff::para<void> _p;
 			//_p([=](){rehash_list(H,H->mBuckets[i], new_buckets, new_n);});
@@ -81,60 +80,55 @@ void resize_table_if_overflow(HashTable * H)
 		H->mBuckets = new_buckets;
 		H->mNumBuckets = new_n;
 		H->mMaxTop = 0;
+		//printf("over");
 		pthread_rwlock_unlock(&H->mResizeLock);
 	}
 }
 int try_insert(HashTable * H , int k)
 {
 	int success = 0;
-	success = pthread_rwlock_tryrdlock(&H->mResizeLock);
 	if (success != 0) 
 	{
 		return FAILED;
 	}
 	H->Insert(k);
-	pthread_rwlock_unlock(&H->mResizeLock);
 	return SUCCESS;
 } 
 
 void random_inserts_serial(HashTable * H , int n)
 {
-	int  i = 0;
-	for(i = 0; i < n; ++i)
+	for(int i = n; i < MAXN; i += NUM_CORES)
 	{
-		int res;
-		int k = abs((int)rand());
-		do{
-			res = try_insert(H, k);
-		}while(res == FAILED);
+		//cout << "i = " << i << endl;
+		int k = numbers[i];
+		int res = try_insert(H, k);
 		resize_table_if_overflow(H);
 	}
 }
-void rand_inserts(HashTable * H , int n)
-{ 
-	if(n <= 32)	{
-		random_inserts_serial(H, n);
-	}else{
-		#pragma omp task
-			rand_inserts(H, n / 2);
-		#pragma omp task
-			rand_inserts(H, n - n / 2);
-		#pragma omp taskwait
-	}
-}
 
-void init()
+int init()
 {
 	pthread_mutex_init(&init_mutex, 0 );
 	pthread_mutex_init(&done_mutex, 0 );
 	pthread_cond_init(&init_cond, 0);
 	pthread_cond_init(&done_cond, 0);
+	ifstream ins("../../benchmark/parallel_hash_insert/ff/datas/numbers.txt");
+    if(!ins.is_open()) {
+	    cout << "Can't open the file numbers.txt" << endl;
+        return -1;
+    }
+	for(int i = 0; i < MAXN; ++i)
+		ins >> numbers[i];
+	//cout <<"num0"<< numbers[0] << endl;
+	//cout <<"num1"<< numbers[1] << endl;
 }
 
 int main()
 {
-	init();
-	HashTable * h = new HashTable(10, 20);
+	if(init()==-1)
+		return -1;
+	//cout << "init over" << endl;
+	HashTable * h = new HashTable(10, 40);
 	
 	string time_file_name="para_time.txt";
 	ofstream out_time_file;
@@ -145,8 +139,8 @@ int main()
 	for(i = 0; i < 8; ++i)
 	{
 		ff::para<void> p;
-		p([h](){
-		random_inserts_serial(h, 2000000);}
+		p([h, i](){
+		random_inserts_serial(h, i);}
 		);
 		pp.add(p);
 	}
@@ -170,6 +164,10 @@ int main()
 		total += h->mBuckets[i]->mNumValues;
 	}
 	out_time_file.open("para_time.txt", ios::app);
+    if(!out_time_file.is_open()) {
+           cout << "Can't open the file time.txt" << endl;
+           return -1;
+    }
 	out_time_file<<elapsed_seconds <<endl;
 	out_time_file.close();
 	return 0;

@@ -51,8 +51,8 @@ struct ScopeLock{
 struct HelperLock{
 	HTask *head;
 	HTask *tail;
-	int   total;
-	int   cnt;   // task end cnt
+	volatile int   total;
+	volatile int   cnt;   // task end cnt
 	int   tcnt; //task start cnt
 	//pthread_mutex_t queueLock;
 	pthread_spinlock_t queueLock;
@@ -63,6 +63,7 @@ struct HelperLock{
 public:
 	HelperLock()
 	{
+		pthread_mutex_init(&try_mutex,0);
 		reset();
 	}
 
@@ -70,7 +71,6 @@ public:
 	{
 		pthread_cond_init(&barrier_cond,0);
 		pthread_mutex_init(&barrier_mutex,0);
-		pthread_mutex_init(&try_mutex,0);
 		pthread_spin_init(&queueLock,0);
 		cnt = 0;
 		total = 0;
@@ -157,6 +157,7 @@ public:
 			tail->next = t;
 			tail = tail->next;
 		}
+		totalInc();
 		unlock();
 	}
 };
@@ -174,7 +175,6 @@ void helperPush(int id ,  std::function<void()> tmp)
 	//printf("total = %d" , helpers[id].total);
 	helpers[id].Push(t);
 
-	helpers[id].totalInc();
 }
 
 bool helperWork(int id)
@@ -188,6 +188,19 @@ bool helperWork(int id)
 	}
 }
 
+bool helperWork(int id, pthread_rwlock_t *t)
+{
+//	printf("thread %d, helperwork\n", omp_get_thread_num());
+//	helpers[id].output();
+	while(helpers[id].totalIsZero() || !(helpers[id].totalIsCnt()))
+	{
+//		printf("thread %d, helpernextid = %d \n", omp_get_thread_num(), id);
+			helperNextTask(id);
+	}
+	pthread_rwlock_wrlock(t);
+	pthread_rwlock_unlock(t);
+}
+
 
 bool helperWait(int id)
 {
@@ -199,18 +212,18 @@ bool helperWait(int id)
 
 bool helperLock(int id, pthread_rwlock_t *t)
 {
-	helpers[0].lockTry();
+	helpers[id].lockTry();
     int flag = pthread_rwlock_trywrlock(t);
 	if(flag == 0){
 		helperInit(id);
-		helpers[0].unlockTry();
+		helpers[id].unlockTry();
 //		printf("thread %d, lock true\n", omp_get_thread_num());
 		return true;
 	}
 	else{
-		helpers[0].unlockTry();
+		helpers[id].unlockTry();
 //		printf("thread %d, lock false\n", omp_get_thread_num());
-		helperWork(id);
+		helperWork(id, t );
 		return false;
 	}
 }
