@@ -169,7 +169,7 @@ public:
             hp.store(nullptr, std::memory_order_release);
         });
 
-        auto mask = cap-1;
+        auto mask = c-1;
 
         bool ready = false;
 	int i = 1;

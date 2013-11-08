@@ -156,7 +156,7 @@ protected:
     static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es)
     {
       thread_local  static ff::rt::thrd_id_t this_id = ff::rt::get_thrd_id();
-        int concurrency = ff::rt::rt_concurrency();//TODO(A.A) this may be optimal.
+        size_t concurrency = ff::rt::rt_concurrency();//TODO(A.A) this may be optimal.
         //TODO(A.A) we may have another partition approach!
         uint64_t count = 0;
         Iterator_t t = begin;

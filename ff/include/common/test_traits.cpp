@@ -25,8 +25,9 @@ THE SOFTWARE.
 #include <iostream>
 
 template<class F>
-void print_property(F && f):
-void f(int a){}
+void print_property(F && f){};
+
+void f(int a){};
 
 int main()
 {

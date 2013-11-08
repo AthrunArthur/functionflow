@@ -24,8 +24,6 @@ THE SOFTWARE.
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
 
-#include <pthread.h>
-
 namespace ff {
 
 namespace rt {
@@ -80,7 +78,7 @@ void			runtime::init()
 {
     s_pInstance = new runtime();
     runtime_deletor::s_pInstance = std::make_shared<runtime_deletor>(s_pInstance);
-    int thrd_num = hardware_concurrency();
+    auto thrd_num = hardware_concurrency();
     for(int i = 0; i<rt_concurrency(); ++i)
     {
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
@@ -88,21 +86,11 @@ void			runtime::init()
     _DEBUG(LOG_INFO(rt)<<"init thread num:"<<thrd_num)
     set_local_thrd_id(0);
 
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(0, &cpuset);
-    auto s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-
     for(int i = 1; i< thrd_num + 1; ++i)
     {
         s_pInstance->m_pTP->run([i]() {
             auto r = runtime::instance();
             set_local_thrd_id(i);
-            cpu_set_t cpuset;
-            CPU_ZERO(&cpuset);
-            CPU_SET(i, &cpuset);
-            auto s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
-            _DEBUG(LOG_INFO(rt)<<"pthread_setaffinity_np ret: "<< s);
             r->thread_run();
         });
     }
@@ -206,7 +194,7 @@ thrd_id_t	runtime::get_idle()
     auto idle_queue_size = m_oQueues[(cur_id + 1)%ts]->size();
     while((cur_id + dis) %ts != cur_id)
     {
-      auto id = (cur_id + dis)%ts;
+      thrd_id_t id = static_cast<thrd_id_t>((cur_id + dis)%ts);
       auto t = m_oQueues[id]->size();
       
       dis ++;
