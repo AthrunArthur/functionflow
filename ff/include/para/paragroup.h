@@ -36,13 +36,10 @@ namespace internal {
 class wait_all;
 class wait_any;
 }//end namespace internal
-enum group_optimizer
-{
-    auto_partition,
-    max_partition,
-    //other may be here
-};
+struct auto_partitioner {};
+struct simple_partitioner {};
 
+#define FF_DEFAULT_PARTITIONER auto_partitioner
 class paragroup {
 public:
     typedef void ret_type;
@@ -66,7 +63,8 @@ public:
         typename std::remove_cv<Iterator_t>::type>::value,
                  internal::para_accepted_call<paragroup, void>>::type
         {
-            for_each_impl(begin, end, std::forward<Functor_t>(f), m_refP.m_pEntities);
+	  FF_DEFAULT_PARTITIONER  *p = nullptr;
+            for_each_impl(begin, end, std::forward<Functor_t>(f), m_refP.m_pEntities, p);
             return internal::para_accepted_call<paragroup, ret_type>(m_refP);
         }
 
@@ -76,9 +74,10 @@ public:
         !std::is_arithmetic<typename std::remove_cv<Iterator_t>::type>::value,
         internal::para_accepted_call<paragroup, void>>::type
         {
+	  FF_DEFAULT_PARTITIONER  *p = nullptr;
             for_each_impl(begin, end, [f](const Iterator_t & t) {
                 f(*t);
-            }, m_refP.m_pEntities);
+            }, m_refP.m_pEntities, p);
             return internal::para_accepted_call<paragroup, ret_type>(m_refP);
         }
 
@@ -123,7 +122,8 @@ public:
     typename std::remove_cv<Iterator_t>::type>::value,
              internal::para_accepted_call<paragroup, void>>::type
     {
-        for_each_impl(begin, end, std::forward<Functor_t>(f), m_pEntities);
+      FF_DEFAULT_PARTITIONER  *p = nullptr;
+        for_each_impl(begin, end, std::forward<Functor_t>(f), m_pEntities, p);
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
 
@@ -133,9 +133,10 @@ public:
     !std::is_arithmetic<typename std::remove_cv<Iterator_t>::type>::value,
     internal::para_accepted_call<paragroup, void>>::type
     {
+      FF_DEFAULT_PARTITIONER  *p = nullptr;
         for_each_impl(begin, end, [f](const Iterator_t & t) {
             f(*t);
-        }, m_pEntities);
+        }, m_pEntities, p);
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
 
@@ -152,10 +153,68 @@ public:
     }
 protected:
     typedef std::shared_ptr<std::vector<para<void> > > Entities_t;
+
+
     template<class Iterator_t, class Functor_t>
-    static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es)
+    static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, auto_partitioner * p)
     {
-      thread_local  static ff::rt::thrd_id_t this_id = ff::rt::get_thrd_id();
+        //use a divide-and-conquer method to do for_each
+        std::atomic_int usedcores(1);
+
+	uint64_t count = 0;
+        Iterator_t t = begin;
+        while(t!= end)
+        {
+            t++;
+            count ++;
+        }
+        for_each_impl_auto_partition(begin, end, std::forward<Functor_t>(f), es, count, usedcores);
+    }
+
+    template<class Iterator_t, class Functor_t>
+    static void for_each_impl_auto_partition(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, size_t count, std::atomic_int & usedcores)
+    {
+
+        if(usedcores == ff::rt::rt_concurrency()) //all cores are assigned task
+        {
+            Iterator_t t = begin;
+            while(t != end)
+            {
+                f(t);
+                t++;
+            }
+            return ;
+        }
+
+        Iterator_t t = begin;
+        size_t sc = count /2;
+        size_t c = 0;
+        while(c != sc) {
+            t ++;
+            c++;
+        }
+
+        para<void> p;
+        usedcores ++;
+
+        p([begin, t, sc, &f, &es, &usedcores]() {
+            for_each_impl_auto_partition(begin, t, std::move(f), es, sc, usedcores);
+        });
+        
+        es->push_back(p);
+	
+	while(t!= end)
+	{
+	  f(t);
+	  t++;
+	}
+
+    }
+
+    template<class Iterator_t, class Functor_t>
+    static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, simple_partitioner * p)
+    {
+        thread_local  static ff::rt::thrd_id_t this_id = ff::rt::get_thrd_id();
         size_t concurrency = ff::rt::rt_concurrency();//TODO(A.A) this may be optimal.
         //TODO(A.A) we may have another partition approach!
         uint64_t count = 0;
@@ -176,10 +235,10 @@ protected:
         int32_t thrd_id = 0;
         while(t!=end && thrd_id < concurrency)
         {
-	  if(thrd_id == this_id){
-	    thrd_id ++;
-	    continue;
-	  }
+            if(thrd_id == this_id) {
+                thrd_id ++;
+                continue;
+            }
             Iterator_t tmp = t;
             count = 0;
             uint64_t upperbound = step;//added
@@ -211,9 +270,13 @@ protected:
             thrd_id ++;
             t=tmp;
         }
-        while(t != end){f(t); t++;}
+        while(t != end) {
+            f(t);
+            t++;
+        }
         _DEBUG(LOG_INFO(para)<<"for_each generates "<<es->size()<<" para<> tasks")
     }
+
 protected:
     friend internal::wait_all all(paragroup & pg);
     friend internal::wait_any any(paragroup & pg);
