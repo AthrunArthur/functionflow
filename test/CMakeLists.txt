@@ -5,7 +5,8 @@ MESSAGE(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
 add_definitions(-std=c++11)
 
 #add_definitions(-DUSING_LOCK_FREE_QUEUE)
-add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
+#add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
+add_definitions(-DUSING_MIMO_QUEUE)
 
 
 if(Release)
@@ -21,17 +22,17 @@ endif(Release)
 include_directories(${PROJECT_SOURCE_DIR}/../ff/include)
 
 
-find_package(Boost)
-if(Boost_FOUND)
-	message(STATUS "found boost: ${Boost_LIBRARY_DIRS}")
-	include_directories(${Boost_INCLUDE_DIR})
-	link_directories(${Boost_LIBRARY})
-	SET(LIBS_LINK_LIBS boost_test_exec_monitor ff pthread)
-else (Boost_FOUND)
-	message(STATUS "can't find boost")
-	SET(LIBS_LINK_LIBS ff pthread)
-endif (Boost_FOUND)
-
+#find_package(Boost)
+#if(Boost_FOUND)
+#	message(STATUS "found boost: ${Boost_LIBRARY_DIRS}")
+#	include_directories(${Boost_INCLUDE_DIR})
+#	link_directories(${Boost_LIBRARY})
+#	SET(LIBS_LINK_LIBS boost_test_exec_monitor ff pthread)
+#else (Boost_FOUND)
+#	message(STATUS "can't find boost")
+#	SET(LIBS_LINK_LIBS ff pthread)
+#endif (Boost_FOUND)
+SET(LIBS_LINK_LIBS ff pthread)
 link_directories(${PROJECT_SOURCE_DIR}/../bin)
 
 
@@ -59,3 +60,6 @@ TARGET_LINK_LIBRARIES(test_then ${LIBS_LINK_LIBS})
 
 ADD_EXECUTABLE(test_ws test_work_steal.cpp)
 TARGET_LINK_LIBRARIES(test_ws ${LIBS_LINK_LIBS})
+
+ADD_EXECUTABLE(paragroup_test test_paragroup.cpp)
+TARGET_LINK_LIBRARIES(paragroup_test ${LIBS_LINK_LIBS})

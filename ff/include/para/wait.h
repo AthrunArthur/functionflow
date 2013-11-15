@@ -243,7 +243,7 @@ class wait_all
 {
 public:
     typedef void ret_type;
-    wait_all(std::shared_ptr<std::vector<para<void> > >  ps);
+    wait_all(std::shared_ptr<internal::paras_with_lock >  ps);
 
 
     template<class FT>
@@ -261,7 +261,7 @@ public:
     bool	check_if_over();
 
 protected:
-    std::shared_ptr<std::vector<para<void> > >  all_ps;
+    std::shared_ptr<internal::paras_with_lock >  all_ps;
     exe_state	m_iES;
 };//end class wait_all
 
@@ -269,7 +269,7 @@ class wait_any
 {
 public:
     typedef void ret_type;
-    wait_any(std::shared_ptr<std::vector<para<void> > >  ps);
+    wait_any(std::shared_ptr<internal::paras_with_lock >  ps);
 
 
     template<class FT>
@@ -287,7 +287,7 @@ public:
     bool	check_if_over();
 
 protected:
-    std::shared_ptr<std::vector<para<void> > >  all_ps;
+    std::shared_ptr<internal::paras_with_lock >  all_ps;
     exe_state	m_iES;
 };//end class wait_any
 

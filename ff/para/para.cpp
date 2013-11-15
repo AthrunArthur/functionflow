@@ -27,7 +27,7 @@ THE SOFTWARE.
 namespace ff{
 namespace internal{
 
-wait_all::wait_all(std::shared_ptr<std::vector<para<void> > > ps)
+wait_all::wait_all(std::shared_ptr<internal::paras_with_lock > ps)
 : all_ps(ps)
 , m_iES(exe_state::exe_unknown){};
 
@@ -38,11 +38,13 @@ exe_state wait_all::get_state()
 	if(m_iES != exe_state::exe_over)
 	{
 		m_iES = exe_state::exe_over;
-		for(auto p = all_ps->begin(); p != all_ps->end();++p)
+		all_ps->lock.lock();
+		for(auto p = all_ps->entities.begin(); p != all_ps->entities.end();++p)
 		{
 		  _DEBUG(LOG_TRACE(para)<<"item state is "<< p->get_state())
 		  m_iES = m_iES && p->get_state();
 		}
+		all_ps->lock.unlock();
 	}
 	_DEBUG(LOG_TRACE(para)<<"state is "<< m_iES)
 	return m_iES;
@@ -58,7 +60,7 @@ bool wait_all::check_if_over()
 	return false;
 }
 
-wait_any::wait_any(std::shared_ptr<std::vector<para<void> > > ps)
+wait_any::wait_any(std::shared_ptr<internal::paras_with_lock> ps)
 : all_ps(ps)
 , m_iES(exe_state::exe_unknown){};
 
@@ -71,8 +73,10 @@ exe_state wait_any::get_state()
 	if(m_iES != exe_state::exe_over)
 	{
 		m_iES = exe_state::exe_over;
-		for(auto p = all_ps->begin(); p != all_ps->end();++p)
+		all_ps->lock.lock();
+		for(auto p = all_ps->entities.begin(); p != all_ps->entities.end();++p)
 			m_iES = m_iES || p->get_state();
+		all_ps->lock.unlock();
 	}
 	return m_iES;
 }

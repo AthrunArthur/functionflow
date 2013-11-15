@@ -28,13 +28,20 @@ THE SOFTWARE.
 #include "para/para_helper.h"
 #include "common/log.h"
 #include "runtime/env.h"
-
+#include "common/spin_lock.h"
 
 namespace ff {
 
 namespace internal {
 class wait_all;
 class wait_any;
+
+class paras_with_lock{
+public:
+  std::vector<para<void> >  entities;
+  ff::spinlock	lock;
+};
+
 }//end namespace internal
 struct auto_partitioner {};
 struct simple_partitioner {};
@@ -103,12 +110,12 @@ public:
         LOG_FATAL(para)<<" m_pEntities is null";
         }
         )
-        return (*m_pEntities)[index];
+        return (*m_pEntities).entities[index];
     }
     size_t 	size() const
     {
         if(m_pEntities)
-            return m_pEntities->size();
+            return m_pEntities->entities.size();
         return 0;
     }
     ~paragroup()
@@ -140,11 +147,12 @@ public:
         return internal::para_accepted_call<paragroup, ret_type>(*this);
     }
 
+    //! Not thread safe!
     void add(const para< void >&  p)
     {
         if(!m_pEntities)
-            m_pEntities = std::make_shared<std::vector<para<void> > >();
-        m_pEntities->push_back(p);
+            m_pEntities = std::make_shared<internal::paras_with_lock>();
+        m_pEntities->entities.push_back(p);
     }
 
     void clear()
@@ -152,7 +160,7 @@ public:
         m_pEntities.reset();
     }
 protected:
-    typedef std::shared_ptr<std::vector<para<void> > > Entities_t;
+    typedef std::shared_ptr<internal::paras_with_lock > Entities_t;
 
 
     template<class Iterator_t, class Functor_t>
@@ -168,6 +176,7 @@ protected:
             t++;
             count ++;
         }
+        es = std::make_shared<internal::paras_with_lock>();
         for_each_impl_auto_partition(begin, end, std::forward<Functor_t>(f), es, count, usedcores);
     }
 
@@ -175,7 +184,7 @@ protected:
     static void for_each_impl_auto_partition(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, size_t count, std::atomic_int & usedcores)
     {
 
-        if(usedcores == ff::rt::rt_concurrency()) //all cores are assigned task
+        if(usedcores == ff::rt::rt_concurrency() || count == 1) //all cores are assigned task
         {
             Iterator_t t = begin;
             while(t != end)
@@ -200,15 +209,11 @@ protected:
         p([begin, t, sc, &f, &es, &usedcores]() {
             for_each_impl_auto_partition(begin, t, std::move(f), es, sc, usedcores);
         });
-        
-        es->push_back(p);
+        es->lock.lock();
+        es->entities.push_back(p);
+	es->lock.unlock();
 	
-	while(t!= end)
-	{
-	  f(t);
-	  t++;
-	}
-
+	for_each_impl_auto_partition(t, end, std::forward<Functor_t>(f),es, count-sc, usedcores);
     }
 
     template<class Iterator_t, class Functor_t>
@@ -228,7 +233,7 @@ protected:
         uint64_t ls = count % concurrency;
 
         t = begin;
-        es = std::make_shared<std::vector<para<void> > >();
+        es = std::make_shared<internal::paras_with_lock >();
 
 
         uint16_t counter = 0;//added
@@ -266,7 +271,9 @@ protected:
             , thrd_id
 #endif
              );
-            es->push_back(p);
+            es->lock.lock();
+        es->entities.push_back(p);
+	es->lock.unlock();
             thrd_id ++;
             t=tmp;
         }
@@ -274,18 +281,18 @@ protected:
             f(t);
             t++;
         }
-        _DEBUG(LOG_INFO(para)<<"for_each generates "<<es->size()<<" para<> tasks")
+        _DEBUG(LOG_INFO(para)<<"for_each generates "<<es->entities.size()<<" para<> tasks")
     }
 
 protected:
     friend internal::wait_all all(paragroup & pg);
     friend internal::wait_any any(paragroup & pg);
-    std::shared_ptr<std::vector<para<void> > > & all_entities() {
+    std::shared_ptr<internal::paras_with_lock> & all_entities() {
         return m_pEntities;
     };
 
 protected:
-    std::shared_ptr<std::vector<para<void> > >	m_pEntities;
+    std::shared_ptr<internal::paras_with_lock >	m_pEntities;
 };//end class paragroup
 
 
