@@ -41,4 +41,3 @@ target_link_libraries(ff pthread)
 target_link_libraries(ff_s pthread)
 
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
-

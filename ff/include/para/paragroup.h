@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "common/log.h"
 #include "runtime/env.h"
 #include "common/spin_lock.h"
+#include <cmath>
 
 namespace ff {
 
@@ -167,8 +168,7 @@ protected:
     static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, auto_partitioner * p)
     {
         //use a divide-and-conquer method to do for_each
-        std::atomic_int usedcores(1);
-
+	size_t divide_times = static_cast<int>(log2(ff::rt::rt_concurrency()));
 	uint64_t count = 0;
         Iterator_t t = begin;
         while(t!= end)
@@ -177,14 +177,15 @@ protected:
             count ++;
         }
         es = std::make_shared<internal::paras_with_lock>();
-        for_each_impl_auto_partition(begin, end, std::forward<Functor_t>(f), es, count, usedcores);
+        for_each_impl_auto_partition(begin, end, std::forward<Functor_t>(f), es, count, divide_times);
     }
 
     template<class Iterator_t, class Functor_t>
-    static void for_each_impl_auto_partition(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, size_t count, std::atomic_int & usedcores)
+    static void for_each_impl_auto_partition(Iterator_t begin, Iterator_t end, Functor_t && f, 
+					     Entities_t & es, size_t count, size_t divide_times)
     {
 
-        if(usedcores == ff::rt::rt_concurrency() || count == 1) //all cores are assigned task
+        if(divide_times == 0 || count == 1) //all cores are assigned task
         {
             Iterator_t t = begin;
             while(t != end)
@@ -204,16 +205,14 @@ protected:
         }
 
         para<void> p;
-        usedcores ++;
-
-        p([begin, t, sc, &f, &es, &usedcores]() {
-            for_each_impl_auto_partition(begin, t, std::move(f), es, sc, usedcores);
+        p([begin, t, sc, &f, &es, divide_times]() {
+            for_each_impl_auto_partition(begin, t, std::move(f), es, sc, divide_times - 1);
         });
         es->lock.lock();
         es->entities.push_back(p);
 	es->lock.unlock();
 	
-	for_each_impl_auto_partition(t, end, std::forward<Functor_t>(f),es, count-sc, usedcores);
+	for_each_impl_auto_partition(t, end, std::forward<Functor_t>(f),es, count-sc, divide_times-1);
     }
 
     template<class Iterator_t, class Functor_t>

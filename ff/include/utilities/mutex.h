@@ -23,21 +23,30 @@ THE SOFTWARE.
 *************************************************/
 #ifndef FF_RUNTIME_MUTEX_H_
 #define FF_RUNTIME_MUTEX_H_
+#include "runtime/env.h"
+#include "common/common.h"
+#include "runtime/runtime.h"
 
-namespace ff{
-	
-	class mutex
-	{
-	public:
-		mutex(){}
-		mutex(const mutex &) = delete;
-		mutex & operator = (const mutex & ) = delete;
-		
-		void		lock(){}
-		void		unlock(){}
-		
-	protected:
-	};//end class mutex
+namespace ff {
+
+class mutex
+{
+public:
+    mutex()
+    : flag(ATOMIC_FLAG_INIT){}
+    mutex(const mutex &) = delete;
+    mutex & operator = (const mutex & ) = delete;
+
+    inline void		lock() {
+      rt::yield_and_ret_until([&flag](){
+	return !flag.test_and_set(std::memory_order_acquire);}
+      );
+    }
+    inline void		unlock() {flag.clear(std::memory_order_release);}
+
+protected:
+    std::atomic_flag flag;
+};//end class mutex
 }//end namespace ff
 
 #endif

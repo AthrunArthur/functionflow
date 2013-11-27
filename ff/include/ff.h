@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "para/paragroup.h"
 #include "para/wait.h"
 #include "common/scope_guard.h"
+#include "utilities/mutex.h"
 
 namespace ff{
 
