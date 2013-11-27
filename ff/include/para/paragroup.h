@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "runtime/env.h"
 #include "common/spin_lock.h"
 #include <cmath>
+#include <boost/concept_check.hpp>
 
 namespace ff {
 
@@ -184,35 +185,26 @@ protected:
     static void for_each_impl_auto_partition(Iterator_t begin, Iterator_t end, Functor_t && f, 
 					     Entities_t & es, size_t count, size_t divide_times)
     {
-
-        if(divide_times == 0 || count == 1) //all cores are assigned task
-        {
-            Iterator_t t = begin;
-            while(t != end)
-            {
-                f(t);
-                t++;
-            }
-            return ;
-        }
-
-        Iterator_t t = begin;
-        size_t sc = count /2;
-        size_t c = 0;
-        while(c != sc) {
-            t ++;
-            c++;
-        }
-
-        para<void> p;
-        p([begin, t, sc, &f, &es, divide_times]() {
-            for_each_impl_auto_partition(begin, t, std::move(f), es, sc, divide_times - 1);
-        });
-        es->lock.lock();
-        es->entities.push_back(p);
+      Iterator_t t = begin;
+      size_t left = count;
+      while(divide_times !=0 && left != 1)
+      {
+	size_t sc = left /2;
+	left = left - sc;
+	size_t c = 0;
+	while(c!= sc){t++; c++;}
+	para<void> p;
+	p([begin, t, sc, &f, &es, divide_times](){
+	  for_each_impl_auto_partition(begin, t, std::move(f), es, sc, divide_times -1);});
+	es->lock.lock();
+	es->entities.push_back(p);
 	es->lock.unlock();
-	
-	for_each_impl_auto_partition(t, end, std::forward<Functor_t>(f),es, count-sc, divide_times-1);
+      }
+      while (t!=end)
+      {
+	f(t);
+	t++;
+      }
     }
 
     template<class Iterator_t, class Functor_t>
