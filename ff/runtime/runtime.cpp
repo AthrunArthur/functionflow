@@ -23,14 +23,14 @@ THE SOFTWARE.
 *************************************************/
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
-
+#include "utilities/mutex_manager.h"
 namespace ff {
 
 namespace rt {
 std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
 runtime_ptr runtime::s_pInstance(nullptr);
 std::once_flag		runtime::s_oOnce;
-
+using internal::mutex_manager;
 
 void schedule(task_base_ptr p)
 {   static runtime_ptr r = runtime::instance();
@@ -122,7 +122,18 @@ bool		runtime::take_one_task_and_run()
     if(b)
     {
         _DEBUG(LOG_INFO(rt)<<"take_one_task_and_run() id:"<<get_thrd_id()<<" get task... "<<pTask.get();)
-        pTask->run();
+	if(pTask->hold_mutex != invalid_mutex_id)
+	{
+	  thrd_id_t helder_thrd = mutex_manager::instance().who_hold_mutex(pTask->hold_mutex);
+	  if(helder_thrd == i || helder_thrd == invalid_thrd_id)
+	    pTask->run();
+	  else
+	  {
+	    m_oQueues[helder_thrd]->concurrent_push(pTask);
+	  }
+	}
+	else
+	  pTask->run();
     }
     else {
         b = steal_one_task_and_run();

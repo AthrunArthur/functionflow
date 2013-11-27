@@ -21,32 +21,31 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_RUNTIME_MUTEX_H_
-#define FF_RUNTIME_MUTEX_H_
-#include "runtime/env.h"
+#ifndef FF_UTILITIES_MUTEX_MANAGER_H_
+#define FF_UTILITIES_MUTEX_MANAGER_H_
 #include "common/common.h"
-#include "runtime/runtime.h"
+#include <vector>
 
-namespace ff {
-
-class mutex
-{
-public:
-    mutex();
+namespace ff{
+  namespace internal{
+    class mutex_manager{
+    public:
+      static mutex_manager & instance();
+      
+      void		hold_mutex(const mutex_id_t & id);
+      
+      void		reset_mutex();
+      
+      thrd_id_t		who_hold_mutex(const mutex_id_t & id);
+    protected:
+      mutex_manager();
+      
+    protected:
+      std::vector<mutex_id_t>		m_oMutexs; //Index is thrd_id, default mutex_id is invalid_mutex_id;
+      static std::shared_ptr<mutex_manager> s_pInstance;
+    };//end class mutex_manager
     
-    mutex(const mutex &) = delete;
-    mutex & operator = (const mutex & ) = delete;
-
-    void		lock();
-    void		unlock();
-
-    inline mutex_id_t	id() const {return m_id;}
-    
-protected:
-    std::atomic_flag flag;
-    mutex_id_t		m_id;
-    static std::atomic<mutex_id_t> s_id;
-};//end class mutex
+  }//end namespace internal
 }//end namespace ff
 
 #endif

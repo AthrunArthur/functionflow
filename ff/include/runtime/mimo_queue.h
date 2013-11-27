@@ -59,8 +59,12 @@ public:
 
     bool concurrent_push(const T & val)
     {
-		scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
-		auto t = tail.load(std::memory_order_acquire);
+        scope_guard lg([this]() {
+            lock_for_push_back.lock();
+        }, [this]() {
+            lock_for_push_back.unlock();
+        });
+        auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
         auto a = array.load(std::memory_order_relaxed);
@@ -72,12 +76,16 @@ public:
         a[h&mask] = val;
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
         head.store(h+1, std::memory_order_release);
-	return true;
+        return true;
     }
-    
+
     void push_back(const T & val)
     {
-      scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
+        scope_guard lg([this]() {
+            lock_for_push_back.lock();
+        }, [this]() {
+            lock_for_push_back.unlock();
+        });
         auto t = tail.load(std::memory_order_acquire);
         auto h = head.load(std::memory_order_relaxed);
         auto c = cap.load(std::memory_order_relaxed);
@@ -154,8 +162,8 @@ public:
             thieves --;
         });
 
-	//if(thieves.load() >=2 )
-	//  return false;
+        //if(thieves.load() >=2 )
+        //  return false;
 
         long long t = 0;
         long long h = 0;
@@ -172,12 +180,12 @@ public:
         auto mask = c-1;
 
         bool ready = false;
-	int i = 1;
+        int i = 1;
         while(!ready)
         {
             i++;
-	    if(i>16)//3) //here is a experience value!
-	      return false;
+            if(i>16)//3) //here is a experience value!
+                return false;
 
             do {
                 _DEBUG(
@@ -185,7 +193,7 @@ public:
                     if(i > 10000)
                     LOG_FATAL(queue)<<"stuck here! head: "<<head.load()<<", tail: "<<tail.load()<<", hp:"<<m_hp.str();
                 )
-                h = head.load(std::memory_order_acquire);
+                    h = head.load(std::memory_order_acquire);
                 t = tail.load(std::memory_order_acquire);
                 if(!m_hp.outstanding_hazard_pointer_for(&a[t&mask]))
                     hp.store(&a[t&mask], std::memory_order_release);
@@ -197,18 +205,18 @@ public:
             if(hp.load(std::memory_order_relaxed) == nullptr ||
                     m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
                 //return false;
-	      continue;
+                continue;
 
             h = head.load(std::memory_order_acquire);
             if(h == t)
                 continue;
             val = *(hp.load(std::memory_order_relaxed));
             if(tail.compare_exchange_strong(t, t+1, std::memory_order_release, std::memory_order_relaxed))
-	    {
-	      return true;
-	    }
-	    //else
-	    //  return false;
+            {
+                return true;
+            }
+            //else
+            //  return false;
         }
         return false;
     }

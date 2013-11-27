@@ -34,7 +34,8 @@ link_directories(${PROJECT_SOURCE_DIR}/ff/bin)
 SET(ff_src ff/runtime/env.cpp 
   ff/runtime/runtime.cpp 
   ff/para/para.cpp 
-  ff/common/common.cpp)
+  ff/common/common.cpp
+  ff/utilities/mutex.cpp)
 ADD_LIBRARY(ff SHARED ${ff_src})
 ADD_LIBRARY(ff_s STATIC ${ff_src})
 target_link_libraries(ff pthread)

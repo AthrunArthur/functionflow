@@ -68,7 +68,7 @@ public:
         : ff::rt::task_base(TKind::user_t)
         , m_oRet(*this)
         , m_oFunc(std::move(f))
-        , m_iES(exe_state::exe_unknown) {}
+        , m_iES(exe_state::exe_unknown){}
 
     virtual ~para_impl()
     {}
@@ -93,7 +93,6 @@ public:
             return true;
         return false;
     }
-
 protected:
     para_ret<RT>	m_oRet;
     std::function<RT ()> m_oFunc;
@@ -134,7 +133,6 @@ public:
             return true;
         return false;
     }
-
 protected:
     volatile std::atomic<exe_state>  m_iES;
     std::function<void ()> m_oFunc;

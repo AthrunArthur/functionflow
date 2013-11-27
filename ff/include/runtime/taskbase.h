@@ -23,10 +23,8 @@ THE SOFTWARE.
 *************************************************/
 #ifndef FF_RUNTIME_TASK_BASE_H_
 #define FF_RUNTIME_TASK_BASE_H_
-#include <mutex>
-#include <vector>
-#include <memory>
 
+#include "common/common.h"
 namespace ff {
 namespace rt {
 class task_base {
@@ -38,14 +36,14 @@ public:
     };
 public:
 	virtual ~task_base(){}
-    task_base(TKind tk): m_iTKind(tk){};
+    task_base(TKind tk): m_iTKind(tk), hold_mutex(invalid_mutex_id){};
 
     virtual void	run() = 0;
 
     inline TKind		getTK() {
         return m_iTKind;
     }
-
+      mutex_id_t	hold_mutex;
 protected:
     TKind 	m_iTKind;
 };//end class task_base;
