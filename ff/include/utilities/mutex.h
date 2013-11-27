@@ -38,7 +38,7 @@ public:
     mutex & operator = (const mutex & ) = delete;
 
     inline void		lock() {
-      rt::yield_and_ret_until([&flag](){
+      rt::yield_and_ret_until([this](){
 	return !flag.test_and_set(std::memory_order_acquire);}
       );
     }
