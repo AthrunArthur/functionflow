@@ -10,7 +10,7 @@ using namespace std;
 
 using namespace ff;
 
-typedef ff::mutex TMutex;
+typedef std::mutex TMutex;
 typedef std::shared_ptr<TMutex> TMutex_ptr;
 typedef std::shared_ptr<int64_t> Res_ptr;
 std::vector<TMutex_ptr> ms;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     for(int j = 0; j < ff::rt::rt_concurrency(); j++)
     {
       para<> ptf;
-      ptf([j](){task_fun(j);});
+      ptf([i](){task_fun(i);});
       p.add(ptf);
     }
   }
