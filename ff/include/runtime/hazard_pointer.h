@@ -53,6 +53,7 @@ public:
         return m_pPointers[ff::rt::get_thrd_id()];
     }
 
+    //! return true if other thread had it.
     bool  outstanding_hazard_pointer_for(T * p)
     {
         thread_local static thrd_id_t id = ff::rt::get_thrd_id();

@@ -40,12 +40,13 @@ public:
     void		lock();
     void		unlock();
 
-    inline mutex_id_t	id() const {return m_id;}
+    inline mutex_id_t	id() {return this;}
     
+    thrd_id_t		who_runs_most();
+    std::vector<int32_t> m_who_runs_me;
 protected:
-    std::atomic_flag flag;
-    mutex_id_t		m_id;
-    static std::atomic<mutex_id_t> s_id;
+    std::mutex  m_mutex;
+    
 };//end class mutex
 }//end namespace ff
 

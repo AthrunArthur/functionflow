@@ -47,8 +47,8 @@ enum exe_state {
 exe_state operator &&(exe_state e1, exe_state  e2);
 exe_state operator ||(exe_state e1, exe_state e2);
 
-typedef uint64_t  mutex_id_t;
-const mutex_id_t invalid_mutex_id = 0;
+typedef void *  mutex_id_t;
+const mutex_id_t invalid_mutex_id = NULL;
 
 typedef int32_t thrd_id_t;
 const thrd_id_t invalid_thrd_id = -1;

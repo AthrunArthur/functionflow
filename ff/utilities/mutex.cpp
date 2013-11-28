@@ -26,21 +26,35 @@ THE SOFTWARE.
 #include "runtime/rtcmn.h"
 #include "runtime/env.h"
 namespace ff {
-std::atomic<mutex_id_t> mutex::s_id(1);
-
-mutex::mutex()    : flag(ATOMIC_FLAG_INIT) {
-    m_id = 0;
-    while(!s_id.compare_exchange_weak(m_id, m_id+1));
+mutex::mutex()   /* : flag(ATOMIC_FLAG_INIT) */{
+    for(int i = 0; i < rt::rt_concurrency(); i++)
+      m_who_runs_me.push_back(0);
 }
 
 void mutex::lock() {
-    while(flag.test_and_set(std::memory_order_acquire)) ff::rt::yield();
-    internal::mutex_manager::instance().hold_mutex(m_id);
+    //while(flag.test_and_set(std::memory_order_acquire)) ff::rt::yield();
+  //ff::rt::yield_and_ret_until([this](){return m_mutex.try_lock();});
+  m_mutex.lock();  
+  m_who_runs_me[rt::get_thrd_id()] ++;
 }
 
 void mutex::unlock()
-{   flag.clear(std::memory_order_release);
-    internal::mutex_manager::instance().reset_mutex();
+{   
+  //flag.clear(std::memory_order_release);
+  m_mutex.unlock();
+}
+
+thrd_id_t mutex::who_runs_most()
+{
+  int  m = 0;
+  int id = 0;
+  for(int i = 0; i < m_who_runs_me.size(); ++i)
+    if(m_who_runs_me[i] > m)
+    {
+      m = m_who_runs_me[i];
+      id = i;
+    }
+  return static_cast<thrd_id_t>(id);
 }
 namespace internal {
   std::shared_ptr<mutex_manager> mutex_manager::s_pInstance;
