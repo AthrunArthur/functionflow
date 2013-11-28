@@ -199,6 +199,7 @@ protected:
 	es->lock.lock();
 	es->entities.push_back(p);
 	es->lock.unlock();
+          divide_times --;
       }
       while (t!=end)
       {
