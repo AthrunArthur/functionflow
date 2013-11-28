@@ -31,9 +31,7 @@ if __name__ == '__main__':
 	for item in file_list:
 		ifile = r'%s/%s' % (path, item)
 		if os.path.isfile('%s' %ifile) and os.access('%s' % ifile, os.X_OK):
-			if not cmp(item,'random'):
-				continue
-			elif not cmp(item,'lu'):
+			if not cmp(item,'lu'):
 				para_n = 1 
 			elif not cmp(item,'quicksort'):
 				para_n = 256
@@ -44,6 +42,8 @@ if __name__ == '__main__':
 			elif not cmp(item,'nqueen'):
 				para_n = 1
 			elif not cmp(item,'phash'):
+				para_n = 1
+			elif not cmp(item,'mutex'):
 				para_n = 1
 			print 'file:%s' % item
 			print 'Parallel time:'
@@ -69,7 +69,11 @@ if __name__ == '__main__':
 			print 'Arithmetic mean time: ' + str(ptime) + 'us'
 			print 'Geometric mean time: ' + str(etime) + 'us'
 			time_file.close()
-			execute_cmd('rm %s' % time_path)
+			#test std::mutex
+			if not cmp(item,'mutex'):
+				print 'Use std::mutex'	
+				print execute_cmd('cd %s; ./%s %s 1' % (path, item, para_n)).strip('\n')
+			execute_cmd('rm %s' % time_path)			
 			if not cmp(item,'phash'):
 				continue;
 			execute_cmd('cd %s; ./%s' % (path, item))			
@@ -78,4 +82,3 @@ if __name__ == '__main__':
 			print 'Serial time:' + time_file.read().strip('\n') + 'us'
 			time_file.close()
 			execute_cmd('rm %s' % time_path2)
-	

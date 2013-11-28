@@ -177,7 +177,7 @@ std::is_void<ret_type>::value,
     >::type
 {
     auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
-    _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
+    _DEBUG(LOG_INFO(para)<<"generate a para task: 1 "<<p.get())
     return p;
 }
 template <class ret_type, class F>
@@ -188,7 +188,7 @@ internal::para_impl_ptr<ret_type>
 >::type
 {
     auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
-    _DEBUG(LOG_INFO(para)<<"generate a para task: "<<p.get())
+    _DEBUG(LOG_INFO(para)<<"generate a para task: 2 "<<p.get())
     return p;
 }
 #endif
@@ -249,8 +249,10 @@ using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
 template<class RT>
 void	schedule(para_impl_ptr<RT>  p)
 {
+    _DEBUG(LOG_INFO(rt)<<"schedule start ")
     ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
 //    ::ff::rt::schedule(p);
+    _DEBUG(LOG_INFO(rt)<<"schedule end ")
 }
 template<class WT>
 void	schedule(para_impl_wait_ptr<WT>  p)

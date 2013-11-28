@@ -30,7 +30,6 @@
 #include "runtime/env.h"
 #include "common/spin_lock.h"
 #include <cmath>
-#include <boost/concept_check.hpp>
 
 namespace ff {
     

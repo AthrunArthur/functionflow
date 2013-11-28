@@ -59,13 +59,16 @@ public:
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
+	_DEBUG(LOG_INFO(rt)<<"schedule1 start ")
         schedule(m_pImpl);
+	_DEBUG(LOG_INFO(rt)<<"schedule1 end ")
         return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
     auto		operator ()(F && f) -> para_accepted_call<DT, ret_type>
     {
-        return exe(std::forward<F>(f));
+	_DEBUG(LOG_INFO(rt)<<"() start")
+	return exe(std::forward<F>(f));
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
@@ -74,7 +77,9 @@ public:
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
+	_DEBUG(LOG_INFO(rt)<<"schedule2 start ")
         schedule(m_pImpl, thrd_id);
+	_DEBUG(LOG_INFO(rt)<<"schedule2 end ")
         return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
