@@ -1,20 +1,22 @@
-#include <tbb/concurrent_vector.h>
-#include <tbb/parallel_for_each.h>
 #include <tbb/mutex.h>
+#include <tbb/task_scheduler_init.h>
+#include <tbb/task_group.h>
 #include <cmath>
 #include <chrono>
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <memory>
+#include <mutex>
 
 using namespace std;
+using namespace tbb;
 
-
-typedef ff::mutex TMutex;
-typedef std::shared_ptr<TMutex> TMutex_ptr;
+// typedef ff::mutex TMutex;
+// typedef std::shared_ptr<TMutex> TMutex_ptr;
 typedef std::shared_ptr<int64_t> Res_ptr;
-std::vector<TMutex_ptr> ms;
+// std::vector<TMutex_ptr> ms;
 std::vector<Res_ptr> rs;
 
 typedef std::mutex SMutex;
@@ -36,17 +38,17 @@ int random_fib()
     return fib(i);
 }
 
-void task_fun(int j) {
-    for(int i = 0; i < LOOP_TIMES; ++i)
-    {
-//         random_fib();
-        fib(27-2*j);
-        ms[j]->lock();
-//         *(rs[j]) += random_fib();
-        *(rs[j]) += fib(27+2*j);
-        ms[j]->unlock();
-    }
-}
+// void task_fun(int j) {
+//     for(int i = 0; i < LOOP_TIMES; ++i)
+//     {
+// //         random_fib();
+//         fib(27-2*j);
+//         ms[j]->lock();
+// //         *(rs[j]) += random_fib();
+//         *(rs[j]) += fib(27+2*j);
+//         ms[j]->unlock();
+//     }
+// }
 
 void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
@@ -95,9 +97,10 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 
 int main(int argc, char *argv[])
 {
+    task_scheduler_init init;
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
-    int concurrency = ff::rt::rt_concurrency();
+    int concurrency = task_scheduler_init::default_num_threads();
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.
@@ -109,47 +112,38 @@ int main(int argc, char *argv[])
         bIsStd = true;
 
     if(bIsPara) {
-        //ff initialization
-        para<> a;
-        a([]() {
-//     std::cout<<"this is for initialization"<<std::endl;
-        });
-        ff_wait(a);
-
-        for(int i = 0; i< ff::rt::rt_concurrency(); i++)
+        for(int i = 0; i< concurrency; i++)
         {
-            if(bIsStd)
+//             if(bIsStd)
                 std_ms.push_back(std::make_shared<SMutex>());
-            else
-                ms.push_back(std::make_shared<TMutex>());
+//             else
+//                 ms.push_back(std::make_shared<TMutex>());
             rs.push_back(std::make_shared<int64_t>(0));
         }
         std::chrono::time_point<chrono::system_clock> start, end;
 
         start = std::chrono::system_clock::now();
-        paragroup p;
-        for(int i=0; i < ff::rt::rt_concurrency(); i++)
+	task_group tg;
+        for(int i=0; i < concurrency; i++)
         {
-            for(int j = 0; j < ff::rt::rt_concurrency(); j++)
+            for(int j = 0; j < concurrency; j++)
             {
-                para<> ptf;
-                ptf([j,bIsStd]() {
-                    if(bIsStd)
+                tg.run([j,bIsStd]() {
+//                     if(bIsStd)
                         task_fun_std(j);
-                    else
-                        task_fun(j);
+//                     else
+//                         task_fun(j);
                 });
-                p.add(ptf);
             }
         }
+        tg.wait();
 
-        ff_wait(all(p));
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
         cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
     }
-    else {       
+    else {
         for(int i = 0; i< concurrency; i++)
         {
             rs.push_back(std::make_shared<int64_t>(0));
@@ -175,3 +169,4 @@ int main(int argc, char *argv[])
     write_time_file(elapsed_seconds,bIsPara);
     return 0;
 }
+
