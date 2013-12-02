@@ -39,10 +39,10 @@ void task_fun(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(27-2*j);
+        fib(15-j);
         ms[j]->lock();
 //         *(rs[j]) += random_fib();
-        *(rs[j]) += fib(27+2*j);
+        *(rs[j]) += fib(15+j);
         ms[j]->unlock();
     }
 }
@@ -51,18 +51,18 @@ void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(27-2*j);
+        fib(15-j);
 //         *(rs[j]) += random_fib();
-        *(rs[j]) += fib(27+2*j);
+        *(rs[j]) += fib(15+j);
     }
 }
 
 void task_fun_std(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
-        fib(27-2*j);
+        fib(15-j);
         std_ms[j]->lock();
-        *(rs[j]) += fib(27+2*j);
+        *(rs[j]) += fib(15+j);
         std_ms[j]->unlock();
     }
 }

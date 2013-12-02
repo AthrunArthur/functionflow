@@ -42,11 +42,11 @@ void task_fun(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(27-2*j);
+        fib(15-j);
         TMutex::scoped_lock lock;//create a lock
         lock.acquire(*(ms[j]));
 //         *(rs[j]) += random_fib();
-        *(rs[j]) += fib(27+2*j);
+        *(rs[j]) += fib(15+j);
         lock.release();
     }
 }
@@ -55,18 +55,18 @@ void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(27-2*j);
+        fib(15-j);
 //         *(rs[j]) += random_fib();
-        *(rs[j]) += fib(27+2*j);
+        *(rs[j]) += fib(15+j);
     }
 }
 
 void task_fun_std(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
-        fib(27-2*j);
+        fib(15-j);
         std_ms[j]->lock();
-        *(rs[j]) += fib(27+2*j);
+        *(rs[j]) += fib(15+j);
         std_ms[j]->unlock();
     }
 }
@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-        cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
+        cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
         for(int i = 0; i< concurrency; i++)
