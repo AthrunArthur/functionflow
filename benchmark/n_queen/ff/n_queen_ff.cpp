@@ -131,6 +131,8 @@ int main(int argc, char *argv[])
 		queen_serial(p,1);
 	}
 	else{
+	_DEBUG(ff::fflog<>::init(ff::ERROR, "log.txt"))
+        _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 	//QueenTask& a = *new(task::allocate_root()) QueenTask(p,1);
     	//task::spawn_root_and_wait(a);
 		queen_para(p,1);

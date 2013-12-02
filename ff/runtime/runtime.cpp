@@ -35,6 +35,7 @@ std::once_flag		runtime::s_oOnce;
 void schedule(task_base_ptr p)
 {   static runtime_ptr r = runtime::instance();
     r->schedule(p);
+    _DEBUG(LOG_INFO(rt)<<"schedule end ")
 }
 #ifdef USING_MIMO_QUEUE
 void schedule(task_base_ptr p, thrd_id_t target_thrd)
@@ -102,6 +103,7 @@ void	runtime::schedule(task_base_ptr p)
     thread_local static int i = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
     m_oQueues[i] ->push_back(p);
+    _DEBUG(LOG_INFO(rt)<<"runtime::schedule() end id:"<<i<<" task: "<<p.get();)
 }
 #ifdef USING_MIMO_QUEUE
 void runtime::schedule(task_base_ptr p, thrd_id_t target_thrd)

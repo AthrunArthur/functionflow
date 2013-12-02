@@ -6,6 +6,7 @@
 #include <tbb/parallel_invoke.h>
 #include <tbb/concurrent_vector.h>
 #include <tbb/parallel_for_each.h>
+#include <tbb/task_scheduler_init.h>
 
 using namespace std;
 using namespace tbb;
@@ -196,8 +197,8 @@ void parallel(Matrix & m)
 }
 int main(int argc, char *argv[])
 {
-    bool bIsPara = false;//false;
-
+    task_scheduler_init init;
+    bool bIsPara = false;//false;    
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.
