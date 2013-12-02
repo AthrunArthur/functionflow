@@ -13,10 +13,10 @@
 using namespace std;
 using namespace tbb;
 
-// typedef ff::mutex TMutex;
-// typedef std::shared_ptr<TMutex> TMutex_ptr;
+typedef tbb::mutex TMutex;
+typedef std::shared_ptr<TMutex> TMutex_ptr;
 typedef std::shared_ptr<int64_t> Res_ptr;
-// std::vector<TMutex_ptr> ms;
+std::vector<TMutex_ptr> ms;
 std::vector<Res_ptr> rs;
 
 typedef std::mutex SMutex;
@@ -38,17 +38,18 @@ int random_fib()
     return fib(i);
 }
 
-// void task_fun(int j) {
-//     for(int i = 0; i < LOOP_TIMES; ++i)
-//     {
-// //         random_fib();
-//         fib(27-2*j);
-//         ms[j]->lock();
-// //         *(rs[j]) += random_fib();
-//         *(rs[j]) += fib(27+2*j);
-//         ms[j]->unlock();
-//     }
-// }
+void task_fun(int j) {
+    for(int i = 0; i < LOOP_TIMES; ++i)
+    {
+//         random_fib();
+        fib(27-2*j);
+        TMutex::scoped_lock lock;//create a lock
+        lock.acquire(*(ms[j]));
+//         *(rs[j]) += random_fib();
+        *(rs[j]) += fib(27+2*j);
+        lock.release();
+    }
+}
 
 void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
@@ -114,25 +115,25 @@ int main(int argc, char *argv[])
     if(bIsPara) {
         for(int i = 0; i< concurrency; i++)
         {
-//             if(bIsStd)
+            if(bIsStd)
                 std_ms.push_back(std::make_shared<SMutex>());
-//             else
-//                 ms.push_back(std::make_shared<TMutex>());
+            else
+                ms.push_back(std::make_shared<TMutex>());
             rs.push_back(std::make_shared<int64_t>(0));
         }
         std::chrono::time_point<chrono::system_clock> start, end;
 
         start = std::chrono::system_clock::now();
-	task_group tg;
+        task_group tg;
         for(int i=0; i < concurrency; i++)
         {
             for(int j = 0; j < concurrency; j++)
             {
                 tg.run([j,bIsStd]() {
-//                     if(bIsStd)
+                    if(bIsStd)
                         task_fun_std(j);
-//                     else
-//                         task_fun(j);
+                    else
+                        task_fun(j);
                 });
             }
         }
