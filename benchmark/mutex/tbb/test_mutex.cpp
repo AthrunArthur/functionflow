@@ -23,7 +23,8 @@ typedef std::mutex SMutex;
 typedef std::shared_ptr<SMutex> SMutex_ptr;
 std::vector<SMutex_ptr> std_ms;
 
-const int LOOP_TIMES = 1000;
+//const int LOOP_TIMES = 1000;
+const int LOOP_TIMES = 30;
 
 int fib(int n)
 {
@@ -42,7 +43,7 @@ void task_fun(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(15-j);
+        fib(10-j);
         TMutex::scoped_lock lock;//create a lock
         lock.acquire(*(ms[j]));
 //         *(rs[j]) += random_fib();
@@ -55,7 +56,7 @@ void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(15-j);
+        fib(10-j);
 //         *(rs[j]) += random_fib();
         *(rs[j]) += fib(15+j);
     }
@@ -64,7 +65,7 @@ void task_fun_serial(int j) {
 void task_fun_std(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
-        fib(15-j);
+        fib(10-j);
         std_ms[j]->lock();
         *(rs[j]) += fib(15+j);
         std_ms[j]->unlock();
@@ -125,11 +126,20 @@ int main(int argc, char *argv[])
 
         start = std::chrono::system_clock::now();
         task_group tg;
-        for(int i=0; i < concurrency; i++)
+//        for(int i=0; i < concurrency; i++)
+        for(int i=0; i < concurrency * 60; i++)
         {
             for(int j = 0; j < concurrency; j++)
             {
-                tg.run([j,bIsStd]() {
+
+				/*int t = rand()% concurrency;
+                tg.run([t,bIsStd]() {
+                    if(bIsStd)
+                        task_fun_std(t);
+                    else
+                        task_fun(t);
+                });*/
+				tg.run([j,bIsStd]() {
                     if(bIsStd)
                         task_fun_std(j);
                     else
@@ -152,7 +162,8 @@ int main(int argc, char *argv[])
         std::chrono::time_point<chrono::system_clock> start, end;
         start = std::chrono::system_clock::now();
 
-        for(int i=0; i < concurrency; i++)
+//        for(int i=0; i < concurrency; i++)
+        for(int i=0; i < 60 * concurrency; i++)
         {
             for(int j = 0; j < concurrency; j++)
             {

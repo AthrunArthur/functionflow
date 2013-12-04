@@ -20,7 +20,8 @@ typedef std::mutex SMutex;
 typedef std::shared_ptr<SMutex> SMutex_ptr;
 std::vector<SMutex_ptr> std_ms;
 
-const int LOOP_TIMES = 1000;
+//const int LOOP_TIMES = 1000;
+const int LOOP_TIMES = 30;
 
 int fib(int n)
 {
@@ -39,7 +40,7 @@ void task_fun(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(15-j);
+        fib(10-j);
         ms[j]->lock();
 //         *(rs[j]) += random_fib();
         *(rs[j]) += fib(15+j);
@@ -51,7 +52,7 @@ void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-        fib(15-j);
+        fib(10-j);
 //         *(rs[j]) += random_fib();
         *(rs[j]) += fib(15+j);
     }
@@ -60,7 +61,7 @@ void task_fun_serial(int j) {
 void task_fun_std(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
-        fib(15-j);
+        fib(10-j);
         std_ms[j]->lock();
         *(rs[j]) += fib(15+j);
         std_ms[j]->unlock();
@@ -94,6 +95,9 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 
 int main(int argc, char *argv[])
 {
+	_DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
+	_DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
+//	cout << "into main!" << endl;
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
     int concurrency = ff::rt::rt_concurrency();
@@ -106,9 +110,9 @@ int main(int argc, char *argv[])
     }
     if(argc > 2)
         bIsStd = true;
-
     if(bIsPara) {
         //ff initialization
+//		cout << "para start!" << endl;
         para<> a;
         a([]() {
 //     std::cout<<"this is for initialization"<<std::endl;
@@ -127,22 +131,30 @@ int main(int argc, char *argv[])
 
         start = std::chrono::system_clock::now();
         paragroup p;
-        for(int i=0; i < ff::rt::rt_concurrency(); i++)
+//        for(int i=0; i < ff::rt::rt_concurrency(); i++)
+        for(int i=0; i < ff::rt::rt_concurrency() * 60; i++)
         {
             for(int j = 0; j < ff::rt::rt_concurrency(); j++)
             {
                 para<> ptf;
-                ptf([j,bIsStd]() {
-                    if(bIsStd)
-                        task_fun_std(j);
-                    else
-                        task_fun(j);
-                });
+				if(bIsStd){
+//					int t = rand()%ff::rt::rt_concurrency();
+//					ptf([t,bIsStd](){task_fun_std(t);});
+					ptf([j,bIsStd](){task_fun_std(j);});
+				}
+				else{
+//					cout << "start task_fun i=" << i << " j=" << j << endl;
+//					int t = rand()%ff::rt::rt_concurrency();
+//					ptf([t](){task_fun(t);}, ms[t]->id());
+					ptf([j](){task_fun(j);}, ms[j]->id());
+//					cout << "end task_fun i=" << i << " j=" << j << endl;
+				}
                 p.add(ptf);
             }
         }
-
+//		cout << "start wait!" << endl;
         ff_wait(all(p));
+//		cout << "end wait!" << endl;
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
@@ -156,10 +168,13 @@ int main(int argc, char *argv[])
         std::chrono::time_point<chrono::system_clock> start, end;
         start = std::chrono::system_clock::now();
 
-        for(int i=0; i < concurrency; i++)
+//        for(int i=0; i < concurrency; i++)
+        for(int i=0; i < 60 * concurrency; i++)
         {
             for(int j = 0; j < concurrency; j++)
             {
+//				int t = rand()%concurrency;
+//               task_fun_serial(t);
                 task_fun_serial(j);
             }
         }
