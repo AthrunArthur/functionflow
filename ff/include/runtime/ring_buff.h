@@ -33,6 +33,17 @@ THE SOFTWARE.
 namespace ff {
 namespace rt {
 
+#define MEM_SEQ_CST std::memory_order_seq_cst
+  /*
+#define MEM_ACQUIRE std::memory_order_seq_cst
+#define MEM_RELAXED std::memory_order_seq_cst
+#define MEM_RELEASE std::memory_order_seq_cst
+*/
+
+#define MEM_ACQUIRE std::memory_order_acquire
+#define MEM_RELAXED std::memory_order_relaxed
+#define MEM_RELEASE std::memory_order_release
+
 //N , 2^N.
 template <class T, size_t N>
 class nonblocking_stealing_queue
@@ -53,37 +64,37 @@ public:
     {
         if(array != nullptr)
         {
-            delete[] array.load(std::memory_order_acquire);
+            delete[] array.load(MEM_ACQUIRE);
         }
     }
 
     void push_back(const T & val)
     {
-        auto t = tail.load(std::memory_order_acquire);
-        auto h = head.load(std::memory_order_relaxed);
-        auto c = cap.load(std::memory_order_relaxed);
-        auto a = array.load(std::memory_order_relaxed);
+        auto t = tail.load(MEM_ACQUIRE);
+        auto h = head.load(MEM_RELAXED);
+        auto c = cap.load(MEM_RELAXED);
+        auto a = array.load(MEM_RELAXED);
         if(h - t == c-1)
         {
             resize(c<<1);
-            t = tail.load(std::memory_order_acquire);
-            h = head.load(std::memory_order_relaxed);
+            t = tail.load(MEM_ACQUIRE);
+            h = head.load(MEM_RELAXED);
 
-            c = cap.load(std::memory_order_relaxed);
-            a = array.load(std::memory_order_relaxed);
+            c = cap.load(MEM_RELAXED);
+            a = array.load(MEM_RELAXED);
         }
         auto mask = c -1;
         a[h&mask] = val;
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(h&mask));
-        head.store(h+1, std::memory_order_release);
+        head.store(h+1, MEM_RELEASE);
     }
 
     bool pop(T & val)
     {
-        auto t = tail.load(std::memory_order_acquire);
-        auto h = head.load(std::memory_order_relaxed);
-        auto c = cap.load(std::memory_order_relaxed);
-        auto a = array.load(std::memory_order_relaxed);
+        auto t = tail.load(MEM_ACQUIRE);
+        auto h = head.load(MEM_RELAXED);
+        auto c = cap.load(MEM_RELAXED);
+        auto a = array.load(MEM_RELAXED);
 
         if(h == t)
             return false;
@@ -92,33 +103,34 @@ public:
                 h - t > INITIAL_SIZE)
         {
             resize(c>>1);
-            t = tail.load(std::memory_order_acquire);
-            h = head.load(std::memory_order_relaxed);
+            t = tail.load(MEM_ACQUIRE);
+            h = head.load(MEM_RELAXED);
 
-            c = cap.load(std::memory_order_relaxed);
-            a = array.load(std::memory_order_relaxed);
+            c = cap.load(MEM_RELAXED);
+            a = array.load(MEM_RELAXED);
         }
         std::atomic<T *> & hp = m_hp.get_hazard_pointer();
         scope_guard _sg([]() {}, [&hp]() {
-            hp.store(nullptr, std::memory_order_release);
+            hp.store(nullptr, MEM_SEQ_CST);
         });
 
         auto mask = c - 1;
         auto pos = h - 1;
-        hp.store(&a[pos & mask], std::memory_order_release);
+        hp.store(&a[pos & mask], MEM_SEQ_CST);
 
-        if(h - t<=thieves &&
-                m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)))
+	t = tail.load(MEM_ACQUIRE);
+        if(h - t<=(thieves.load(MEM_ACQUIRE) <<1) &&
+                m_hp.outstanding_hazard_pointer_for(hp.load(MEM_SEQ_CST)))
         {
             return false;
         }
-        t = tail.load(std::memory_order_acquire);
+        t = tail.load(MEM_ACQUIRE);
         if(h == t)
         {
             return false;
         }
 
-        head.store(pos, std::memory_order_release);
+        head.store(pos, MEM_RELEASE);
 
         val = a[pos&mask];
         _DEBUG(LOG_TRACE(queue)<<"mask:"<<mask<<" pos:"<<(pos&mask));
@@ -128,26 +140,28 @@ public:
 
     bool steal(T & val)
     {
-        while(is_resizing.load()) yield();
+        while(is_resizing.load(MEM_ACQUIRE)) yield();
         scope_guard _sg([this]() {
             thieves ++;
         }, [this]() {
             thieves --;
         });
-
-	//if(thieves.load() >=2 )
-	//  return false;
-
+	if(is_resizing.load(MEM_ACQUIRE))  //We hate ABA problems
+	  return false;
+	
+	if(thieves.load(MEM_ACQUIRE) >=2 )
+	  return false;
+	
         long long t = 0;
         long long  h = 0;
-        auto c = cap.load(std::memory_order_acquire);
-        auto a = array.load(std::memory_order_relaxed);
+        auto c = cap.load(MEM_ACQUIRE);
+        auto a = array.load(MEM_ACQUIRE);
 
 //        if(t == h)
 //            return false;
         std::atomic<T *> & hp = m_hp.get_hazard_pointer();
         scope_guard _sg1([]() {}, [&hp]() {
-            hp.store(nullptr, std::memory_order_release);
+            hp.store(nullptr, MEM_SEQ_CST);
         });
 
         auto mask = cap-1;
@@ -157,7 +171,7 @@ public:
         while(!ready)
         {
             i++;
-	    if(i>16)//3) //here is a experience value!
+	    if(i>16)//3) //here is an experience value!
 	      return false;
 
             do {
@@ -166,25 +180,25 @@ public:
                     if(i > 10000)
                     LOG_FATAL(queue)<<"stuck here! head: "<<head.load()<<", tail: "<<tail.load()<<", hp:"<<m_hp.str();
                 )
-                h = head.load(std::memory_order_acquire);
-                t = tail.load(std::memory_order_acquire);
+                h = head.load(MEM_ACQUIRE);
+                t = tail.load(MEM_ACQUIRE);
                 if(!m_hp.outstanding_hazard_pointer_for(&a[t&mask]))
-                    hp.store(&a[t&mask], std::memory_order_release);
+                    hp.store(&a[t&mask], MEM_SEQ_CST);
                 else
-                    hp.store(nullptr, std::memory_order_release);
-            } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)));
+                    hp.store(nullptr, MEM_SEQ_CST);
+            } while(h> t && m_hp.outstanding_hazard_pointer_for(hp.load(MEM_SEQ_CST)));
 
 
-            if(hp.load(std::memory_order_relaxed) == nullptr ||
-                    m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_acquire)) )
+            if(hp.load(MEM_SEQ_CST) == nullptr ||
+                    m_hp.outstanding_hazard_pointer_for(hp.load(MEM_ACQUIRE)) )
                 //return false;
 	      continue;
 
-            h = head.load(std::memory_order_acquire);
+            h = head.load(MEM_ACQUIRE);
             if(h == t)
-                continue;
-            val = *(hp.load(std::memory_order_relaxed));
-            if(tail.compare_exchange_strong(t, t+1, std::memory_order_release, std::memory_order_relaxed))
+                return false;
+            val = *(hp.load(MEM_SEQ_CST));
+            if(tail.compare_exchange_strong(t, t+1, std::memory_order_acq_rel))
 	    {
 	      return true;
 	    }
@@ -196,33 +210,34 @@ public:
 
     uint64_t	size()
     {
-        return head.load(std::memory_order_acquire) - tail.load(std::memory_order_acquire);
+        return head.load(MEM_ACQUIRE) - tail.load(MEM_ACQUIRE);
     }
 protected:
     void		resize(uint64_t s)
     {
         _DEBUG(LOG_INFO(queue)<<"enter! head:"<<head.load()<<" tail:"<<tail.load()<<" origin size:"<<cap.load()<<" -->"<<s);
         auto c1 = new T[s];
-        auto mask = cap.load(std::memory_order_relaxed)-1;
+        auto mask = cap.load(MEM_RELAXED)-1;
 
-        auto old_tail = tail.load(std::memory_order_acquire);
+        auto old_tail = tail.load(MEM_ACQUIRE);
         int64_t i = old_tail, j = 0;
-        auto h = head.load(std::memory_order_relaxed);
-        T * temp = array.load(std::memory_order_relaxed);
+        auto h = head.load(MEM_RELAXED);
+        T * temp = array.load(MEM_RELAXED);
         for( j = 0, i = old_tail; i< h; ++i, ++j)
         {
             c1[j] = temp[i&mask];
         }
 
-        is_resizing.store(true);
-        while(thieves.load() != 0) yield();
-        auto t2 = tail.load(std::memory_order_acquire);
-        array.store(c1, std::memory_order_relaxed);
-        cap.store(s, std::memory_order_relaxed);
-        tail.store(t2 - old_tail, std::memory_order_release);
-        head.store( j, std::memory_order_release);
+        is_resizing.store(true, MEM_RELEASE);
+	while(thieves.load(MEM_ACQUIRE) != 0) yield();
+        
+	auto t2 = tail.load(MEM_ACQUIRE);
+        array.store(c1, MEM_RELEASE);
+        cap.store(s, MEM_RELEASE);
+        tail.store(t2 - old_tail, MEM_RELEASE);
+        head.store( j, MEM_RELEASE);
 
-        is_resizing.store(false);
+        is_resizing.store(false, MEM_RELEASE);
 
         delete[] temp;
         _DEBUG(LOG_INFO(queue)<<"exit! head:"<<head.load()<<" tail:"<<tail.load()<<" origin size:"<<cap.load()<<" -->"<<s);

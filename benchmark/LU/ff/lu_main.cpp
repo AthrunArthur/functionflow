@@ -163,7 +163,6 @@ void parallel(Matrix & m)
         ff_wait(il && iu);
 
         ff::paragroup ir;
-     
 	ir.for_each(k+1 ,blocks,[&seq_m,&linv,&uinv,k](int i) {
             //ff::para<> p1, p2;
             //p1([&seq_m, &linv, k, i]() {
@@ -180,16 +179,13 @@ void parallel(Matrix & m)
             //});
             //ff_wait(p1&&p2);
         });
-	
         ff::ff_wait(all(ir));
-
         vector<tuple< int, int > > pos_vec;
         for(int i=k+1; i<blocks; i++) {
             for(int j=k+1; j<blocks; j++) {
                 pos_vec.push_back(make_tuple(i,j));
             }
         }
-
         ff::paragroup im;
         im.for_each(pos_vec.begin(),pos_vec.end(),[&seq_m,k](tuple< int, int > pos) {
 
@@ -338,6 +334,5 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-  
     return 0;
 }
