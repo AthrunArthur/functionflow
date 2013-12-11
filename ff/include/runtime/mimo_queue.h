@@ -78,7 +78,7 @@ public:
         head.store(h+1, MEM_RELEASE);
 	return true;
     }
-    
+
     void push_back(const T & val)
     {
       scope_guard lg([this](){lock_for_push_back.lock();}, [this](){lock_for_push_back.unlock();});
@@ -177,12 +177,12 @@ public:
         auto mask = c-1;
 
         bool ready = false;
-	int i = 1;
+        int i = 1;
         while(!ready)
         {
             i++;
-	    if(i>16)//3) //here is a experience value!
-	      return false;
+            if(i>16)//3) //here is a experience value!
+                return false;
 
             do {
                 _DEBUG(
@@ -202,7 +202,7 @@ public:
             if(hp.load(std::memory_order_seq_cst) == nullptr ||
                     m_hp.outstanding_hazard_pointer_for(hp.load(std::memory_order_seq_cst)) )
                 //return false;
-	      continue;
+                continue;
 
             h = head.load(MEM_ACQUIRE);
             if(h == t)

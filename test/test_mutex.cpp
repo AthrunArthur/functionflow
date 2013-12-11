@@ -16,7 +16,7 @@ typedef std::shared_ptr<int64_t> Res_ptr;
 std::vector<TMutex_ptr> ms;
 std::vector<Res_ptr> rs;
 
-const int LOOP_TIMES = 1000;
+const int LOOP_TIMES = 30;
 
 int fib(int n)
 {
@@ -25,18 +25,18 @@ int fib(int n)
   return fib(n-1) + fib(n-2);
 }
 
-int random_fib()
+int random_fib(int t)
 {
-  int i = rand()%25 + 10;
+  int i = rand()%25 + t;
   return fib(i);
 }
 
 void task_fun(int j){
   for(int i = 0; i < LOOP_TIMES; ++i)
   {
-    random_fib();
+    random_fib(7);
     ms[j]->lock();
-    *(rs[j]) += random_fib();
+    *(rs[j]) += random_fib(15);
     ms[j]->unlock();
   }
 }
@@ -56,12 +56,13 @@ int main(int argc, char *argv[])
   
   start = std::chrono::system_clock::now();
   paragroup p;
-  for(int i=0; i < ff::rt::rt_concurrency(); i++)
+  for(int i=0; i < ff::rt::rt_concurrency() * 60; i++)
   {
     for(int j = 0; j < ff::rt::rt_concurrency(); j++)
     {
       para<> ptf;
-      ptf([i](){task_fun(i);});
+      int t = rand()%ff::rt::rt_concurrency();
+      ptf([t](){task_fun(t);}, ms[t]->id());
       p.add(ptf);
     }
   }
@@ -71,7 +72,16 @@ int main(int argc, char *argv[])
   int elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
   
-  std::cout<<"elapsed time: "<<elapsed_seconds<<std::endl;
   
+  std::cout<<"elapsed time: "<<elapsed_seconds<<std::endl;
+  for(int i = 0; i < ms.size(); ++i)
+  {
+    std::cout<<i<<" mutex: ";
+    for(int j = 0; j < ms[i]->m_who_runs_me.size(); j++)
+    {
+      std::cout<<ms[i]->m_who_runs_me[j]<<", ";
+    }
+    std::cout<<std::endl;
+  }
   return 0;
 }

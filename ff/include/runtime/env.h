@@ -31,7 +31,6 @@ THE SOFTWARE.
 
 namespace ff {
 namespace rt {
-typedef int32_t thrd_id_t;
 
 inline size_t  hardware_concurrency(){
 	static int t = std::thread::hardware_concurrency() - 1;

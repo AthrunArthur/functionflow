@@ -216,7 +216,7 @@ namespace ff {
         template<class Iterator_t, class Functor_t>
         static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Entities_t & es, simple_partitioner * p)
         {
-            thread_local  static ff::rt::thrd_id_t this_id = ff::rt::get_thrd_id();
+            thread_local  static ff::thrd_id_t this_id = ff::rt::get_thrd_id();
             size_t concurrency = ff::rt::rt_concurrency();//TODO(A.A) this may be optimal.
             //TODO(A.A) we may have another partition approach!
             uint64_t count = 0;

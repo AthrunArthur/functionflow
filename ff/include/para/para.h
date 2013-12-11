@@ -54,21 +54,21 @@ public:
         return para_accepted_wait<DT, WT>(*(static_cast<DT *>(this)),std::forward<WT>(cond));
     }
     template<class F>
-    auto		exe(F && f) -> para_accepted_call<DT, ret_type>
+    auto		exe(F && f, const mutex_id_t & id= invalid_mutex_id) -> para_accepted_call<DT, ret_type>
     {
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
-	_DEBUG(LOG_INFO(rt)<<"schedule1 start ")
+	m_pImpl->setHoldMutex(id);
         schedule(m_pImpl);
 	_DEBUG(LOG_INFO(rt)<<"schedule1 end ")
         return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
-    auto		operator ()(F && f) -> para_accepted_call<DT, ret_type>
+    auto		operator ()(F && f, const mutex_id_t & id= invalid_mutex_id) -> para_accepted_call<DT, ret_type>
     {
 	_DEBUG(LOG_INFO(rt)<<"() start")
-	return exe(std::forward<F>(f));
+	return exe(std::forward<F>(f),id);
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
