@@ -155,8 +155,8 @@ START:
                     if(!steal_one_task(pTask))
 		    {
 		      take_one_task(pTask);
-		      take_times ++;
 		    }
+		    take_times ++;
                 }
                 else
 		{
