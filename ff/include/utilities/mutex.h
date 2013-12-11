@@ -32,18 +32,16 @@ namespace ff {
 class mutex
 {
 public:
-    mutex();
+    mutex(): m_mutex(){};
     
     mutex(const mutex &) = delete;
     mutex & operator = (const mutex & ) = delete;
 
-    void		lock();
-    void		unlock();
+    inline void		lock(){m_mutex.lock();}
+    void		unlock(){m_mutex.unlock();}
 
     inline mutex_id_t	id() {return this;}
     
-    thrd_id_t		who_runs_most();
-    std::vector<int32_t> m_who_runs_me;
 protected:
     std::mutex  m_mutex;
     

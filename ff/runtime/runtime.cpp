@@ -23,7 +23,6 @@ THE SOFTWARE.
 *************************************************/
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
-#include "utilities/mutex_manager.h"
 #include "utilities/mutex.h"
 
 namespace ff {
@@ -32,7 +31,6 @@ namespace rt {
 std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
 runtime_ptr runtime::s_pInstance(nullptr);
 std::once_flag		runtime::s_oOnce;
-using internal::mutex_manager;
 
 void schedule(task_base_ptr p)
 {   static runtime_ptr r = runtime::instance();
@@ -103,21 +101,6 @@ void	runtime::schedule(task_base_ptr p)
 {
     thread_local static int i = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
-    /*
-    if(p->hold_mutex == invalid_mutex_id)
-    {
-      m_oQueues[i] ->push_back(p);
-    }
-    else{
-      int m = 0;
-      mutex * pm = static_cast<mutex *>(p->hold_mutex);
-      thrd_id_t hid = pm->who_runs_most();
-      if(hid == i)
-    m_oQueues[i]->push_back(p);
-      else
-    if(!m_oQueues[hid]->concurrent_push(p))
-      m_oQueues[i]->push_back(p);
-    }*/
     m_oQueues[i]->push_back(p);
 }
 
@@ -151,10 +134,10 @@ void 			runtime::run_task(task_base_ptr & pTask)
 START:
 
     _DEBUG(LOG_INFO(rt)<<"run_task() id:"<<get_thrd_id()<<" get task... "<<pTask.get();)
-    if(pTask->hold_mutex != invalid_mutex_id)
+    if(pTask->getHoldMutex() != invalid_mutex_id)
     {
-        m_oHPMutex.get_hazard_pointer().store(pTask->hold_mutex);
-        if(m_oHPMutex.outstanding_hazard_pointer_for(pTask->hold_mutex))
+        m_oHPMutex.get_hazard_pointer().store(pTask->getHoldMutex());
+        if(m_oHPMutex.outstanding_hazard_pointer_for(pTask->getHoldMutex()))
         {
             if(take_times >= m_oQueues[i]->size()+1 && steal_times > 2*rt::rt_concurrency())
             {

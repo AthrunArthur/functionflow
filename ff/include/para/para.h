@@ -59,7 +59,7 @@ public:
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
-	m_pImpl->hold_mutex = id;
+	m_pImpl->setHoldMutex(id);
         schedule(m_pImpl);
         return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }

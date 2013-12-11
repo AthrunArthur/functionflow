@@ -35,17 +35,22 @@ public:
         end_t
     };
 public:
-	virtual ~task_base(){}
-    task_base(TKind tk): m_iTKind(tk), hold_mutex(invalid_mutex_id){};
+    virtual ~task_base(){}
+    task_base(TKind tk)
+    : m_iTKind(tk)
+    , m_hold_mutex(invalid_mutex_id){};
 
     virtual void	run() = 0;
 
     inline TKind		getTK() {
         return m_iTKind;
     }
-      mutex_id_t	hold_mutex;
+    inline mutex_id_t 		getHoldMutex() const {return m_hold_mutex;}
+    inline void			setHoldMutex(mutex_id_t id){m_hold_mutex = id;}
+      
 protected:
     TKind 	m_iTKind;
+    mutex_id_t	m_hold_mutex;
 };//end class task_base;
 typedef std::shared_ptr<task_base>   task_base_ptr;
 

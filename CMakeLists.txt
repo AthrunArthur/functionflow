@@ -22,9 +22,9 @@ else(Release)
 	endif(NOT EXISTS ${PROJECT_SOURCE_DIR}/libs/ff)
 endif(Release)
 
-#add_definitions(-DUSING_LOCK_FREE_QUEUE)
+add_definitions(-DUSING_LOCK_FREE_QUEUE)
 #add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
-add_definitions(-DUSING_MIMO_QUEUE)
+#add_definitions(-DUSING_MIMO_QUEUE)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 
@@ -34,8 +34,7 @@ link_directories(${PROJECT_SOURCE_DIR}/ff/bin)
 SET(ff_src ff/runtime/env.cpp 
   ff/runtime/runtime.cpp 
   ff/para/para.cpp 
-  ff/common/common.cpp
-  ff/utilities/mutex.cpp)
+  ff/common/common.cpp)
 ADD_LIBRARY(ff SHARED ${ff_src})
 ADD_LIBRARY(ff_s STATIC ${ff_src})
 target_link_libraries(ff pthread)
