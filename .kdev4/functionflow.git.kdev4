@@ -1,0 +1,16 @@
+[Buildset]
+BuildItems=@Variant(\x00\x00\x00\t\x00\x00\x00\x00\x01\x00\x00\x00\x0b\x00\x00\x00\x00\x01\x00\x00\x00 \x00f\x00u\x00n\x00c\x00t\x00i\x00o\x00n\x00f\x00l\x00o\x00w\x00.\x00g\x00i\x00t)
+
+[CMake]
+Build Directory Count=1
+CMakeDir=/usr/share/cmake/Modules
+Current Build Directory Index=0
+ProjectRootRelative=./
+
+[CMake][CMake Build Directory 0]
+Build Directory Path=file:///home/sherry/functionflow/build
+Build Type=
+CMake Binary=file:///usr/bin/cmake
+Environment Profile=
+Extra Arguments=
+Install Directory=file:///usr/local

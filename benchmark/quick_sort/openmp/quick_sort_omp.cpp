@@ -2,7 +2,6 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
-#include <tbb/parallel_invoke.h>
 #include <omp.h>
 #define BUFFER_LEN 18000000
 #define INCREMENT 100000
