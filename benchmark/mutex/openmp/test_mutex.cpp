@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-        cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
+        cout << "openmp elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
         for(int i = 0; i< concurrency; i++)
