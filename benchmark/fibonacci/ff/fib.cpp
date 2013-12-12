@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include <chrono>
 
 #define FIBNUM 40
-#define MINPARA 25
+#define MINPARA 25//3
 using namespace std;
 
 int64_t sfib(int64_t n )

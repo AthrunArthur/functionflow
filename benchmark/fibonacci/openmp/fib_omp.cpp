@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 
     start = std::chrono::system_clock::now();
     if(bIsPara) {
-        omp_set_num_threads(2);
+        omp_set_num_threads(8);
         fib_res = fib(num);
     }
     else
