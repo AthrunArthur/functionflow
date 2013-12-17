@@ -160,7 +160,7 @@ int main(int argc, char *argv[])
 //         //Storing it in oLloyd in class Lloyd.
 //         oLloyd.update(points);
 //     }
-    omp_set_num_threads(8);
+    omp_set_num_threads(1);
 	kmeans(points,bIsPara);
 
     end = chrono::system_clock::now();

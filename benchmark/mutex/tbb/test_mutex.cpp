@@ -99,10 +99,11 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 
 int main(int argc, char *argv[])
 {
-    task_scheduler_init init;
+    task_scheduler_init init(8);
+//    int concurrency = 1;
+    int concurrency = task_scheduler_init::default_num_threads();//default == hardware_concurrency()
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
-    int concurrency = task_scheduler_init::default_num_threads();
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.

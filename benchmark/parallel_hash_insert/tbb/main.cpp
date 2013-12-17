@@ -135,6 +135,7 @@ int main()
 {
 	if(init()==-1)
 		return -1;
+    task_scheduler_init init(8);
 //	cout << "init over" << endl;
 	HashTable * h = new HashTable(10, 40);
 	

@@ -99,9 +99,9 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 int main(int argc, char *argv[])
 {
     omp_set_num_threads(8);
+    int concurrency = omp_get_max_threads();//change with the numbers set
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
-    int concurrency = omp_get_max_threads();
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.

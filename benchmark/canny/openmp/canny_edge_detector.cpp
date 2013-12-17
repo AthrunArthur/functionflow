@@ -456,7 +456,6 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
     start = chrono::system_clock::now();
     if(isPara)
     {
-		omp_set_num_threads(8);
 		#pragma omp parallel
 		#pragma omp single
 		{

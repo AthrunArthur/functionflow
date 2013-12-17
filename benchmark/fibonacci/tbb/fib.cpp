@@ -81,6 +81,7 @@ int main(int argc, char *argv[])
 {
     bool bIsPara = false;//false;
     int elapsed_seconds;
+    task_scheduler_init init(8);
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.

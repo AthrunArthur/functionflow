@@ -116,6 +116,7 @@ public:
 
 int main(int argc, char *argv[])
 {
+    task_scheduler_init init(8);
 	chrono::time_point<chrono::system_clock> start, end;
 	string time_file_name = "para_time.txt";
 	//std::cout<<"Input a number:";

@@ -73,6 +73,7 @@ void para_quick_sort(int * data,int i,int j,int para_len)
 
 int main(int argc, char *argv[])
 {
+	omp_set_num_threads(8);
     string in_file_name = "../ff/numbers.txt";
     string out_file_name = "numbers_sort.txt";
     string time_file_name = "para_time.txt";
@@ -133,7 +134,6 @@ int main(int argc, char *argv[])
 
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
-	omp_set_num_threads(8);
 	#pragma omp parallel
 	{
 		#pragma omp single

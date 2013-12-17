@@ -24,7 +24,6 @@ if __name__ == '__main__':
 		execute_cmd('rm %s' % time_path)
 	cycle = 3
 	for i in range(cycle):
-		print str(i)+':'
 		print execute_cmd('cd %s; ./%s %s' % (path, item, para_n)).strip('\n')
 	time_file = open(time_path)
 	ptime = 0
