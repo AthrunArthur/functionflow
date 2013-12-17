@@ -32,20 +32,14 @@ THE SOFTWARE.
 namespace ff {
 namespace rt {
 
-static size_t max_concurrency = 0;//added by sherry
+void  set_hardware_concurrency(size_t t);//added by sherry
 
-inline void  set_hardware_concurrency(size_t t){//added by sherry
-	if(max_concurrency == 0)//can be set only once
-	  max_concurrency = t;
-}
+size_t  get_hardware_concurrency();//added by sherry
   
 inline size_t  hardware_concurrency(){
 // 	static int t = std::thread::hardware_concurrency() - 1;
 //   	return t;
-	if(max_concurrency == 0 || max_concurrency >= std::thread::hardware_concurrency())//added by sherry
-	  max_concurrency = std::thread::hardware_concurrency();
-	return max_concurrency - 1;
-
+	return get_hardware_concurrency() - 1;
 }
 inline size_t rt_concurrency()
 {
