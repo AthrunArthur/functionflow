@@ -100,6 +100,7 @@ int main(int argc, char *argv[])
 {
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
+    ff::rt::set_hardware_concurrency(1);
     int concurrency = ff::rt::rt_concurrency();
     if(argc > 1) {
         stringstream ss_argv;
