@@ -73,6 +73,7 @@ void para_quick_sort(int * data,int i,int j,int para_len)
 
 int main(int argc, char *argv[])
 {
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
     string in_file_name = "../../benchmark/quick_sort/ff/numbers.txt";
     string out_file_name = "numbers_sort.txt";
     string time_file_name = "para_time.txt";

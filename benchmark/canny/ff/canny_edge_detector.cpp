@@ -70,10 +70,15 @@ uint8_t* CannyEdgeDetector::ProcessImage(uint8_t* source_bitmap, unsigned int wi
      */
     this->NonMaxSuppression();
 
+//	std::cout << "start Hysteresis " << std::endl;
+
     /*
      * Hysteresis thresholding.
      */
     this->Hysteresis(lowThreshold, highThreshold);
+	
+//	std::cout << "end Hysteresis " << std::endl;
+	
 
     /*
      * "Shrinking" image.

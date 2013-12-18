@@ -127,6 +127,7 @@ int main()
 {
 	if(init()==-1)
 		return -1;
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
 	//cout << "init over" << endl;
 	HashTable * h = new HashTable(10, 40);
 	

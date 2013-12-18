@@ -138,6 +138,7 @@ void kmeans(Points & points, bool isPara)
 
 int main(int argc, char *argv[])
 {
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
     int step;
     string fileName = "../kmeans/tbb/data/gaussian.txt";
     fstream gaussianFile;

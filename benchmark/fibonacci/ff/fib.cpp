@@ -80,10 +80,10 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 
 int main(int argc, char *argv[])
 {
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
     _DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
     _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
 
-//    ff::rt::set_hardware_concurrency(5);
     bool bIsPara = false;//false;
     int elapsed_seconds;
     if(argc > 1) {
