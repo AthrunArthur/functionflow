@@ -43,11 +43,21 @@ else
 LIBS+= -lrt 
 endif
 endif
+#	-finline-functions
+#	-funswitch-loops
+#	-fpredictive-commoning
+#	-fgcse-after-reload
+#	-ftree-slp-vectorize
+#	-fvect-cost-model
+#	-ftree-partial-pre
+#	-fipa-cp-clone
+	# Error?
+#	-ftree-loop-vectorize
 
 all:	release  test   
 
 release: $(SOURCES)
-	$(CXX) -O2 -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -fopenmp $(LIBS)
+	$(CXX) -O2 -fipa-cp-clone -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -fopenmp $(LIBS)
 
 debug: $(SOURCES)
 	$(CXX) -O0 -g -DTBB_USE_DEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb_debug $(LIBS)
@@ -59,7 +69,7 @@ test:
 	$(run_cmd) ./$(PROG) $(ARGS)
 
 perf_build: $(SOURCES)
-	$(CXX) -O2 -msse2 -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb $(LIBS)
+	$(CXX) -O2 -fipa-cp-clone -msse2 -DNDEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb $(LIBS)
 
 -std=c++0x -I. -c
 perf_run:
