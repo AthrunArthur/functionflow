@@ -154,7 +154,7 @@ int main(int argc, char *argv[])
                           (end-start).count();
 
     if(n_div != 1)
-        pt.put("omp-elapsed-time", elapsed_seconds);
+        pt.put("para-elapsed-time", elapsed_seconds);
     else
         pt.put("sequential-elapsed-time", elapsed_seconds);
     boost::property_tree::write_json("time.json", pt);

@@ -74,6 +74,10 @@ def generate_building_cmd(common_config, bms_config, cpp_files, build_flags):
   for item in cpp_files:
     cmd += item + ' '
   
+  #import wxWidgets for canny
+  if not cmp('canny',getattr(bms_config, 'name')):
+    cmd += '`wx-config --cflags --libs`' + ' '
+  
   output_file= build_dir + getattr(bms_config, 'name') + '_' +build_flags
   
   cmd += ' -o ' + output_file
@@ -132,7 +136,7 @@ def run_one_bm(common_config, bms_config, times):
       jrs = json.loads(rs)
       fp.close()
       res[k].append(jrs)
-    return res
+  return res
 
 def build_and_run_all(common_config):
   bms = [benchmark_configs.LU]
@@ -149,7 +153,7 @@ def reduce_res(input_res):
       avg_time = 0
       counts = 0
       for item in iv:
-	avg_time += int(item['ff-elapsed-time'])
+	avg_time += int(item['para-elapsed-time'])
 	counts += 1
       avg_time = avg_time/counts
       t[ik] = avg_time
@@ -163,6 +167,6 @@ if __name__=='__main__':
   if not os.path.exists(build_dir):
     execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
   print 'This is for test!!'  
-  bms = [benchmark_configs.LU]
+  bms = [benchmark_configs.CANNY,benchmark_configs.LU]
   build(common_config.CommonConfig, bms)
   print run(common_config.CommonConfig, bms, 5)

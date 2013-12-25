@@ -158,7 +158,7 @@ int main()
     end = chrono::system_clock::now();
     int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-    pt.put("tbb-elapsed-time", elapsed_seconds);
+    pt.put("para-elapsed-time", elapsed_seconds);
     boost::property_tree::write_json("time.json", pt);
     cout << "Elapsed time :" << elapsed_seconds << "us" << endl;
 

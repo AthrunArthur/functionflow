@@ -148,7 +148,7 @@ int main(int argc, char *argv[])
     int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
     if(n_div != 1)
-        pt.put("tbb-elapsed-time", elapsed_seconds);
+        pt.put("para-elapsed-time", elapsed_seconds);
     else
         pt.put("sequential-elapsed-time", elapsed_seconds);
     boost::property_tree::write_json("time.json", pt);

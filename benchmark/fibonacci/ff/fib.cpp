@@ -110,7 +110,7 @@ int main(int argc, char *argv[])
     elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                       (end-start).count();
     if(bIsPara)
-        pt.put("ff-elapsed-time", elapsed_seconds);
+        pt.put("para-elapsed-time", elapsed_seconds);
     else
         pt.put("sequential-elapsed-time", elapsed_seconds);
     boost::property_tree::write_json("time.json", pt);

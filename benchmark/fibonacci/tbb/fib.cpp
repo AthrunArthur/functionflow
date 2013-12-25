@@ -107,7 +107,7 @@ int main(int argc, char *argv[])
                       (end-start).count();
     cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     if(bIsPara)
-        pt.put("tbb-elapsed-time", elapsed_seconds);
+        pt.put("para-elapsed-time", elapsed_seconds);
     else
         pt.put("sequential-elapsed-time", elapsed_seconds);
     boost::property_tree::write_json("time.json", pt);

@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
     // The processed data will be stored in both the image.GetData() and the return data pointer.
 
     if(bIsPara)
-        pt.put("omp-elapsed-time", canny->GetHysteresisTime());
+        pt.put("para-elapsed-time", canny->GetHysteresisTime());
     else
         pt.put("sequential-elapsed-time", canny->GetHysteresisTime());
     boost::property_tree::write_json("time.json", pt);

@@ -201,7 +201,7 @@ int main(int argc,char * argv[])
         out_time_file.close();
     }
     if(bIsPara)
-        pt.put("omp-elapsed-time", elapsed_seconds);
+        pt.put("para-elapsed-time", elapsed_seconds);
     else
         pt.put("sequential-elapsed-time", elapsed_seconds);
     return 0;

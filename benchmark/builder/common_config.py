@@ -18,11 +18,11 @@ class CommonConfig:
   OPENMP_LINK_DIRS = []
   OPENMP_LINK_LIBS = ['rt']
   
-  CXX_FLAGS = ['-std=c++11', '-DNDEBUG','`wx-config --cflags --libs`']
+  CXX_FLAGS = ['-std=c++11', '-DNDEBUG']
   CXX_OPT_FLAGS = ['-O2']
 
-  targets_to_build = ['ff']
-#  targets_to_build = ['tbb']
-#  targets_to_build = ['openmp']
+  targets_to_build = ['ff','tbb','openmp']
+  #targets_to_build = ['tbb']
+  #targets_to_build = ['openmp']
   exe_log_file = 'time.json'
   

@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-	pt.put("ff-elapsed-time", elapsed_seconds);
+	pt.put("para-elapsed-time", elapsed_seconds);
 	
         cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
         _DEBUG(LOG_INFO(main)<<"main exit, id:"<<ff::rt::get_thrd_id());

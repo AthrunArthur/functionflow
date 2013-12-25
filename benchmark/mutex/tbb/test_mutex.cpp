@@ -158,9 +158,9 @@ int main(int argc, char *argv[])
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
         if(bIsStd)
-	  pt.put("Std:tbb-elapsed-time", elapsed_seconds);
+	  pt.put("Std:para-elapsed-time", elapsed_seconds);
 	else
-	  pt.put("tbb-elapsed-time", elapsed_seconds);
+	  pt.put("para-elapsed-time", elapsed_seconds);
 	cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {

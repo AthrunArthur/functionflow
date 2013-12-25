@@ -262,7 +262,7 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-	pt.put("tbb-elapsed-time", elapsed_seconds);
+	pt.put("para-elapsed-time", elapsed_seconds);
         cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
