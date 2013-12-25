@@ -11,6 +11,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+	omp_set_num_threads(8);
     wxImage image;
     wxImageHandler * bmpLoader = new wxBMPHandler();
     wxImage::AddHandler(bmpLoader);

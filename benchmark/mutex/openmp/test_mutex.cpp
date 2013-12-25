@@ -1,17 +1,18 @@
-#include "ff.h"
+#include <omp.h>
 #include <cmath>
 #include <chrono>
 #include <iostream>
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <memory>
+#include <mutex>
 
 using namespace std;
 
-using namespace ff;
-
-typedef ff::mutex TMutex;
-typedef std::shared_ptr<TMutex> TMutex_ptr;
+typedef omp_lock_t TMutex;
+//typedef std::shared_ptr<TMutex> TMutex_ptr;
+typedef TMutex * TMutex_ptr;
 typedef std::shared_ptr<int64_t> Res_ptr;
 std::vector<TMutex_ptr> ms;
 std::vector<Res_ptr> rs;
@@ -43,10 +44,10 @@ void task_fun(int j) {
     {
 //         random_fib();
         fib(10-j);
-        ms[j]->lock();
+        omp_set_lock(ms[j]);
 //         *(rs[j]) += random_fib();
         *(rs[j]) += fib(15+j);
-        ms[j]->unlock();
+        omp_unset_lock(ms[j]);
     }
 }
 
@@ -54,7 +55,6 @@ void task_fun_serial(int j) {
     for(int i = 0; i < LOOP_TIMES; ++i)
     {
 //         random_fib();
-
         fib(10-j);
 //         *(rs[j]) += random_fib();
         *(rs[j]) += fib(15+j);
@@ -98,10 +98,10 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 
 int main(int argc, char *argv[])
 {
-    ff::rt::set_hardware_concurrency(8);//Set concurrency
+    omp_set_num_threads(8);
+    int concurrency = omp_get_max_threads();//change with the numbers set
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
-    int concurrency = ff::rt::rt_concurrency();
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.
@@ -112,58 +112,47 @@ int main(int argc, char *argv[])
     if(argc > 2)
         bIsStd = true;
     if(bIsPara) {
-        //ff initialization
-//		cout << "para start!" << endl;
-        para<> a;
-        a([]() {
-//     std::cout<<"this is for initialization"<<std::endl;
-        });
-        ff_wait(a);
 
-        for(int i = 0; i< ff::rt::rt_concurrency(); i++)
+        for(int i = 0; i< concurrency; i++)
         {
             if(bIsStd)
                 std_ms.push_back(std::make_shared<SMutex>());
-            else
-                ms.push_back(std::make_shared<TMutex>());
+            else {
+                TMutex lock;
+//                 ms.push_back(std::make_shared<TMutex>());
+                ms.push_back(&lock);
+                omp_init_lock(ms[i]);
+            }
             rs.push_back(std::make_shared<int64_t>(0));
         }
         std::chrono::time_point<chrono::system_clock> start, end;
 
         start = std::chrono::system_clock::now();
-        paragroup p;
 //        for(int i=0; i < ff::rt::rt_concurrency(); i++)
-        for(int i=0; i < ff::rt::rt_concurrency() * 60; i++)
+        for(int i=0; i < concurrency * 60; i++)
         {
-            for(int j = 0; j < ff::rt::rt_concurrency(); j++)
+            #pragma omp parallel for
+            for(int j = 0; j < concurrency; j++)
             {
-                para<> ptf;
                 if(bIsStd) {
 //					int t = rand()%ff::rt::rt_concurrency();
 //					ptf([t,bIsStd](){task_fun_std(t);});
-                    ptf([j,bIsStd]() {
-                        task_fun_std(j);
-                    });
+                    task_fun_std(j);
                 }
                 else {
 //					cout << "start task_fun i=" << i << " j=" << j << endl;
 //					int t = rand()%ff::rt::rt_concurrency();
 //					ptf([t](){task_fun(t);}, ms[t]->id());
-                    ptf([j]() {
-                        task_fun(j);
-                    }, ms[j]->id());
+                    task_fun(j);
 //					cout << "end task_fun i=" << i << " j=" << j << endl;
                 }
-                p.add(ptf);
             }
         }
-//		cout << "start wait!" << endl;
-        ff_wait(all(p));
-//		cout << "end wait!" << endl;
+
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-        cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
+        cout << "openmp elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
         for(int i = 0; i< concurrency; i++)
@@ -189,8 +178,11 @@ int main(int argc, char *argv[])
                           (end-start).count();
 
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
-
     }
     write_time_file(elapsed_seconds,bIsPara);
+//     for(int i = 0; i < rs.size(); ++i)
+//     {
+//         std::cout<<"mutex " << i << ":" << *(rs[i]) << endl;
+//     }
     return 0;
 }

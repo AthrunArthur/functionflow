@@ -17,7 +17,6 @@ CannyEdgeDetector::CannyEdgeDetector(bool bIsPara):isPara(bIsPara)
     x = (unsigned int) 0;
     y = (unsigned int) 0;
     mask_halfsize = (unsigned int) 0;
-    task_scheduler_init init;
 }
 
 CannyEdgeDetector::~CannyEdgeDetector()

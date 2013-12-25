@@ -3,11 +3,13 @@
 #include <sstream>
 #include <chrono>
 #include <tbb/parallel_invoke.h>
+#include "tbb/task_scheduler_init.h"
 #define BUFFER_LEN 100000
 #define INCREMENT 1000
 #define SEPARATOR ','
 
 using namespace std;
+using namespace tbb;
 
 /* partition -- Partition the data from start to end to two parts
  * with the left part is less than the pivot, and the right part is larger.
@@ -72,6 +74,7 @@ void para_quick_sort(int * data,int i,int j,int para_len)
 
 int main(int argc, char *argv[])
 {
+    task_scheduler_init init(8);
     string in_file_name = "../ff/numbers.txt";
     string out_file_name = "numbers_sort.txt";
     string time_file_name = "para_time.txt";

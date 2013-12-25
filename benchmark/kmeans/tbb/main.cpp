@@ -139,7 +139,7 @@ void kmeans(Points & points, bool isPara)
 
 int main(int argc, char *argv[])
 {
-	task_scheduler_init init;
+    task_scheduler_init init(8);
     int step;
     string fileName = "data/gaussian.txt";
     fstream gaussianFile;

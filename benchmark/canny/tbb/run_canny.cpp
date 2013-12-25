@@ -11,6 +11,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+    task_scheduler_init init(8);//Construct task scheduler with p threads
     wxImage image;
     wxImageHandler * bmpLoader = new wxBMPHandler();
     wxImage::AddHandler(bmpLoader);
@@ -20,7 +21,7 @@ int main(int argc, char *argv[])
     wxString outFileName = _T("out.bmp");
 //    wxString inFileName(_T("../ff/pic/jpg/child.jpg"));
 //    wxString outFileName = _T("out.jpg");
-
+	
     string inFileStr;
     bool bIsPara = false;
     /*Record the running time.*/

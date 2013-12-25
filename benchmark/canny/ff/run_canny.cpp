@@ -10,6 +10,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
     wxImage image;
     wxImageHandler * bmpLoader = new wxBMPHandler();
     wxImage::AddHandler(bmpLoader);
@@ -66,9 +67,9 @@ int main(int argc, char *argv[])
             num + a.get();
         }).then([]() {});
     }  
-
-
+	//cout << "start" << endl;
     CannyEdgeDetector *canny = new CannyEdgeDetector(bIsPara);
+	//cout << "start Processing!" << endl;
     canny->ProcessImage(image.GetData(),image.GetWidth(),image.GetHeight(),1.0f, 15, 21);
     // The processed data will be stored in both the image.GetData() and the return data pointer.
 

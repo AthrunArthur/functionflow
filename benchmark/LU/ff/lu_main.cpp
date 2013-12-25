@@ -208,11 +208,11 @@ void parallel(Matrix & m)
 }
 int main(int argc, char *argv[])
 {
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
     bool bIsPara = false;//false;
-
     boost::property_tree::ptree pt;
     pt.put("time-unit", "us");
-    
+
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.

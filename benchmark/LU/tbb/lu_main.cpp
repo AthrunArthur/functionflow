@@ -197,7 +197,7 @@ void parallel(Matrix & m)
 }
 int main(int argc, char *argv[])
 {
-    task_scheduler_init init;
+    task_scheduler_init init(8);
     bool bIsPara = false;//false;    
     if(argc > 1) {
         stringstream ss_argv;

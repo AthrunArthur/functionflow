@@ -32,7 +32,20 @@ namespace ff {
 namespace rt {
 thread_local static thrd_id_t id = 0;
 
+static size_t max_concurrency = std::thread::hardware_concurrency();//added by sherry
 
+void  set_hardware_concurrency(size_t t){//added by sherry
+	if(t <= 0 || t > max_concurrency)
+	{		
+		t = max_concurrency;
+	}
+	static size_t concurrency = t;//can be changed only once 
+	max_concurrency = concurrency;
+}
+
+size_t  get_hardware_concurrency(){//added by sherry
+	return max_concurrency;
+}
 
 thrd_id_t get_thrd_id()
 {

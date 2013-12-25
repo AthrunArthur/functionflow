@@ -108,6 +108,7 @@ int queen_para(const int* x,int t){
 
 int main(int argc, char *argv[])
 {
+    ff::rt::set_hardware_concurrency(8);//Set concurrency
 	int p[20];
 	chrono::time_point<chrono::system_clock> start, end;
 	string time_file_name = "para_time.txt";

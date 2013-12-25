@@ -15,9 +15,9 @@ if __name__ == '__main__':
 	path = execute_cmd('pwd').strip('\n')
 	cmd = 'cd %s; make clean; make;' % path
 	execute_cmd(cmd)
-	item = 'parallel_hash_insert'
-	para_n = 1
-	print 'file:para_hash_insert'
+	item = 'fib_omp'
+	para_n = 256
+	print 'file:fib_omp'
 	print 'Parallel time:'
 	time_path = '%s/para_time.txt' % path
 	if os.path.exists(r'%s' %time_path):
@@ -37,8 +37,15 @@ if __name__ == '__main__':
 	ptime /= cycle
         etime = int(etime**(1.0/cycle))
         bubblesort(time_arr)
-        print 'Median time: ' + str(time_arr[cycle/2]) + 'us'
+        print 'Median time:' + str(time_arr[cycle/2]) + 'us'
         print 'Arithmetic mean time: ' + str(ptime) + 'us'
         print 'Geometric mean time: ' + str(etime) + 'us'
 	time_file.close()
+	#execute_cmd('rm %s' % time_path)
+	execute_cmd('cd %s; ./%s' % (path, item))			
+	time_path2 = '%s/time.txt' % path
+	time_file = open(time_path2)
+	print 'Serial time:' + time_file.read().strip('\n') + 'us'
+	time_file.close()
+	#execute_cmd('rm %s' % time_path2)
 	execute_cmd('make clean')	

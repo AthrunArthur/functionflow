@@ -32,9 +32,14 @@ THE SOFTWARE.
 namespace ff {
 namespace rt {
 
+void  set_hardware_concurrency(size_t t);//added by sherry
+
+size_t  get_hardware_concurrency();//added by sherry
+  
 inline size_t  hardware_concurrency(){
-	static int t = std::thread::hardware_concurrency() - 1;
-	return t;
+// 	static int t = std::thread::hardware_concurrency() - 1;
+//   	return t;
+	return get_hardware_concurrency() - 1;
 }
 inline size_t rt_concurrency()
 {

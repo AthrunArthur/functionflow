@@ -26,25 +26,23 @@
 
 # GNU Makefile that builds and runs example.
 run_cmd=
-PROG=kmeans
-# ARGS=4
-# PERF_RUN_ARGS=4
+PROG=fib_tbb
+#ARGS=4
+#PERF_RUN_ARGS=4
 
 # The C++ compiler
 CXX=g++
-CXXFLAGS =-std=c++11 -DUSING_LOCK_FREE_QUEUE
-
-SOURCES = main.cpp point.cpp Lloyd.cpp
+CXXFLAGS =-std=c++11
+SOURCES = fib.cpp
 
 ifeq ($(shell uname), Linux)
 ifeq ($(target), android)
 LIBS+= --sysroot=$(SYSROOT)
 run_cmd=../../common/android.linux.launcher.sh
 else
-LIBS+= -lrt -lgsl -lgslcblas
+LIBS+= -lrt 
 endif
 endif
-
 #	-finline-functions
 #	-funswitch-loops
 #	-fpredictive-commoning
@@ -65,7 +63,7 @@ debug: $(SOURCES)
 	$(CXX) -O0 -g -DTBB_USE_DEBUG $(CXXFLAGS) -o $(PROG) $^ -ltbb_debug $(LIBS)
 
 clean:
-	$(RM) $(PROG) *.o *.d *~ *core* out* *.txt
+	$(RM) $(PROG) *.o *.d *.txt
 
 test:
 	$(run_cmd) ./$(PROG) $(ARGS)
@@ -76,4 +74,3 @@ perf_build: $(SOURCES)
 -std=c++0x -I. -c
 perf_run:
 	./$(PROG) $(PERF_RUN_ARGS)
-

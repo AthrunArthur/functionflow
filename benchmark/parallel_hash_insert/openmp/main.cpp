@@ -127,6 +127,7 @@ int main(int argc,char * argv[])
 {
 	if(init()==-1)
 		return -1;
+    omp_set_num_threads(8);
 	//cout << "init over" << endl;
 	HashTable * h = new HashTable(10, 40);
     bool bIsPara = false;//false;
