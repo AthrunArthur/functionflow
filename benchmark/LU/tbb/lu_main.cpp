@@ -7,6 +7,8 @@
 #include <tbb/concurrent_vector.h>
 #include <tbb/parallel_for_each.h>
 #include <tbb/task_scheduler_init.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace std;
 using namespace tbb;
@@ -198,7 +200,10 @@ void parallel(Matrix & m)
 int main(int argc, char *argv[])
 {
     task_scheduler_init init(8);
-    bool bIsPara = false;//false;    
+    bool bIsPara = false;//false;  
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.
@@ -209,7 +214,8 @@ int main(int argc, char *argv[])
 
     Matrix m(MSIZE, MSIZE);
     //init m here!
-    string matrix_file_name = "../ff/matrix.txt";
+//     string matrix_file_name = "../ff/matrix.txt";
+    string matrix_file_name = "../LU/ff/matrix.txt";
     string out_file_name = "lu_matrix.txt";
 //     string time_file_name = "para_time.txt";
     fstream matrix_file;
@@ -256,9 +262,9 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	pt.put("tbb-elapsed-time", elapsed_seconds);
         cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     }
-
     else {
         //!Start test sequential version
         start = chrono::system_clock::now();
@@ -266,8 +272,10 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	pt.put("sequential-elapsed-time", elapsed_seconds);
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
     }
+    boost::property_tree::write_json("time.json", pt);
 
     if(bIsPara) {
         // write para time file

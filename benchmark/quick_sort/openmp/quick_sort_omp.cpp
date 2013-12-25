@@ -3,6 +3,9 @@
 #include <sstream>
 #include <chrono>
 #include <omp.h>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #define BUFFER_LEN 18000000
 #define INCREMENT 100000
 #define SEPARATOR ','
@@ -59,22 +62,24 @@ void para_quick_sort(int * data,int i,int j,int para_len)
     else
     {
         r = partition(data,i,j);
-		#pragma omp task
-		{
+        #pragma omp task
+        {
             para_quick_sort(data,i,r-1,para_len);
-		}
+        }
 
-		#pragma omp task
-		{
+        #pragma omp task
+        {
             para_quick_sort(data,r+1,j,para_len);
-		}
+        }
     }
 }
 
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(8);
-    string in_file_name = "../ff/numbers.txt";
+    omp_set_num_threads(8);
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    string in_file_name = "../quick_sort/ff/numbers.txt";
     string out_file_name = "numbers_sort.txt";
     string time_file_name = "para_time.txt";
     int len,i;
@@ -107,12 +112,12 @@ int main(int argc, char *argv[])
         return -1;
     }
     for(i=0; !in_file.eof(); i++) {
-      char tmp;
-      if(i >= buf_size){
-	buf_size += INCREMENT;
-	data = (int *)realloc(data,buf_size*sizeof(int));
+        char tmp;
+        if(i >= buf_size) {
+            buf_size += INCREMENT;
+            data = (int *)realloc(data,buf_size*sizeof(int));
 // 	cout << "New size = " << buf_size << endl;
-      }        
+        }
         in_file >> data[i];
         in_file.get(tmp);
         if(tmp != SEPARATOR) {
@@ -134,29 +139,34 @@ int main(int argc, char *argv[])
 
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
-	#pragma omp parallel
-	{
-		#pragma omp single
-		{
-			para_quick_sort(data,0,len-1,para_len);
-	
-		}
-		#pragma omp taskwait
-	}
+    #pragma omp parallel
+    {
+        #pragma omp single
+        {
+            para_quick_sort(data,0,len-1,para_len);
+
+        }
+        #pragma omp taskwait
+    }
 
     end = chrono::system_clock::now();
     int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
 
+    if(n_div != 1)
+        pt.put("omp-elapsed-time", elapsed_seconds);
+    else
+        pt.put("sequential-elapsed-time", elapsed_seconds);
+    boost::property_tree::write_json("time.json", pt);
     cout << "Elapsed time: " << elapsed_seconds << "us" << endl;
-
-    for(i=0; i<len; i++) {
-        out_file << data[i];
-        if(i < len - 1) {
-            out_file << SEPARATOR;
-        }
-    }
-    out_file << endl << "Elapsed time: " << elapsed_seconds << "us" << endl;
+    //print results:
+//     for(i=0; i<len; i++) {
+//         out_file << data[i];
+//         if(i < len - 1) {
+//             out_file << SEPARATOR;
+//         }
+//     }
+//     out_file << endl << "Elapsed time: " << elapsed_seconds << "us" << endl;
     out_file.close();
 
     if(n_div != 1) {

@@ -27,6 +27,9 @@ THE SOFTWARE.
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 
 #define FIBNUM 40
 #define MINPARA 25//3
@@ -83,6 +86,8 @@ int main(int argc, char *argv[])
     ff::rt::set_hardware_concurrency(8);//Set concurrency
     _DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
     _DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
 
     bool bIsPara = false;//false;
     int elapsed_seconds;
@@ -104,6 +109,11 @@ int main(int argc, char *argv[])
     end = std::chrono::system_clock::now();
     elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                       (end-start).count();
+    if(bIsPara)
+        pt.put("ff-elapsed-time", elapsed_seconds);
+    else
+        pt.put("sequential-elapsed-time", elapsed_seconds);
+    boost::property_tree::write_json("time.json", pt);
     cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
     //int64_t fib_res = sfib(num);
     cout<<"fib( "<<num<<" )="<<fib_res<<endl;

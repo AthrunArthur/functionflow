@@ -26,6 +26,8 @@ def get_all_cpp_files_in_dir(abs_dir):
   for item in os.listdir(abs_dir):
     if item == 'test.cpp':
       continue
+    if item == 'makeData.cpp':
+      continue    
     if item.endswith('.cpp'):
       files.append(abs_dir+'/' + item)
       
@@ -158,7 +160,9 @@ def reduce_res(input_res):
 
 
 if __name__=='__main__':
-  print 'This is for test!!'
+  if not os.path.exists(build_dir):
+    execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
+  print 'This is for test!!'  
   bms = [benchmark_configs.LU]
   build(common_config.CommonConfig, bms)
   print run(common_config.CommonConfig, bms, 5)

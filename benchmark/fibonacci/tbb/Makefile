@@ -26,7 +26,7 @@
 
 # GNU Makefile that builds and runs example.
 run_cmd=
-PROG=fib_tbb
+PROG=fib
 #ARGS=4
 #PERF_RUN_ARGS=4
 

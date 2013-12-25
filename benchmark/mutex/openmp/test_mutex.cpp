@@ -7,6 +7,8 @@
 #include <sstream>
 #include <memory>
 #include <mutex>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace std;
 
@@ -99,6 +101,9 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 int main(int argc, char *argv[])
 {
     omp_set_num_threads(8);
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    
     int concurrency = omp_get_max_threads();//change with the numbers set
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
@@ -152,6 +157,10 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	if(bIsStd)
+	  pt.put("Std:omp-elapsed-time", elapsed_seconds);
+	else
+	  pt.put("omp-elapsed-time", elapsed_seconds);
         cout << "openmp elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
@@ -176,9 +185,10 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-
+	pt.put("sequential-elapsed-time", elapsed_seconds);
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
     }
+    boost::property_tree::write_json("time.json", pt);
     write_time_file(elapsed_seconds,bIsPara);
 //     for(int i = 0; i < rs.size(); ++i)
 //     {

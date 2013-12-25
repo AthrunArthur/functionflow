@@ -9,6 +9,8 @@
 #include <sstream>
 #include <memory>
 #include <mutex>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace std;
 using namespace tbb;
@@ -100,6 +102,8 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 int main(int argc, char *argv[])
 {
     task_scheduler_init init(8);
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
 //    int concurrency = 1;
     int concurrency = task_scheduler_init::default_num_threads();//default == hardware_concurrency()
     bool bIsPara = false,bIsStd = false;//false;
@@ -153,7 +157,11 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-        cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
+        if(bIsStd)
+	  pt.put("Std:tbb-elapsed-time", elapsed_seconds);
+	else
+	  pt.put("tbb-elapsed-time", elapsed_seconds);
+	cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
         for(int i = 0; i< concurrency; i++)
@@ -175,9 +183,10 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
-
+	pt.put("sequential-elapsed-time", elapsed_seconds);
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
     }
+    boost::property_tree::write_json("time.json", pt);
     write_time_file(elapsed_seconds,bIsPara);
 //     for(int i = 0; i < rs.size(); ++i)
 //     {

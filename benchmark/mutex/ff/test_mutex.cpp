@@ -5,6 +5,8 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace std;
 
@@ -99,6 +101,9 @@ bool write_time_file(int elapsed_seconds, bool bIsPara) {
 int main(int argc, char *argv[])
 {
     ff::rt::set_hardware_concurrency(8);//Set concurrency
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    
     bool bIsPara = false,bIsStd = false;//false;
     int elapsed_seconds;
     int concurrency = ff::rt::rt_concurrency();
@@ -163,6 +168,10 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	if(bIsStd)
+	  pt.put("Std:ff-elapsed-time", elapsed_seconds);
+	else
+	  pt.put("ff-elapsed-time", elapsed_seconds);
         cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
     }
     else {
@@ -187,10 +196,12 @@ int main(int argc, char *argv[])
         end = std::chrono::system_clock::now();
         elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	pt.put("sequential-elapsed-time", elapsed_seconds);
 
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
 
     }
+    boost::property_tree::write_json("time.json", pt);
     write_time_file(elapsed_seconds,bIsPara);
     return 0;
 }

@@ -338,10 +338,10 @@ int main(int argc, char *argv[])
         out_time_file.close();
     }
 
-    out_file.open(out_file_name.c_str());
+   /* out_file.open(out_file_name.c_str());
     if(!out_file.is_open()) {
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
-    }
+    }*/
     return 0;
 }

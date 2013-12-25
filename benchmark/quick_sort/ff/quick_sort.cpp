@@ -3,6 +3,9 @@
 #include <sstream>
 #include <chrono>
 #include "ff.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 #define BUFFER_LEN 100000
 #define INCREMENT 1000
 #define SEPARATOR ','
@@ -74,7 +77,9 @@ void para_quick_sort(int * data,int i,int j,int para_len)
 int main(int argc, char *argv[])
 {
     ff::rt::set_hardware_concurrency(8);//Set concurrency
-    string in_file_name = "../../benchmark/quick_sort/ff/numbers.txt";
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    string in_file_name = "../quick_sort/ff/numbers.txt";
     string out_file_name = "numbers_sort.txt";
     string time_file_name = "para_time.txt";
     int len,i;
@@ -153,16 +158,23 @@ int main(int argc, char *argv[])
     end = chrono::system_clock::now();
     int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+			  
+    if(n_div != 1)
+        pt.put("ff-elapsed-time", elapsed_seconds);
+    else
+        pt.put("sequential-elapsed-time", elapsed_seconds);
+    boost::property_tree::write_json("time.json", pt);
 
     cout << "Elapsed time: " << elapsed_seconds << "us" << endl;
-
-    for(i=0; i<len; i++) {
-        out_file << data[i];
-        if(i < len - 1) {
-            out_file << SEPARATOR;
-        }
-    }
-    out_file << endl << "Elapsed time: " << elapsed_seconds << "us" << endl;
+    
+    //print results:
+//     for(i=0; i<len; i++) {
+//         out_file << data[i];
+//         if(i < len - 1) {
+//             out_file << SEPARATOR;
+//         }
+//     }
+//     out_file << endl << "Elapsed time: " << elapsed_seconds << "us" << endl;
     out_file.close();
 
     if(n_div != 1) {

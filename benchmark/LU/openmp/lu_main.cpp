@@ -6,6 +6,8 @@
 #include <vector>
 #include <omp.h>
 #include <tuple>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 using namespace std;
 
@@ -146,50 +148,50 @@ void parallel(Matrix & m)
         LUDecompose(lut,lut);
         GeneralMatrix linv(Matrix::block_size, Matrix::block_size);
         GeneralMatrix uinv(Matrix::block_size, Matrix::block_size);
-		#pragma omp parallel
-		{
-			#pragma omp task
-			{
-			    invL(lut, linv);
-			}
-			#pragma omp task
-			{
-			    invU(lut, uinv);
-			}
-			#pragma omp taskwait
-		}
-		int i;
-		#pragma omp parallel for
-		for(i=k+1; i< blocks; i++) {
-			#pragma omp task
-			{
-				GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
-		        auto ltom = get_block(seq_m, k, i);
-			    mul(linv, ltom, lmul);
-				set_block(seq_m,k, i, lmul);
-			}
-			#pragma omp task
-			{
-				GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
-		        auto utom = get_block(seq_m, i, k);
-			    mul(utom, uinv, umul);
-				set_block(seq_m, i, k, umul);
-			}
-			#pragma omp taskwait
-		}
+        #pragma omp parallel
+        {
+            #pragma omp task
+            {
+                invL(lut, linv);
+            }
+            #pragma omp task
+            {
+                invU(lut, uinv);
+            }
+            #pragma omp taskwait
+        }
+        int i;
+        #pragma omp parallel for
+        for(i=k+1; i< blocks; i++) {
+            #pragma omp task
+            {
+                GeneralMatrix lmul(Matrix::block_size, Matrix::block_size);
+                auto ltom = get_block(seq_m, k, i);
+                mul(linv, ltom, lmul);
+                set_block(seq_m,k, i, lmul);
+            }
+            #pragma omp task
+            {
+                GeneralMatrix umul(Matrix::block_size, Matrix::block_size);
+                auto utom = get_block(seq_m, i, k);
+                mul(utom, uinv, umul);
+                set_block(seq_m, i, k, umul);
+            }
+            #pragma omp taskwait
+        }
 
         int j;
-		for(i=k+1; i<blocks; i++) {
-			#pragma omp parallel for
-			for(j=k+1; j<blocks; j++) {
-				GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
-			    auto tm = get_block(seq_m, i, k);
-			    auto tn = get_block(seq_m, k, j);
+        for(i=k+1; i<blocks; i++) {
+            #pragma omp parallel for
+            for(j=k+1; j<blocks; j++) {
+                GeneralMatrix rmul(Matrix::block_size, Matrix::block_size);
+                auto tm = get_block(seq_m, i, k);
+                auto tn = get_block(seq_m, k, j);
 
-				mul(tm, tn, rmul);
-			    auto tt = get_block(seq_m, i, j);
-				sub(tt, rmul, tt);
-	        }
+                mul(tm, tn, rmul);
+                auto tt = get_block(seq_m, i, j);
+                sub(tt, rmul, tt);
+            }
         }
     }
     //check_LU_res(m,seq_m);
@@ -197,6 +199,8 @@ void parallel(Matrix & m)
 int main(int argc, char *argv[])
 {
     bool bIsPara = false;//false;
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
 
     if(argc > 1) {
         stringstream ss_argv;
@@ -208,7 +212,8 @@ int main(int argc, char *argv[])
 
     Matrix m(MSIZE, MSIZE);
     //init m here!
-    string matrix_file_name = "../ff/matrix.txt";
+//     string matrix_file_name = "../ff/matrix.txt";
+    string matrix_file_name = "../LU/ff/matrix.txt";
     string out_file_name = "lu_matrix.txt";
 //     string time_file_name = "para_time.txt";
     fstream matrix_file;
@@ -251,12 +256,12 @@ int main(int argc, char *argv[])
     if(bIsPara) {
         //!Start test parallel version
         start = chrono::system_clock::now();
-		omp_set_num_threads(8);
+        omp_set_num_threads(8);
 //		#pragma omp parallel
 //		{
 //			#pragma omp single
 //			{
-		        parallel(m);
+        parallel(m);
 //			}
 //			#pragma omp taskwait
 //		}
@@ -264,9 +269,9 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+        pt.put("omp-elapsed-time", elapsed_seconds);
         cout << "omp elapsed time: " << elapsed_seconds << "us" << endl;
     }
-
     else {
         //!Start test sequential version
         start = chrono::system_clock::now();
@@ -274,8 +279,10 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	pt.put("sequential-elapsed-time", elapsed_seconds);
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
     }
+    boost::property_tree::write_json("time.json", pt);
 
     if(bIsPara) {
         // write para time file
@@ -303,6 +310,6 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-    
+
     return 0;
 }

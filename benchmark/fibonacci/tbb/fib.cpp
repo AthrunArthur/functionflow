@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 #include <chrono>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #define FIBNUM 40
 #define MINPARA 25//3
@@ -82,6 +84,9 @@ int main(int argc, char *argv[])
     bool bIsPara = false;//false;
     int elapsed_seconds;
     task_scheduler_init init(8);
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.
@@ -101,6 +106,11 @@ int main(int argc, char *argv[])
     elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                       (end-start).count();
     cout << "tbb elapsed time: " << elapsed_seconds << "us" << endl;
+    if(bIsPara)
+        pt.put("tbb-elapsed-time", elapsed_seconds);
+    else
+        pt.put("sequential-elapsed-time", elapsed_seconds);
+    boost::property_tree::write_json("time.json", pt);
     //int64_t fib_res = sfib(num);
     cout<<"fib( "<<num<<" )="<<fib_res<<endl;
     write_time_file(elapsed_seconds,bIsPara);

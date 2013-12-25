@@ -4,6 +4,8 @@
 
 #include "Lloyd.h"
 #include <chrono>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 #define K 3
 #define PATHOUT "./"
@@ -140,8 +142,10 @@ void kmeans(Points & points, bool isPara)
 int main(int argc, char *argv[])
 {
     task_scheduler_init init(8);
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
     int step;
-    string fileName = "data/gaussian.txt";
+    string fileName = "../kmeans/tbb/data/gaussian.txt";
     fstream gaussianFile;
     bool bIsPara = false;
     ofstream out_time_file;
@@ -170,6 +174,11 @@ int main(int argc, char *argv[])
     int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
     cout << "elapsed time: " << elapsed_seconds << "us" << endl;
+    if(bIsPara)
+        pt.put("ff-elapsed-time", elapsed_seconds);
+    else
+        pt.put("sequential-elapsed-time", elapsed_seconds);
+    boost::property_tree::write_json("time.json", pt);
 
 //     cout << "Steps: " << step << endl;
 

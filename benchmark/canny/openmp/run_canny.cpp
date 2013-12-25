@@ -5,21 +5,26 @@
 // #include <iostream>
 
 #include "canny_edge_detector.h"
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
-	omp_set_num_threads(8);
+    omp_set_num_threads(8);
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    
     wxImage image;
     wxImageHandler * bmpLoader = new wxBMPHandler();
     wxImage::AddHandler(bmpLoader);
 //    wxImageHandler * jpegLoader = new wxJPEGHandler();
 //    wxImage::AddHandler(jpegLoader);
-    wxString inFileName(_T("../ff/pic/bmp/lena512.bmp"));
+    wxString inFileName(_T("../canny/ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
-//    wxString inFileName(_T("../ff/pic/jpg/child.jpg"));
+//    wxString inFileName(_T("../canny/ff/pic/jpg/child.jpg"));
 //    wxString outFileName = _T("out.jpg");
 
     string inFileStr;
@@ -56,10 +61,15 @@ int main(int argc, char *argv[])
     canny->ProcessImage(image.GetData(),image.GetWidth(),image.GetHeight(),1.0f, 15, 21);
     // The processed data will be stored in both the image.GetData() and the return data pointer.
 
+    if(bIsPara)
+        pt.put("omp-elapsed-time", canny->GetHysteresisTime());
+    else
+        pt.put("sequential-elapsed-time", canny->GetHysteresisTime());
+    boost::property_tree::write_json("time.json", pt);
     cout << "Elapsed time: " << canny->GetHysteresisTime() << "us" << endl;
     image.SaveFile(outFileName, wxBITMAP_TYPE_BMP);
 //    image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
-    
+
     if(bIsPara) {
         out_time_file.open("para_time.txt",ios::app);
         if(!out_time_file.is_open()) {
@@ -69,8 +79,8 @@ int main(int argc, char *argv[])
         out_time_file << canny->GetHysteresisTime() << endl;
         out_time_file.close();
     }
-    else{
-      out_time_file.open("time.txt");
+    else {
+        out_time_file.open("time.txt");
         if(!out_time_file.is_open()) {
             cout << "Can't open the file time.txt" << endl;
             return -1;
