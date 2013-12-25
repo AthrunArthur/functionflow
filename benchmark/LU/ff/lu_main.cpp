@@ -5,6 +5,9 @@
 #include "common/log.h"
 #include <fstream>
 #include <sstream>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+
 
 
 using namespace std;
@@ -207,6 +210,9 @@ int main(int argc, char *argv[])
 {
     bool bIsPara = false;//false;
 
+    boost::property_tree::ptree pt;
+    pt.put("time-unit", "us");
+    
     if(argc > 1) {
         stringstream ss_argv;
         int n;// n > 0 means parallel, otherwise serial.
@@ -293,6 +299,8 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	pt.put("ff-elapsed-time", elapsed_seconds);
+	
         cout << "ff elapsed time: " << elapsed_seconds << "us" << endl;
         _DEBUG(LOG_INFO(main)<<"main exit, id:"<<ff::rt::get_thrd_id());
 
@@ -305,6 +313,7 @@ int main(int argc, char *argv[])
         end = chrono::system_clock::now();
         elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+	pt.put("sequential-elapsed-time", elapsed_seconds);
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
     }
 
@@ -334,5 +343,6 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
+    boost::property_tree::write_json("time.json", pt);
     return 0;
 }
