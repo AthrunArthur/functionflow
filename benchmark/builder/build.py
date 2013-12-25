@@ -132,6 +132,31 @@ def run_one_bm(common_config, bms_config, times):
       res[k].append(jrs)
     return res
 
+def build_and_run_all(common_config):
+  bms = [benchmark_configs.LU]
+  build(common_config, bms)
+  res= run(common_config, bms, 5)
+  return reduce_res(res)
+
+def reduce_res(input_res):
+  res = []
+  for (k, v) in input_res.items():
+    t = {}
+    t['name'] = k
+    for (ik, iv) in v.items():
+      avg_time = 0
+      counts = 0
+      for item in iv:
+	avg_time += int(item['ff-elapsed-time'])
+	counts += 1
+      avg_time = avg_time/counts
+      t[ik] = avg_time
+    
+    res.append(t)
+    
+  return res
+
+
 if __name__=='__main__':
   print 'This is for test!!'
   bms = [benchmark_configs.LU]
