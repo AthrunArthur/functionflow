@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 	pt.put("sequential-elapsed-time", elapsed_seconds);
         cout << "sequential elapsed time: " << elapsed_seconds << "us" << endl;
     }
-
+    boost::property_tree::write_json("time.json", pt);
     if(bIsPara) {
         // write para time file
         out_time_file.open("para_time.txt",ios::app);
@@ -343,6 +343,5 @@ int main(int argc, char *argv[])
         cout << "Can't open the file " << out_file_name << endl;
         return -1;
     }
-    boost::property_tree::write_json("time.json", pt);
     return 0;
 }

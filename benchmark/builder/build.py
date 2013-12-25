@@ -6,6 +6,7 @@ import benchmark_configs
 import common_config
 import inspect
 import subprocess
+import json
 
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
@@ -98,8 +99,11 @@ def build(common_config, bms_configs):
   
   
 def run(common_config, bms_configs, times):
+  res = {}
   for item in bms_configs:
-    run_one_bm(common_config, item, times)
+    res[getattr(item, 'name')] = run_one_bm(common_config, item, times)
+    
+  return res
     
 def run_one_bm(common_config, bms_config, times):
   exe_base = build_dir + getattr(bms_config,'name')
@@ -110,17 +114,26 @@ def run_one_bm(common_config, bms_config, times):
       exe_files[item] = exe_file
 
   print exe_files
-  
+  res = {}
   for (k, v) in exe_files.items():
     args = ''
+    res[k] = []
     for arg in getattr(bms_config, 'params'):
       args += arg + ' '
     cmd = v + ' ' + args
     print cmd
-    execute_cmd(cmd)
+    for i in range(times):
+      execute_cmd(cmd)
+      json_file = current_dir + '/' + getattr(common_config, 'exe_log_file')
+      fp = open(json_file)
+      rs = fp.read()
+      jrs = json.loads(rs)
+      fp.close()
+      res[k].append(jrs)
+    return res
 
 if __name__=='__main__':
   print 'This is for test!!'
   bms = [benchmark_configs.LU]
   build(common_config.CommonConfig, bms)
-  run(common_config.CommonConfig, bms, 1)
+  print run(common_config.CommonConfig, bms, 5)

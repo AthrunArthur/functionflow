@@ -21,6 +21,6 @@ class CommonConfig:
   CXX_FLAGS = ['-std=c++11', '-DNDEBUG']
   CXX_OPT_FLAGS = ['-O2']
 
-  targets_to_build = ['ff', 'tbb']
+  targets_to_build = ['ff']
   exe_log_file = 'time.json'
   
