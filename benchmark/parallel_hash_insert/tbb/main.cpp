@@ -122,7 +122,7 @@ int init()
     pthread_mutex_init(&done_mutex, 0 );
     pthread_cond_init(&init_cond, 0);
     pthread_cond_init(&done_cond, 0);
-    ifstream ins("../ff/datas/numbers.txt");
+    ifstream ins("../parallel_hash_insert/ff/datas/numbers.txt");
     if(!ins.is_open()) {
         cout << "Can't open the file numbers.txt" << endl;
         return -1;

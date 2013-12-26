@@ -4,6 +4,7 @@
 import common_config
 import build
 import json
+import csv
 
 gcc_o3_opts = ['-falign-functions',
 	       '-falign-jumps',
@@ -80,4 +81,26 @@ if __name__ == '__main__':
   print '\nresults: ' 
   jstr = json.dumps(res)
   print '    ' + jstr
-    
+  
+  #print '\nfinal:'
+  #for (k,v) in res.items():
+    #for item in v:
+      #print '    ' + item['name'] + '  ' + str(item['ff']) + '  ' + str(item['tbb']) + '  ' + str(item['openmp'])
+  
+  firstline = ['options', 'framework']
+  for item in res[opts.keys()[0]]:
+    firstline.append(item['name'])    
+  
+  csvfile = file('results.csv', 'wb')
+  writer = csv.writer(csvfile)
+  writer.writerow(firstline)
+  for (k,v) in res.items():
+    for framework in getattr(cfg, 'targets_to_build'):
+      line = []
+      #line.append(k)
+      line.append(opts[k])
+      line.append(framework)
+      for item in v:
+	line.append(item[framework])
+      writer.writerow(line)
+  csvfile.close()
