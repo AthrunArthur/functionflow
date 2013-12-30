@@ -142,8 +142,8 @@ def build_and_run_all(common_config):
   bms = [benchmark_configs.CANNY]
 #  bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config, bms)
-  res= run(common_config, bms, 5)
-#  res= run(common_config, bms, 1)
+  #res= run(common_config, bms, 5)
+  res= run(common_config, bms, 1)
   return reduce_res(res)
 
 def reduce_res(input_res):

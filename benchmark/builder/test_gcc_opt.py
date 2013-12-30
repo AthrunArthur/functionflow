@@ -67,8 +67,8 @@ def select_n_opts(opts, i):
   return res
 
 if __name__ == '__main__':
-  opts =  generate_all_possible_opts(gcc_o3_opts)
-#  opts = generate_single_possible_opts(gcc_o3_opts)
+  #opts =  generate_all_possible_opts(gcc_o3_opts)
+  opts = generate_single_possible_opts(gcc_o3_opts)
   cfg = common_config.CommonConfig
   res = {}
   for (k,v) in opts.items():
@@ -78,27 +78,33 @@ if __name__ == '__main__':
   
   print 'options: '
   print '    ' + str(opts)
+  jstr = json.dumps(opts)
+  opt_json_file = 'options.json'
+  fp_opt = open(opt_json_file,'w')
+  fp_opt.write(jstr)
+  fp_opt.close()
   
   print '\nresults: ' 
   jstr = json.dumps(res)
   print '    ' + jstr
   
-  #print '\nfinal:'
-  #for (k,v) in res.items():
-    #for item in v:
-      #print '    ' + item['name'] + '  ' + str(item['ff']) + '  ' + str(item['tbb']) + '  ' + str(item['openmp'])
+  #Write jsonfile
+  json_file = 'results.json'
+  fp = open(json_file,'w')
+  fp.write(jstr)
+  fp.close()
   
+  #Write csvfile
   firstline = ['options', 'framework']
   for item in res[opts.keys()[0]]:
-    firstline.append(item['name'])    
-  
+    firstline.append(item['name'])  
   csvfile = file('results.csv', 'wb')
   writer = csv.writer(csvfile)
   writer.writerow(firstline)
   for (k,v) in res.items():
     for framework in getattr(cfg, 'targets_to_build'):
       line = []
-      #line.append(k)
+      #line.append(k)#use number to identify options
       line.append(opts[k])
       line.append(framework)
       for item in v:
