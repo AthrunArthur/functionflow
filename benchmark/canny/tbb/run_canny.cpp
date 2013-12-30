@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     wxImage::AddHandler(bmpLoader);
 //    wxImageHandler * jpegLoader = new wxJPEGHandler();
 //    wxImage::AddHandler(jpegLoader);
-     wxString inFileName(_T("../canny/ff/pic/bmp/lena512.bmp"));
+    wxString inFileName(_T("../canny/ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
 //    wxString inFileName(_T("../canny/ff/pic/jpg/child.jpg"));
 //    wxString outFileName = _T("out.jpg");
@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
     if(bIsPara) {
         out_time_file.open("para_time.txt",ios::app);
         if(!out_time_file.is_open()) {
-            cout << "Can't open the file para_time.txt" << endl;
+			cout << "Can't open the file para_time.txt" << endl;
             return -1;
         }
         out_time_file << canny->GetHysteresisTime() << endl;

@@ -139,9 +139,11 @@ def run_one_bm(common_config, bms_config, times):
   return res
 
 def build_and_run_all(common_config):
-  bms = [benchmark_configs.PHASH]
+  bms = [benchmark_configs.CANNY]
+#  bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config, bms)
   res= run(common_config, bms, 5)
+#  res= run(common_config, bms, 1)
   return reduce_res(res)
 
 def reduce_res(input_res):
@@ -167,6 +169,7 @@ if __name__=='__main__':
   if not os.path.exists(build_dir):
     execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
   print 'This is for test!!'  
-  bms = [benchmark_configs.PHASH]
+#  bms = [benchmark_configs.CANNY]
+  bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config.CommonConfig, bms)
-  print run(common_config.CommonConfig, bms, 5)
+  print run(common_config.CommonConfig, bms, 1)

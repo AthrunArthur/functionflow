@@ -49,14 +49,15 @@ void resize_table_if_overflow(HashTable * H)
 {
     if (is_overflow(H))
     {
-        if(!(helperLock(0, &H->mResizeLock)))
-            return;
-        //	pthread_rwlock_wrlock(&H->mResizeLock);
+       // if(!(helperLock(0, &H->mResizeLock)))
+       //     return;
+        	pthread_rwlock_wrlock(&H->mResizeLock);
         if(!is_overflow(H))
         {
             pthread_rwlock_unlock(&H->mResizeLock);
             return ;
         }
+		ff::paragroup _pp;
         new_n = H->mNumBuckets * 2;
         int i = 0;
         //cout << "new_N" << new_n << endl;
@@ -72,15 +73,20 @@ void resize_table_if_overflow(HashTable * H)
         for(i = 0; i < NUM_CORES; ++i)
         {
             endIndex = (i == NUM_CORES - 1) ? H->mNumBuckets - 1 : startIndex + cnt - 1;
-            helperPush(0 , [=]() {
-                rehash_list(H,startIndex, endIndex, new_buckets, new_n);
-            });
+            ff::para<void> _p;
+            _p([=](){rehash_list(H,startIndex, endIndex, new_buckets, new_n);});
+            _pp.add(_p);
+            ///helperPush(0 , [=]() {
+             //   rehash_list(H,startIndex, endIndex, new_buckets, new_n);
+            //});
+
             startIndex += cnt;
             //ff::para<void> _p;
             //_p([=](){rehash_list(H,H->mBuckets[i], new_buckets, new_n);});
             //_pp.add(_p);
         }
-        helperWork(0);
+		ff_wait(all(_pp));
+     //   helperWork(0);
         H->Clear();
         H->mBuckets = new_buckets;
         H->mNumBuckets = new_n;

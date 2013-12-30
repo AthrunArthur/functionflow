@@ -11,8 +11,9 @@ gcc_o3_opts = ['-falign-functions',
 	       '-falign-loops',
 	       '-falign-labels',
 	       '-freorder-blocks',
-	       '-freorder-blocks-and-partition', 
-	       '-fprefetch-loop-arrays']
+	       '-freorder-blocks-and-partition']
+		 # , 
+	     #  '-fprefetch-loop-arrays']
 
 
 def generate_single_possible_opts(opts):
@@ -66,8 +67,8 @@ def select_n_opts(opts, i):
   return res
 
 if __name__ == '__main__':
-  #opts =  generate_all_possible_opts(gcc_o3_opts)
-  opts = generate_single_possible_opts(gcc_o3_opts)
+  opts =  generate_all_possible_opts(gcc_o3_opts)
+#  opts = generate_single_possible_opts(gcc_o3_opts)
   cfg = common_config.CommonConfig
   res = {}
   for (k,v) in opts.items():

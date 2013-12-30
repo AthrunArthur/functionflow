@@ -5,12 +5,27 @@
 #include<functional>
 #include<omp.h>
 #include<memory>
+#include"//home/hustpawpaw/experiment/functionflow/FF_SS/functionflow/ff/include/runtime/runtime.h"
 #include<thread>
+#include<vector>
 /*
  *
  *Use C11 template to solve the problem of compile 
  *
  */
+using namespace ff::rt;
+
+struct HelperManager{
+	vector<int> HelperState;
+	HelperManager(){
+		HelperState.resize(MAX_HELPER);
+		for(int i = 0; i < MAX_HELPER; ++i);
+			HelperState[i] = -1;
+	}
+};
+
+HelperManager gManager;
+
 bool helperNextTask(int id);
 void helperInit(int id);
 struct HTask{
@@ -187,21 +202,36 @@ bool helperWork(int id)
 //		printf("thread %d, helpernextid = %d \n", omp_get_thread_num(), id);
 			helperNextTask(id);
 	}
+
 }
 
 bool helperWork(int id, pthread_rwlock_t *t)
 {
 //	printf("thread %d, helperwork\n", omp_get_thread_num());
 //	helpers[id].output();
-	while(helpers[id].totalIsZero() || !(helpers[id].totalIsCnt()))
-	{
-//		printf("thread %d, helpernextid = %d \n", omp_get_thread_num(), id);
+	while (gManager.HelperState[id] == 0){
+		while(!(helpers[id].totalIsCnt()))
+		{
+//			printf("thread %d, helpernextid = %d \n", omp_get_thread_num(), id);
 			helperNextTask(id);
+		}
+		if(gManager.HelperState[id] != 0 )
+			break;
+		for(int i = 0; i < MAX_HELPER; ++i)
+		{
+			if(gManager.HelperState[i] == 0 && !helpers[i].totalIsZero())
+			{
+				helperNextTask(i);
+			}
+		}
+		if(gManager.HelperState[id] != 0 )
+			break;
+		static rt::runtime_prt r = rt::runtime::instance();
+		r->steal_one_task_and_run();
 	}
 	pthread_rwlock_wrlock(t);
 	pthread_rwlock_unlock(t);
 }
-
 
 bool helperWait(int id)
 {
@@ -246,6 +276,7 @@ bool helperNextTask(int id)
 void helperInit(int id)
 {
 	helpers[id].reset();
+	gManager.HelperState[i] = 0;
 }
 
 
