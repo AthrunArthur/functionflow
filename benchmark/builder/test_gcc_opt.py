@@ -53,9 +53,9 @@ def select_n_opts(opts, i):
     res.append(list(stack))
     
   rres = res
-  res = {}
-  s = ''
+  res = {}  
   for item in rres:
+    s = ''
     t = []
     for it in item:
       t.append(opts[it])
@@ -66,12 +66,15 @@ def select_n_opts(opts, i):
     
   return res
 
+
 if __name__ == '__main__':
-  #opts =  generate_all_possible_opts(gcc_o3_opts)
-  opts = generate_single_possible_opts(gcc_o3_opts)
+  build.cmake_move()
+  opts =  generate_all_possible_opts(gcc_o3_opts)
+  #opts = generate_single_possible_opts(gcc_o3_opts)
   cfg = common_config.CommonConfig
   res = {}
   for (k,v) in opts.items():
+    build.build_ff_framework(v)
     setattr(cfg, 'CXX_OPT_FLAGS', ['-O2'] + v)
     time = build.build_and_run_all(cfg)
     res[k] = time
@@ -111,3 +114,5 @@ if __name__ == '__main__':
 	line.append(item[framework])
       writer.writerow(line)
   csvfile.close()
+  
+  build.cmake_recover()

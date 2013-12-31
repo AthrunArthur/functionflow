@@ -7,6 +7,7 @@ add_definitions(-std=c++11)
 if(Release)
 	message(STATUS "This is a Release version!")
 	add_definitions(-O2)
+	${OPTIONS-NEED-TO-ADD}
 	add_definitions(-DNDEBUG)
 else(Release)
 	message(STATUS "This is a Debug version!")
@@ -41,3 +42,4 @@ target_link_libraries(ff pthread)
 target_link_libraries(ff_s pthread)
 
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
+ 

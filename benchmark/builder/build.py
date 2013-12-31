@@ -102,7 +102,35 @@ def build(common_config, bms_configs):
       abs_sub_dir = os.path.abspath(bm_dir + '/' + sub_dir)
       build_one_bm(common_config, item, abs_sub_dir, sub_dir)
   pass
+
+def cmake_move():
+  if os.path.exists(r'%s/CMakeLists.txt' %ff_base_dir):
+    execute_cmd('mv %s/CMakeLists.txt %s/CMakeLists.txt.org;' %(ff_base_dir,ff_base_dir))
   
+def cmake_recover():
+  if os.path.exists(r'%s/CMakeLists.txt' %ff_base_dir):
+    execute_cmd('rm %s/CMakeLists.txt;' %ff_base_dir)
+  if os.path.exists(r'%s/CMakeLists.txt.org' %ff_base_dir):
+    execute_cmd('mv %s/CMakeLists.txt.org %s/CMakeLists.txt;' %(ff_base_dir,ff_base_dir))
+
+def build_ff_framework(opt):
+  mdfile = ff_base_dir + '/CMakeLists.md'
+  cmakefile = ff_base_dir + '/CMakeLists.txt'
+  mdfp = file(mdfile, 'r')
+  cmfp = file(cmakefile, 'w')
+  for s in mdfp.readlines():
+      if (s.find('${OPTIONS-NEED-TO-ADD}') != -1):
+	for item in opt:
+	  cmfp.write(s.replace('${OPTIONS-NEED-TO-ADD}','add_definitions(%s)' %item))
+      else:
+	cmfp.write(s)
+  mdfp.close()
+  cmfp.close()
+  if not os.path.exists(r'%s/build' %ff_base_dir):
+    execute_cmd('cd %s; mkdir build;' %ff_base_dir)
+  path = '%s/build' %ff_base_dir
+  cmd = 'cd %s; rm -rf *;cmake -DRelease=1 ../; make;' % path
+  execute_cmd(cmd)  
   
 def run(common_config, bms_configs, times):
   res = {}
@@ -139,11 +167,13 @@ def run_one_bm(common_config, bms_config, times):
   return res
 
 def build_and_run_all(common_config):
-  bms = [benchmark_configs.CANNY]
-#  bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
+  if not os.path.exists(build_dir):
+    execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
+  #bms = [benchmark_configs.CANNY]
+  bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config, bms)
-  #res= run(common_config, bms, 5)
-  res= run(common_config, bms, 1)
+  res= run(common_config, bms, 5)
+  #res= run(common_config, bms, 1)
   return reduce_res(res)
 
 def reduce_res(input_res):
