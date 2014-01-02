@@ -172,11 +172,13 @@ def build_and_run_all(common_config):
   #bms = [benchmark_configs.CANNY]
   bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config, bms)
-  res= run(common_config, bms, 5)
-  #res= run(common_config, bms, 1)
-  return reduce_res(res)
+  #res= run(common_config, bms, 5)
+  res= run(common_config, bms, 3)
+#  return reduce_res(res,'para-elapsed-time')
+  return reduce_res(res,'sequential-elapsed-time')
 
-def reduce_res(input_res):
+
+def reduce_res(input_res,time_flag):
   res = []
   for (k, v) in input_res.items():
     t = {}
@@ -185,7 +187,8 @@ def reduce_res(input_res):
       avg_time = 0
       counts = 0
       for item in iv:
-	avg_time += int(item['para-elapsed-time'])
+#	avg_time += int(item['para-elapsed-time'])
+	avg_time += int(item[time_flag])
 	counts += 1
       avg_time = avg_time/counts
       t[ik] = avg_time
