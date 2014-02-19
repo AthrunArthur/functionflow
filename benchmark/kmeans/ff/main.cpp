@@ -11,7 +11,8 @@
 #define PATHOUT "./"
 #define MAXSTEP 100
 #define MAXDELTA 0
-#define PARASIZE 25
+#define PARASIZE 1000
+//#define PARASIZE 25
 using namespace std;
 
 
@@ -86,15 +87,29 @@ void kmeans(Points & points, bool isPara)
     for(int step = 0; step < MAXSTEP; step++) {// && !mLloyd.isEnd(MAXDELTA); step++) {
         if(isPara) {
             ff::paragroup pg;
-            pg.for_each(0,blockSize,[&vecLloyd,&points,blockSize](int i) {
+           // pg.for_each(0,blockSize,[&vecLloyd,&points,blockSize](int i) {
 // 	      cout << "para" << endl;
-                int start = i * PARASIZE,end;
+             /*   int start = i * PARASIZE,end;
                 if(i == blockSize -1)
                     end = points.size() - 1;
                 else
                     end = start + PARASIZE - 1;
                 vecLloyd[i].update(points,start,end);
-            });
+            });*/
+	    for(int i = 0; i < blockSize; i++)
+                        {
+                                ff::para<void> p;
+                                p([&vecLloyd,&points,blockSize,i](){
+                                        int start = i * PARASIZE,end;
+                                        if(i == blockSize -1)
+                                        end = points.size() - 1;
+                                        else
+                                        end = start + PARASIZE - 1;
+                                        vecLloyd[i].update(points,start,end);
+                                });
+                                pg.add(p);
+                        }
+
             ff_wait(all(pg));
         }
         else {

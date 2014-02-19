@@ -11,7 +11,8 @@
 #define PATHOUT "./"
 #define MAXSTEP 100
 #define MAXDELTA 0
-#define PARASIZE 25
+#define PARASIZE 1000
+//#define PARASIZE 25
 using namespace std;
 using namespace tbb;
 
