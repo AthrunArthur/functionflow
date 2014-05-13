@@ -21,7 +21,6 @@ def execute_cmd(cmd):
 
 
 def get_all_cpp_files_in_dir(abs_dir):
-  print abs_dir
   files = []
   for item in os.listdir(abs_dir):
     if item == 'test.cpp':
@@ -88,7 +87,6 @@ def build_one_bm(common_config, bms_config, abs_sub_dir, flag):
   files = get_all_cpp_files_in_dir(abs_sub_dir)
   build_cmd = generate_building_cmd(common_config, bms_config, files, flag)
   
-  print 'building with cmd...'
   print '    ' + build_cmd
   res = execute_cmd(build_cmd)
 
@@ -202,7 +200,7 @@ if __name__=='__main__':
   if not os.path.exists(build_dir):
     execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
   print 'This is for test!!'  
-#  bms = [benchmark_configs.CANNY]
-  bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
+  bms = [benchmark_configs.MUTEX]
+  #bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config.CommonConfig, bms)
   print run(common_config.CommonConfig, bms, 1)

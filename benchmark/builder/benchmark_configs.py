@@ -31,8 +31,8 @@ class KMEANS(BMConfig):
 class MUTEX(BMConfig):
   name = 'mutex'
   path = 'mutex'
-#  params = ['1']
-  params = ['0']
+  params = ['1']
+#  params = ['0']
   
 class NQUEEN(BMConfig):
   name = 'nqueen'
