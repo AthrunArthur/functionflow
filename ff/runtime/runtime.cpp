@@ -128,6 +128,68 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
     }
     return b;
 }
+
+void 			runtime::run_task(task_base_ptr & pTask)
+{
+    thread_local static int i = get_thrd_id();
+    int take_times = 0;
+    int steal_times = 0;
+    double least_cost = 1;
+    constexpr int least_times = 3;
+START:
+
+    _DEBUG(LOG_INFO(rt)<<"run_task() id:"<<get_thrd_id()<<" get task... "<<pTask.get();)
+    if(pTask->getHoldMutex() != invalid_mutex_id)
+    {
+        mutex * pmutex = static_cast<mutex *>(pTask->getHoldMutex());
+        double hist_cost = pmutex->thread_schedule_cost();
+        m_oHPMutex.get_hazard_pointer().store(pTask->getHoldMutex());
+        if(m_oHPMutex.outstanding_hazard_pointer_for(pTask->getHoldMutex()))
+        {
+            if(take_times < least_times || hist_cost > least_cost)
+            {
+                m_oHPMutex.get_hazard_pointer().store(invalid_mutex_id);
+                m_oQueues[i]->push_back(pTask);
+                if(take_times & 0x1 )
+                {
+		    steal_times ++;
+                    if(!steal_one_task(pTask))
+		    {
+		      take_one_task(pTask);
+		    }
+                }
+                else
+		{
+		  take_one_task(pTask);
+		}
+		take_times ++;
+                least_cost = least_cost > hist_cost ?
+                  hist_cost : least_cost;
+                goto START;
+            }
+            else
+            {
+                std::atomic<void *> & t = m_oHPMutex.get_hazard_pointer();
+                pmutex->callback_postunlock = [ & t](mutex_id_t no_use){
+                  t.store(invalid_mutex_id);
+                };
+                pTask->run();
+            }
+        }
+        else
+        {
+            std::atomic<void *> & t = m_oHPMutex.get_hazard_pointer();
+            pmutex->callback_postunlock = [ & t](mutex_id_t no_use){
+              t.store(invalid_mutex_id);
+            };
+            pTask->run();
+            //m_oHPMutex.get_hazard_pointer().store(invalid_mutex_id);
+        }
+    }
+    else
+        pTask->run();
+}
+#if 0 //The old scheduler
 void 			runtime::run_task(task_base_ptr & pTask)
 {
     thread_local static int i = get_thrd_id();
@@ -176,7 +238,7 @@ START:
     else
         pTask->run();
 }
-//#if 0
+#endif
 void			runtime::thread_run()
 {
     bool flag = false;

@@ -46,6 +46,12 @@ inline size_t rt_concurrency()
 	return hardware_concurrency() + 1;
 }
 
+template<class T>
+std::vector<T> allocate_thread_local(T dfv=0)
+{
+  return std::vector<T>(rt_concurrency());
+}
+
 thrd_id_t get_thrd_id();
 
 void set_local_thrd_id(thrd_id_t i);

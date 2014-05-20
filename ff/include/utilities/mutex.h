@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "runtime/runtime.h"
 #include <fstream>
 #include <sstream>
-#ifdef __GUNC__
+#ifdef __linux__
 #include <time.h>
 #endif
 
@@ -39,44 +39,59 @@ class mutex
 {
 public:
     mutex(): m_mutex()
-    , m_iContentTimes(0)
-    , m_iPeriods() {};
+    , m_locked()
+    , m_thread_conflicts(rt::allocate_thread_local<bool>())
+    , m_thread_schedule_cost(rt::allocate_thread_local<double>(1))
+    , callback_prelock([](mutex_id_t){})
+    , callback_postlock([](mutex_id_t){})
+    , callback_postunlock([](mutex_id_t){}) {};
     
     mutex(const mutex &) = delete;
     mutex & operator = (const mutex & ) = delete;
     ~mutex()
     {
-      std::stringstream ss;
-      ss<<"mutex_" << gmcounter;
-      gmcounter ++;
-      std::ofstream f;
-      f.open(ss.str());
-      for(auto x : m_iPeriods)
-      {
-        f<<x<<'\n';
-      }
-      f.close();
     }
 
     inline void		lock(){
-      struct timespec t;
-      clock_gettime(CLOCK_MONOTONIC, &t);
+      thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
+      m_thread_conflicts[thrd_id] = m_locked.load();
+      callback_prelock(this);
       m_mutex.lock();
-      struct timespec t2;
-      clock_gettime(CLOCK_MONOTONIC, &t2);
-      int64_t period = (t2.tv_sec - t.tv_sec) * 1000000000 + t2.tv_nsec - t.tv_nsec;
-      m_iPeriods.push_back(period);
-      m_iContentTimes.store(static_cast<uint64_t>( 0.7 * m_iContentTimes.load() + 0.3 * period));
-
+      m_locked.store(true);
+      callback_postlock(this);
     }
-    void		unlock(){m_mutex.unlock();}
+    void		unlock(){
+      m_mutex.unlock();
+      static double alpha = 0.5;
+      static double beta = 1-alpha;
+      static auto  cmp_func = [](double x, double n){return alpha *x + beta * n;};
+      m_locked.store(false);
+      thread_schedule_cost() = is_thread_conflict() ? 
+                               cmp_func(thread_schedule_cost(), 1) :
+                               cmp_func(thread_schedule_cost(), 0);
+      callback_postunlock(this);
+    }
+
+    bool                is_thread_conflict() const{
+      thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
+      return m_thread_conflicts[thrd_id];
+    }
+    double & thread_schedule_cost() {
+      thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
+      return m_thread_schedule_cost[thrd_id];
+    }
 
     inline mutex_id_t	id() {return this;}
-    
+public:
+    //several hook function
+    std::function<void (mutex_id_t)> callback_prelock;
+    std::function<void (mutex_id_t)> callback_postlock;
+    std::function<void (mutex_id_t)> callback_postunlock;
 protected:
     std::mutex  m_mutex;
-    std::atomic_ullong m_iContentTimes;
-    std::vector<int64_t> m_iPeriods;
+    std::atomic_bool  m_locked;
+    std::vector<bool> m_thread_conflicts;
+    std::vector<double> m_thread_schedule_cost;
 };//end class mutex
 }//end namespace ff
 
