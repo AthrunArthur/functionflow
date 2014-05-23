@@ -135,7 +135,7 @@ void 			runtime::run_task(task_base_ptr & pTask)
     int take_times = 0;
     int steal_times = 0;
     double least_cost = 1;
-    constexpr int least_times = 3;
+    constexpr int least_times = 5;
 START:
 
     _DEBUG(LOG_INFO(rt)<<"run_task() id:"<<get_thrd_id()<<" get task... "<<pTask.get();)
@@ -150,7 +150,7 @@ START:
             {
                 m_oHPMutex.get_hazard_pointer().store(invalid_mutex_id);
                 m_oQueues[i]->push_back(pTask);
-                if(take_times & 0x1 )
+                if(take_times &0x1F == 0 )
                 {
 		    steal_times ++;
                     if(!steal_one_task(pTask))

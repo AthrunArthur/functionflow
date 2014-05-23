@@ -40,7 +40,6 @@ class mutex
 public:
     mutex(): m_mutex()
     , m_locked()
-    , m_thread_conflicts(rt::allocate_thread_local<bool>())
     , m_thread_schedule_cost(rt::allocate_thread_local<double>(1))
     , callback_prelock([](mutex_id_t){})
     , callback_postlock([](mutex_id_t){})
@@ -53,29 +52,29 @@ public:
     }
 
     inline void		lock(){
-      thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
-      m_thread_conflicts[thrd_id] = m_locked.load();
+      bool is_conflict = m_locked.load();
+      static double alpha = 0.5;
+      static double beta = 1-alpha;
+      static auto  cmp_func = [](double x, double n){return alpha *x + beta * n;};
       callback_prelock(this);
       m_mutex.lock();
       m_locked.store(true);
+      if(is_conflict)
+      {
+        thread_schedule_cost() = cmp_func(thread_schedule_cost(), 1);
+      }
+      else
+      {
+        thread_schedule_cost() = cmp_func(thread_schedule_cost(), 0);
+      }
       callback_postlock(this);
     }
     void		unlock(){
       m_mutex.unlock();
-      static double alpha = 0.5;
-      static double beta = 1-alpha;
-      static auto  cmp_func = [](double x, double n){return alpha *x + beta * n;};
       m_locked.store(false);
-      thread_schedule_cost() = is_thread_conflict() ? 
-                               cmp_func(thread_schedule_cost(), 1) :
-                               cmp_func(thread_schedule_cost(), 0);
       callback_postunlock(this);
     }
 
-    bool                is_thread_conflict() const{
-      thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
-      return m_thread_conflicts[thrd_id];
-    }
     double & thread_schedule_cost() {
       thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
       return m_thread_schedule_cost[thrd_id];
@@ -90,7 +89,6 @@ public:
 protected:
     std::mutex  m_mutex;
     std::atomic_bool  m_locked;
-    std::vector<bool> m_thread_conflicts;
     std::vector<double> m_thread_schedule_cost;
 };//end class mutex
 }//end namespace ff
