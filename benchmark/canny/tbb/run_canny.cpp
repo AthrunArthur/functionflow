@@ -23,6 +23,7 @@ int main(int argc, char *argv[])
 //    wxImageHandler * jpegLoader = new wxJPEGHandler();
 //    wxImage::AddHandler(jpegLoader);
     wxString inFileName(_T("../canny/ff/pic/bmp/lena512.bmp"));
+//    wxString inFileName(_T("../ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
 //    wxString inFileName(_T("../canny/ff/pic/jpg/child.jpg"));
 //    wxString outFileName = _T("out.jpg");
@@ -55,6 +56,14 @@ int main(int argc, char *argv[])
     if (!image.IsOk()) {
         cout << "Image is not OK!"<< endl;
         return -1;
+    }
+
+    //test initial
+    if(bIsPara){
+        tbb::task_group tg;
+	for(int i = 0; i < 5; ++i)
+            tg.run([&i](){});
+        tg.wait();
     }
 
     CannyEdgeDetector *canny = new CannyEdgeDetector(bIsPara);
