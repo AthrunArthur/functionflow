@@ -6,6 +6,8 @@
 #include <chrono>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <papi.h>
+#include <assert.h>
 
 #define K 3
 #define PATHOUT "./"
@@ -175,6 +177,38 @@ int main(int argc, char *argv[])
 
 //     Lloyd oLloyd(points,K);	//chooses K points randomly from the vector points as starting means
 
+    /*Add papi to trace cache miss*/
+    int EventSet,retVal;
+    long long startRecords[2], endRecords[2];
+    retVal = PAPI_library_init(PAPI_VER_CURRENT);
+    assert(retVal == PAPI_VER_CURRENT);
+    EventSet = PAPI_NULL;
+    retVal = PAPI_create_eventset(&EventSet);
+    assert(retVal == PAPI_OK);
+    //L1 TCM & TCA
+    retVal = PAPI_add_event(EventSet, PAPI_L1_TCM);
+    assert(retVal == PAPI_OK);
+    retVal = PAPI_add_event(EventSet, PAPI_L1_TCA);
+    assert(retVal == PAPI_OK);
+    
+    //L2 TCM & TCA
+//     retVal = PAPI_add_event(EventSet, PAPI_L2_TCM);
+//     assert(retVal == PAPI_OK);
+//     retVal = PAPI_add_event(EventSet, PAPI_L2_TCA);
+//     assert(retVal == PAPI_OK);
+    
+    //L3 TCM & TCA
+//     retVal = PAPI_add_event(EventSet, PAPI_L3_TCM);
+//     assert(retVal == PAPI_OK);
+//     retVal = PAPI_add_event(EventSet, PAPI_L3_TCA);
+//     assert(retVal == PAPI_OK);    
+    
+    retVal = PAPI_start(EventSet);
+    assert(retVal == PAPI_OK);
+    retVal = PAPI_read(EventSet, startRecords);
+    assert(retVal == PAPI_OK);
+    /*Add papi to trace cache miss*/
+    
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
 
@@ -187,6 +221,26 @@ int main(int argc, char *argv[])
     end = chrono::system_clock::now();
     int elapsed_seconds = chrono::duration_cast<chrono::microseconds>
                           (end-start).count();
+                          
+    /*Stop papi trace*/
+    retVal = PAPI_stop(EventSet, endRecords);
+    assert(retVal == PAPI_OK);
+    retVal = PAPI_cleanup_eventset(EventSet);
+    assert(retVal == PAPI_OK);
+    retVal = PAPI_destroy_eventset(&EventSet);
+    assert(retVal == PAPI_OK);
+    PAPI_shutdown(); 
+    //L1 result
+    std::cout << "L1 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
+    std::cout << "L1 total cache access = " << endRecords[1] - startRecords[1] << std::endl;
+    //L2 result
+//     std::cout << "L2 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
+//     std::cout << "L2 total cache access = " << endRecords[0] - startRecords[0] << std::endl;
+    //L3 result
+//     std::cout << "L3 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
+//     std::cout << "L3 total cache access = " << endRecords[0] - startRecords[0] << std::endl;
+    /*Stop papi trace*/
+    
     cout << "elapsed time: " << elapsed_seconds << "us" << endl;
     if(bIsPara)
         pt.put("para-elapsed-time", elapsed_seconds);

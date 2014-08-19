@@ -18,6 +18,8 @@
 // #include <tbb/concurrent_vector.h>//concurrent_vector
 #include "tbb/task_group.h"//task_group
 #include <tuple>//std::tuple
+#include <papi.h>
+#include <assert.h>
 
 using namespace tbb;
 using namespace std;//chrono needed

@@ -14,6 +14,10 @@
 #include <iostream>//needed
 #include <chrono>
 #include "ff.h"
+#include <papi.h>//add for cache miss
+#include <assert.h>
+
+
 using namespace std;//chrono needed
 using namespace ff;
 typedef unsigned char uint8_t;

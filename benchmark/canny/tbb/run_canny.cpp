@@ -16,18 +16,18 @@ int main(int argc, char *argv[])
     task_scheduler_init init(8);//Construct task scheduler with p threads
     boost::property_tree::ptree pt;
     pt.put("time-unit", "us");
-    
+
     wxImage image;
     wxImageHandler * bmpLoader = new wxBMPHandler();
     wxImage::AddHandler(bmpLoader);
 //    wxImageHandler * jpegLoader = new wxJPEGHandler();
 //    wxImage::AddHandler(jpegLoader);
-    wxString inFileName(_T("../canny/ff/pic/bmp/lena512.bmp"));
-//    wxString inFileName(_T("../ff/pic/bmp/lena512.bmp"));
+//     wxString inFileName(_T("../canny/ff/pic/bmp/lena512.bmp"));
+    wxString inFileName(_T("../ff/pic/bmp/lena512.bmp"));
     wxString outFileName = _T("out.bmp");
 //    wxString inFileName(_T("../canny/ff/pic/jpg/child.jpg"));
 //    wxString outFileName = _T("out.jpg");
-	
+
     string inFileStr;
     bool bIsPara = false;
     /*Record the running time.*/
@@ -59,10 +59,10 @@ int main(int argc, char *argv[])
     }
 
     //test initial
-    if(bIsPara){
+    if(bIsPara) {
         tbb::task_group tg;
-	for(int i = 0; i < 5; ++i)
-            tg.run([&i](){});
+        for(int i = 0; i < 5; ++i)
+            tg.run([&i]() {});
         tg.wait();
     }
 
@@ -78,18 +78,18 @@ int main(int argc, char *argv[])
     cout << "Elapsed time: " << canny->GetHysteresisTime() << "us" << endl;
     image.SaveFile(outFileName, wxBITMAP_TYPE_BMP);
 //    image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
-    
+
     if(bIsPara) {
         out_time_file.open("para_time.txt",ios::app);
         if(!out_time_file.is_open()) {
-			cout << "Can't open the file para_time.txt" << endl;
+            cout << "Can't open the file para_time.txt" << endl;
             return -1;
         }
         out_time_file << canny->GetHysteresisTime() << endl;
         out_time_file.close();
     }
-    else{
-      out_time_file.open("time.txt");
+    else {
+        out_time_file.open("time.txt");
         if(!out_time_file.is_open()) {
             cout << "Can't open the file time.txt" << endl;
             return -1;

@@ -41,7 +41,7 @@ ifeq ($(target), android)
 LIBS+= --sysroot=$(SYSROOT)
 run_cmd=../../common/android.linux.launcher.sh
 else
-LIBS+= -lrt -lgsl -lgslcblas
+LIBS+= -lrt -lgsl -lgslcblas -lpapi
 endif
 endif
 
