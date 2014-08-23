@@ -5,7 +5,9 @@
 #include "ff.h"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#ifdef CACHE_EVAL
 #include <papi.h>
+#endif
 #include <assert.h>
 
 #define BUFFER_LEN 100000
@@ -152,6 +154,7 @@ int main(int argc, char *argv[])
         }).then([]() {});
     }
 
+#ifdef CACHE_EVAL
     /*Add papi to trace cache miss*/
     int EventSet,retVal;
     long long startRecords[2], endRecords[2];
@@ -183,6 +186,7 @@ int main(int argc, char *argv[])
     retVal = PAPI_read(EventSet, startRecords);
     assert(retVal == PAPI_OK);
     /*Add papi to trace cache miss*/
+#endif
     
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
@@ -199,6 +203,7 @@ int main(int argc, char *argv[])
         pt.put("sequential-elapsed-time", elapsed_seconds);
     boost::property_tree::write_json("time.json", pt);
     
+#ifdef CACHE_EVAL
     /*Stop papi trace*/
     retVal = PAPI_stop(EventSet, endRecords);
     assert(retVal == PAPI_OK);
@@ -217,6 +222,7 @@ int main(int argc, char *argv[])
 //     std::cout << "L3 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
 //     std::cout << "L3 total cache access = " << endRecords[0] - startRecords[0] << std::endl;
     /*Stop papi trace*/
+#endif
 
     cout << "Elapsed time: " << elapsed_seconds << "us" << endl;
     

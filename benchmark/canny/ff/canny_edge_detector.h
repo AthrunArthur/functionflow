@@ -14,7 +14,9 @@
 #include <iostream>//needed
 #include <chrono>
 #include "ff.h"
+#ifdef CACHE_EVAL
 #include <papi.h>//add for cache miss
+#endif
 #include <assert.h>
 
 

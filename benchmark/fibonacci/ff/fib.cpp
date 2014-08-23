@@ -29,7 +29,9 @@ THE SOFTWARE.
 #include <chrono>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#ifdef CACHE_EVAL
 #include <papi.h>
+#endif
 #include <assert.h>
 
 #define FIBNUM 40
@@ -100,6 +102,7 @@ int main(int argc, char *argv[])
         bIsPara = (n > 0)?true:false;
     }
     
+#ifdef CACHE_EVAL
     /*Add papi to trace cache miss*/
     int EventSet,retVal;
     long long startRecords[2], endRecords[2];
@@ -108,29 +111,18 @@ int main(int argc, char *argv[])
     EventSet = PAPI_NULL;
     retVal = PAPI_create_eventset(&EventSet);
     assert(retVal == PAPI_OK);
-    //L1 TCM & TCA
+
     retVal = PAPI_add_event(EventSet, PAPI_L1_TCM);
     assert(retVal == PAPI_OK);
     retVal = PAPI_add_event(EventSet, PAPI_L1_TCA);
     assert(retVal == PAPI_OK);
-    
-    //L2 TCM & TCA
-//     retVal = PAPI_add_event(EventSet, PAPI_L2_TCM);
-//     assert(retVal == PAPI_OK);
-//     retVal = PAPI_add_event(EventSet, PAPI_L2_TCA);
-//     assert(retVal == PAPI_OK);
-    
-    //L3 TCM & TCA
-//     retVal = PAPI_add_event(EventSet, PAPI_L3_TCM);
-//     assert(retVal == PAPI_OK);
-//     retVal = PAPI_add_event(EventSet, PAPI_L3_TCA);
-//     assert(retVal == PAPI_OK);    
     
     retVal = PAPI_start(EventSet);
     assert(retVal == PAPI_OK);
     retVal = PAPI_read(EventSet, startRecords);
     assert(retVal == PAPI_OK);
     /*Add papi to trace cache miss*/
+#endif
     
     int64_t num = FIBNUM,fib_res;
     std::chrono::time_point<chrono::system_clock> start, end;
@@ -144,6 +136,7 @@ int main(int argc, char *argv[])
     elapsed_seconds = std::chrono::duration_cast<chrono::microseconds>
                       (end-start).count();
                       
+#ifdef CACHE_EVAL
     /*Stop papi trace*/
     retVal = PAPI_stop(EventSet, endRecords);
     assert(retVal == PAPI_OK);
@@ -155,6 +148,7 @@ int main(int argc, char *argv[])
     //L1 result
     std::cout << "L1 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
     std::cout << "L1 total cache access = " << endRecords[1] - startRecords[1] << std::endl;
+#endif
     //L2 result
 //     std::cout << "L2 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
 //     std::cout << "L2 total cache access = " << endRecords[0] - startRecords[0] << std::endl;

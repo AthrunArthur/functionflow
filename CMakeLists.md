@@ -23,9 +23,10 @@ else(Release)
 	endif(NOT EXISTS ${PROJECT_SOURCE_DIR}/libs/ff)
 endif(Release)
 
-add_definitions(-DUSING_LOCK_FREE_QUEUE)
+#add_definitions(-DUSING_LOCK_FREE_QUEUE)
 #add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
 #add_definitions(-DUSING_MIMO_QUEUE)
+add_definitions(-DUSING_WORK_STEALING_QUEUE)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 

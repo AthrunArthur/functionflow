@@ -41,6 +41,10 @@ THE SOFTWARE.
 #include "runtime/mimo_queue.h"
 #endif
 
+#ifdef USING_WORK_STEALING_QUEUE
+#include "runtime/twsq.h"
+#endif
+
 #include "runtime/env.h"
 
 namespace ff {
@@ -61,6 +65,11 @@ typedef spin_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #ifdef USING_MIMO_QUEUE
 typedef mimo_lock_free_queue<task_base_ptr, 6> work_stealing_queue;
 #endif
+
+#ifdef USING_WORK_STEALING_QUEUE
+typedef classical_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
+#endif
+
 typedef work_stealing_queue * work_stealing_queue_ptr;
 typedef std::vector<ctx_pdict_ptr> local_stack_queue;
 

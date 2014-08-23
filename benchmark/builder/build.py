@@ -26,10 +26,10 @@ def get_all_cpp_files_in_dir(abs_dir):
     if item == 'test.cpp':
       continue
     if item == 'makeData.cpp':
-      continue    
+      continue
     if item.endswith('.cpp'):
       files.append(abs_dir+'/' + item)
-      
+
   return files
 
 #build_flags can be 'ff', 'tbb' or 'openmp'
@@ -37,7 +37,7 @@ def generate_building_cmd(common_config, bms_config, cpp_files, build_flags):
   cmd = getattr(common_config, 'CXX') + ' '
   for item in getattr(common_config, 'CXX_FLAGS'):
     cmd += str(item) + ' '
-    
+
   tbf = ''
   if build_flags == 'tbb':
     tbf = 'TBB'
@@ -45,16 +45,16 @@ def generate_building_cmd(common_config, bms_config, cpp_files, build_flags):
     tbf = 'FF'
   elif build_flags == 'openmp':
     tbf = 'OPENMP'
-    
+
   for item in getattr(common_config, tbf + '_FLAGS'):
     cmd += str(item) + ' '
-  
+
   for item in getattr(common_config, tbf + '_INCLUDE_DIRS'):
     if inspect.isfunction(item):
       cmd += '-I' + item(ff_base_dir) + ' '
     else:
       cmd += '-I' + str(item) + ' '
-    
+
   for item in getattr(common_config, tbf + '_LINK_DIRS'):
     if inspect.isfunction(item):
       cmd += '-L' + item(ff_base_dir) + ' '
@@ -62,31 +62,31 @@ def generate_building_cmd(common_config, bms_config, cpp_files, build_flags):
     else:
       cmd += '-L' + str(item) + ' '
       cmd += '-Wl,-rpath=' + str(item) + ' '
-      
-    
+
+
   for item in getattr(common_config, tbf + '_LINK_LIBS'):
     cmd += '-l' + str(item) + ' '
-    
+
   for item in getattr(common_config, 'CXX_OPT_FLAGS'):
     cmd += str(item) + ' '
-    
+
   for item in cpp_files:
     cmd += item + ' '
-  
+
   #import wxWidgets for canny
   if not cmp('canny',getattr(bms_config, 'name')):
     cmd += '`wx-config --cflags --libs`' + ' '
-  
+
   output_file= build_dir + getattr(bms_config, 'name') + '_' +build_flags
-  
+
   cmd += ' -o ' + output_file
-  
+
   return cmd
-  
+
 def build_one_bm(common_config, bms_config, abs_sub_dir, flag):
   files = get_all_cpp_files_in_dir(abs_sub_dir)
   build_cmd = generate_building_cmd(common_config, bms_config, files, flag)
-  
+
   print '    ' + build_cmd
   res = execute_cmd(build_cmd)
 
@@ -104,7 +104,7 @@ def build(common_config, bms_configs):
 def cmake_move():
   if os.path.exists(r'%s/CMakeLists.txt' %ff_base_dir):
     execute_cmd('mv %s/CMakeLists.txt %s/CMakeLists.txt.org;' %(ff_base_dir,ff_base_dir))
-  
+
 def cmake_recover():
   if os.path.exists(r'%s/CMakeLists.txt' %ff_base_dir):
     execute_cmd('rm %s/CMakeLists.txt;' %ff_base_dir)
@@ -128,15 +128,15 @@ def build_ff_framework(opt):
     execute_cmd('cd %s; mkdir build;' %ff_base_dir)
   path = '%s/build' %ff_base_dir
   cmd = 'cd %s; rm -rf *;cmake -DRelease=1 ../; make;' % path
-  execute_cmd(cmd)  
-  
+  execute_cmd(cmd)
+
 def run(common_config, bms_configs, times):
   res = {}
   for item in bms_configs:
     res[getattr(item, 'name')] = run_one_bm(common_config, item, times)
-    
+
   return res
-    
+
 def run_one_bm(common_config, bms_config, times):
   exe_base = build_dir + getattr(bms_config,'name')
   exe_files = {}
@@ -190,17 +190,18 @@ def reduce_res(input_res,time_flag):
 	counts += 1
       avg_time = avg_time/counts
       t[ik] = avg_time
-    
+
     res.append(t)
-    
+
   return res
 
 
 if __name__=='__main__':
   if not os.path.exists(build_dir):
     execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
-  print 'This is for test!!'  
-  bms = [benchmark_configs.MUTEX]
+  print 'This is for test!!'
+  #bms = [benchmark_configs.MUTEX]
   #bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
+  bms = [benchmark_configs.LU,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   build(common_config.CommonConfig, bms)
   print run(common_config.CommonConfig, bms, 1)
