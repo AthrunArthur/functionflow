@@ -15,9 +15,9 @@ if __name__ == '__main__':
 	path = execute_cmd('pwd').strip('\n')
 	cmd = 'cd %s; make clean; make;' % path
 	execute_cmd(cmd)
-	item = 'fib_tbb'
+	item = 'fib'
 	para_n = 256
-	print 'file:fib_tbb'
+	print 'file:fib'
 	print 'Parallel time:'
 	time_path = '%s/para_time.txt' % path
 	if os.path.exists(r'%s' %time_path):

@@ -18,7 +18,9 @@
 // #include <tbb/concurrent_vector.h>//concurrent_vector
 #include "tbb/task_group.h"//task_group
 #include <tuple>//std::tuple
+#ifdef CACHE_EVAL
 #include <papi.h>
+#endif
 #include <assert.h>
 
 using namespace tbb;

@@ -452,6 +452,7 @@ void CannyEdgeDetector::NonMaxSuppression()
 
 void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
+#   ifdef CACHE_EVAL 
     /*Add papi to trace cache miss*/
     int EventSet,retVal;
     long long startRecords[2], endRecords[2];
@@ -483,7 +484,8 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
     retVal = PAPI_read(EventSet, startRecords);
     assert(retVal == PAPI_OK);
     /*Add papi to trace cache miss*/
-    
+#   endif    
+
     chrono::time_point<chrono::system_clock> start, end;
     start = chrono::system_clock::now();
     if(isPara)
@@ -508,6 +510,7 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
     end = chrono::system_clock::now();
     hysteresis_time = chrono::duration_cast<chrono::microseconds>(end-start).count();
     
+#ifdef CACHE_EVAL
     /*Stop papi trace*/
     retVal = PAPI_stop(EventSet, endRecords);
     assert(retVal == PAPI_OK);
@@ -526,6 +529,7 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 //     std::cout << "L3 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
 //     std::cout << "L3 total cache access = " << endRecords[0] - startRecords[0] << std::endl;
     /*Stop papi trace*/
+#   endif
 
     for (x = 0; x < height; x++) {//no big differences?
         for (y = 0; y < width; y++) {
