@@ -125,10 +125,24 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
     if(!b)
     {
         b = steal_one_task(pTask);
+        _DEBUG(
+        if(b)
+        {
+                assert(pTask !=nullptr && "Steal invalid task!");
+        })
+    }
+    
+    else{
+      assert(pTask != nullptr && "Invalid task");
     }
     return b;
 }
 
+void 			runtime::run_task(task_base_ptr & pTask)
+{
+  pTask->run();
+}
+#if 0
 void 			runtime::run_task(task_base_ptr & pTask)
 {
     thread_local static int i = get_thrd_id();
@@ -189,6 +203,7 @@ START:
     else
         pTask->run();
 }
+#endif
 #if 0 //The old scheduler
 void 			runtime::run_task(task_base_ptr & pTask)
 {

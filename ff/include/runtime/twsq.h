@@ -46,7 +46,7 @@ namespace rt{
 template <class T, size_t N>
 class classical_work_stealing_queue
 {
-    const static uint64_t INITIAL_SIZE=1<<N;
+    const static int64_t INITIAL_SIZE=1<<N;
 public:
     classical_work_stealing_queue()
       : thieves(0)
@@ -54,13 +54,20 @@ public:
       , head(0)
       , tail(0)
       , cap(1<<N)
-      , array(new T[1<<N]){}
+      , array(new T[1<<N]){
+        if(array == nullptr)
+        {
+          assert(false && "Allocation Failed!");
+          exit(-1);
+        }
+      }
 
     ~classical_work_stealing_queue()
     {
       if(array != nullptr)
       {
-        delete array;
+        delete[] array;
+        array = nullptr;
       }
     }
 
@@ -68,7 +75,7 @@ public:
     {
       auto t = tail.load(MEM_ACQUIRE);
       auto h = head.load(MEM_ACQUIRE);
-      if(h - t == cap - 1)
+      if(t - h == cap - 1)
       {
         resize(cap<<1, h, t);
       }
@@ -79,34 +86,34 @@ public:
 
     bool pop(T & val)
     {
-        auto t = tail.load(MEM_ACQUIRE);
-        t = t - 1;
-        tail.store(t, MEM_RELEASE);
-        auto h = head.load(MEM_ACQUIRE);
-        auto s = t-h;
-        if (s < 0)
+      auto t = tail.load(MEM_ACQUIRE);
+      t = t - 1;
+      tail.store(t, MEM_RELEASE);
+      auto h = head.load(MEM_ACQUIRE);
+      auto s = t-h;
+      if (s < 0)
+      {
+        tail.store(h, MEM_RELEASE);
+        return false;
+      }
+      auto mask = cap - 1;
+      val = array[t&mask];
+      if(s > 0)
+      {
+        if(s <= cap >> 2 && 
+           s > INITIAL_SIZE)
         {
-          tail.store(h, MEM_RELEASE);
-          return false;
+          resize(cap >> 1, h, t);
         }
-        auto mask = cap - 1;
-        val = array[t&mask];
-        if(s > 0)
-        {
-                if(h - t <= cap >> 2 && 
-                        h - t > INITIAL_SIZE)
-                {
-                        resize(cap >> 1, h, t);
-                }
-                return true;
-        }
-        bool res = true; 
-        if(!head.compare_exchange_strong(h, h+1, std::memory_order_acq_rel))
-        {
-          res = false;
-        }
-        tail.store(h + 1, MEM_RELEASE);
-        return res;
+        return true;
+      }
+      bool res = true; 
+      if(!head.compare_exchange_strong(h, h+1, std::memory_order_acq_rel))
+      {
+        res = false;
+      }
+      tail.store(h + 1, MEM_RELEASE);
+      return res;
     }
 
     bool steal(T & val)
@@ -122,7 +129,8 @@ public:
       auto s = t - h;
       if ( s <= 0)
         return false;
-      val = array[h];
+      auto mask = cap - 1;
+      val = array[h&mask];
       if(head.compare_exchange_strong(h, h + 1, std::memory_order_acq_rel))
       {
         return true;
@@ -138,6 +146,11 @@ public:
     void resize(int64_t s, int64_t h, int64_t t)
     {
       auto c1 = new T[s];
+      if(c1 == nullptr)
+      {
+        assert(false && "Allocation failed");
+        exit(-1);
+      }
       auto mask = cap - 1;
       auto m1 = s - 1;
       for(int64_t i = h; i < t; ++i)

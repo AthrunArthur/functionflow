@@ -6,7 +6,8 @@ add_definitions(-std=c++11)
 
 #add_definitions(-DUSING_LOCK_FREE_QUEUE)
 #add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
-add_definitions(-DUSING_MIMO_QUEUE)
+#add_definitions(-DUSING_MIMO_QUEUE)
+add_definitions(-DUSING_WORK_STEALING_QUEUE)
 
 
 if(Release)
@@ -64,5 +65,5 @@ TARGET_LINK_LIBRARIES(test_ws ${LIBS_LINK_LIBS})
 ADD_EXECUTABLE(paragroup_test test_paragroup.cpp)
 TARGET_LINK_LIBRARIES(paragroup_test ${LIBS_LINK_LIBS})
 
-ADD_EXECUTABLE(mutex_test test_mutex.cpp)
-TARGET_LINK_LIBRARIES(mutex_test ${LIBS_LINK_LIBS})
+#ADD_EXECUTABLE(mutex_test test_mutex.cpp)
+#TARGET_LINK_LIBRARIES(mutex_test ${LIBS_LINK_LIBS})

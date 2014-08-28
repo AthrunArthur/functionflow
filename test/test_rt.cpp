@@ -28,7 +28,7 @@ THE SOFTWARE.
 #include "common/log.h"
 
 using namespace ff;
-#define FF_TEST_TIME 100
+#define FF_TEST_TIME 111
 
 
 int inc(int t)
@@ -144,19 +144,23 @@ void ff_test_basic()
 {
   para<int> a, b;
   ff_wait(a);
-  
+  std::cout<<"test wait null task ok"<<std::endl;
+
   paragroup pg;
   ff_wait(all(pg));
-  
+  std::cout<<"test wait null paragroup ok"<<std::endl;
+
   std::vector<int> s;
   paragroup pg1;
   pg1.for_each(s.begin(), s.end(), [](int p){p ++;});
   ff_wait(all(pg1));
-  
+  std::cout<<"test wait paragroup with null tasks ok"<<std::endl;
+
   paragroup pg2;
   s.push_back(1);
   pg2.for_each(s.begin(), s.end(), [](int p){p ++;});
   ff_wait(all(pg2));
+  std::cout<<"test wait paragroup with 1 task ok"<<std::endl;
 }
 
 
@@ -171,7 +175,11 @@ int main(int argc, char *argv[])
         ff_test_para();
         ff_test_paragroup();
     }
+    std::cout<<"test_para ok"<<std::endl;
+    std::cout<<"test_paragroup ok"<<std::endl;
+
 
     ff_test_basic();
+    std::cout<<"test_wait ok"<<std::endl;
     return 0;
 }

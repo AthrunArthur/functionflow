@@ -7,6 +7,7 @@ import common_config
 import inspect
 import subprocess
 import json
+import sys
 
 current_file = os.path.abspath(__file__)
 current_dir = os.path.dirname(current_file)
@@ -58,10 +59,12 @@ def generate_building_cmd(common_config, bms_config, cpp_files, build_flags):
   for item in getattr(common_config, tbf + '_LINK_DIRS'):
     if inspect.isfunction(item):
       cmd += '-L' + item(ff_base_dir) + ' '
-      cmd += '-Wl,-rpath=' + item(ff_base_dir) + ' '
+      if sys.platform.find('darwin') == -1:
+        cmd += '-Wl,-rpath=' + item(ff_base_dir) + ' '
     else:
       cmd += '-L' + str(item) + ' '
-      cmd += '-Wl,-rpath=' + str(item) + ' '
+      if sys.platform.find('darwin') == -1:
+        cmd += '-Wl,-rpath=' + str(item) + ' '
 
 
   for item in getattr(common_config, tbf + '_LINK_LIBS'):

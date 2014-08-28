@@ -122,7 +122,7 @@ public:
     }
     bool	check_if_over()
     {
-        if(m_iES == exe_state::exe_over)
+        if(m_iES == exe_state::exe_over || m_iES == exe_state::exe_unknown)
             return true;
         m_iES = ( m_1.get_state() && m_2.get_state());
         if(m_iES == exe_state::exe_over)
@@ -225,7 +225,7 @@ public:
     }
     bool	check_if_over()
     {
-        if(m_iES == exe_state::exe_over)
+        if(m_iES == exe_state::exe_over || m_iES == exe_state::exe_unknown)
             return true;
         m_iES = ( m_1.get_state() || m_2.get_state() );
         if(m_iES == exe_state::exe_over)

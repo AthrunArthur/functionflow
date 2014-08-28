@@ -146,9 +146,11 @@ int main(int argc, char *argv[])
   tp.run(runner);
   tp.run([](){steal(1);});
   tp.run([](){steal(2);});
+  tp.run([](){steal(3);});
+  tp.run([](){steal(4);});
   
   std::chrono::seconds dura( 15 );
-    std::this_thread::sleep_for( dura );
+  std::this_thread::sleep_for( dura );
    quit.store(true);
    std::cout<<"wait all threads quiting..."<<std::endl;
    tp.join();

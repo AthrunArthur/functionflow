@@ -25,17 +25,17 @@ THE SOFTWARE.
 #include "common/log.h"
 #include <iostream>
 
-int fib(int n)
+int64_t fib(int n)
 {
 	if(n <=2)
 		return 1;
 	_DEBUG(LOG_INFO(main)<<"fib "<<n;)
-	ff::para<int> a, b;
-	a([&n]()->int{return fib(n - 1);});
-	b([&n]()->int{return fib(n - 2);});
-	return (a && b).then([](int x, int y){return x + y;});
+	ff::para<int64_t> a, b;
+	a([&n]()->int64_t{return fib(n - 1);});
+	b([&n]()->int64_t{return fib(n - 2);});
+	return (a && b).then([](int64_t x, int64_t y){return x + y;});
 }
-int sfib(int n )
+int64_t sfib(int n )
 {
  if(n <= 2)
    return 1;
@@ -50,8 +50,14 @@ int main(int argc, char *argv[])
 	
 	int num = 20;	
 	
-	int fib_res = fib(num);
-	//int fib_res = sfib(num);
+	int64_t fib_res = fib(num);
+	int64_t p_res = sfib(num);
+        if (fib_res == p_res)
+          std::cout<<"fib correct!!"<<std::endl;
+        else
+        {
+          std::cout<<"Something is wrong here! The result is wrong!"<<std::endl;
+        }
 	std::cout<<"fib( "<<num<<" )="<<fib_res<<std::endl;
 	return 0;
 }
