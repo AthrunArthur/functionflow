@@ -26,7 +26,7 @@ THE SOFTWARE.
 
 #ifdef FUNCTION_FLOW_DEBUG
 #define SYNC_WRITING_LOG
-#include "ff/log.h"
+#include "ff/fflog.h"
 #endif
 
 

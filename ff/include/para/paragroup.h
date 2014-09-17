@@ -259,7 +259,7 @@ namespace ff {
                     Iterator_t lt = t;
                     while(lt != tmp)
                     {
-                        _DEBUG(LOG_INFO(para) <<"for_each generated task run step f("<< *lt<<")")
+                        _DEBUG(LOG_INFO(para) <<"for_each generated task run step f("<< ")")
                         f(lt);
                         lt ++;
                     }

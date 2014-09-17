@@ -24,10 +24,28 @@ THE SOFTWARE.
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
 #include "utilities/mutex.h"
+#ifdef FUNCTION_FLOW_DEBUG
+#include "runtime/record.h"
+
+#endif
+
+#ifdef FUNCTION_FLOW_DEBUG
+#include <signal.h>
+void sighandler(int signum)
+{
+  std::cout<<"Caught signal:" <<signum<<std::endl;
+  std::cout<<"Now dumping info..."<<std::endl;
+  ff::rt::all_records::getInstance()->dump_all();
+  exit(-1);
+}
+#endif
 
 namespace ff {
 
 namespace rt {
+#ifdef FUNCTION_FLOW_DEBUG
+ all_records * all_records::s_pInstance = nullptr;
+#endif
 std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
 runtime_ptr runtime::s_pInstance(nullptr);
 std::once_flag		runtime::s_oOnce;
@@ -84,6 +102,18 @@ void			runtime::init()
     {
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
     }
+#ifdef FUNCTION_FLOW_DEBUG
+    all_records * prs = all_records::getInstance();
+    prs->init(thrd_num, "wsr.dat");
+    struct sigaction act_h;
+    struct sigaction old_act;
+    act_h.sa_handler = sighandler;
+    memset(&act_h, 0, sizeof(act_h));
+    act_h.sa_handler = sighandler;
+
+    sigaction(SIGINT,&act_h,&old_act);
+    sigaction(SIGSEGV, &act_h, &old_act);
+#endif
     _DEBUG(LOG_INFO(rt)<<"init thread num:"<<thrd_num)
     set_local_thrd_id(0);
 
@@ -128,6 +158,7 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
         _DEBUG(
         if(b)
         {
+                ff::rt::all_records::getInstance()->dump_all();
                 assert(pTask !=nullptr && "Steal invalid task!");
         })
     }

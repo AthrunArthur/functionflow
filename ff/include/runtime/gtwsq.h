@@ -22,16 +22,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
 
-#ifndef FF_RUNTIME_TWSQ_H_
-#define FF_RUNTIME_TWSQ_H_
+#ifndef FF_RUNTIME_GTWSQ_H_
+#define FF_RUNTIME_GTWSQ_H_
 #include "common/common.h"
 #include "runtime/rtcmn.h"
 #include "common/log.h"
 #include "common/scope_guard.h"
 
-#ifdef FUNCTION_FLOW_DEBUG
-#include "runtime/record.h"
-#endif
 
 namespace ff{
 namespace rt{
@@ -54,18 +51,15 @@ namespace rt{
 
 //N, 2^N.
 template <class T, size_t N>
-class classical_work_stealing_queue
+class gcc_work_stealing_queue
 {
     const static int64_t INITIAL_SIZE=1<<N;
 public:
-    classical_work_stealing_queue()
+    gcc_work_stealing_queue()
       : rflag(0)
       , head(0)
       , tail(0)
       , cap(1<<N)
-#ifdef FUNCTION_FLOW_DEBUG
-      , m_rid(-1)
-#endif
       , array(new T[1<<N]){
         if(array == nullptr)
         {
@@ -74,7 +68,7 @@ public:
         }
       }
 
-    ~classical_work_stealing_queue()
+    ~gcc_work_stealing_queue()
     {
       if(array != nullptr)
       {
@@ -85,49 +79,27 @@ public:
 
     void push_back(const T & val)
     {
-#ifdef FUNCTION_FLOW_DEBUG
-      thread_local static thrd_id_t id = get_thrd_id();
-      m_id = id;
-      m_rid ++;
-#endif
-      auto t = tail.load();
-      auto h = head.load();
+      auto t = tail;
+      auto h = head;
       if(t - h == cap - 1)
       {
         resize(cap<<1, h, t);
       }
-#ifdef FUNCTION_FLOW_DEBUG
-      record r(m_rid.load(), m_id, id, record::op_push, h, t);
-      all_records::getInstance()->add(r);
-#endif
       auto mask = cap - 1;
       array[t&mask] = val;
-      tail.store(t+1);
+      tail = t + 1;
     }
 
     bool pop(T & val)
     {
-      int64_t t = tail.load();
+      int64_t t = tail;
       t = t - 1;
-      tail.store(t);
-      int64_t h = head.load();
+      tail = t;
+      int64_t h = head;
       int s = t-h;
-#ifdef FUNCTION_FLOW_DEBUG
-      if (t<h)
-        assert(s<0 && "xxxxx");
-      thread_local static thrd_id_t id = get_thrd_id();
-      m_rid ++;
-      record r(m_rid.load(), m_id, id, record::op_pop, h, t);
-      scope_guard _sg([](){}, [&r](){
-          all_records::getInstance()->add(r);
-          });
-#endif
       if (s < 0)
       {
-        tail.store(h);
-#ifdef FUNCTION_FLOW_DEBUG
-        r.op_res = false;
-#endif
+        tail = h;
         return false;
       }
       auto mask = cap - 1;
@@ -139,73 +111,46 @@ public:
         {
           resize(cap >> 1, h, t);
         }
-#ifdef FUNCTION_FLOW_DEBUG
-        r.op_res = true;
-#endif
         val = array[t & mask];
         return true;
       }
       bool res = true; 
-      if(!head.compare_exchange_strong(h, h+1))
+      if(!__sync_bool_compare_and_swap(&head, h, h+1))
       {
         res = false;
       }
-      tail.store(h + 1);
-#ifdef FUNCTION_FLOW_DEBUG
-      r.op_res = res;
-#endif
+      tail = h + 1;
       return res;
     }
 
     bool steal(T & val)
     {
-      if (rflag.load() >= 1<<8) return false;
+      if (rflag >= 1<<8) return false;
       scope_guard _sg([this](){
           rflag ++;
       }, [this](){
           rflag --;
       });
-      if (rflag.load() >= 1<<8) return false;
-      auto h = head.load();
-      auto t = tail.load();
-#ifdef FUNCTION_FLOW_DEBUG
-      thread_local static thrd_id_t id = get_thrd_id();
-      m_rid ++;
-      record r(m_rid.load(), m_id, id, record::op_steal, h, t);
-      scope_guard _rg([](){}, [&r](){
-          all_records::getInstance()->add(r);
-          });
-#endif
+      if (rflag >= 1<<8) return false;
+      int64_t h = head;
+      int64_t t = tail;
 
-      auto s = t - h;
+      int s = t - h;
       if ( s <= 0){
-#ifdef FUNCTION_FLOW_DEBUG
-        r.op_res = false;
-#endif
         return false;
       }
       auto mask = cap - 1;
       val = array[h&mask];
-      if(head.compare_exchange_strong(h, h + 1))
+      if(__sync_bool_compare_and_swap(&head, h, h+1))
       {
-#ifdef FUNCTION_FLOW_DEBUG
-        r.op_res = true;
-        if(val == 0)
-        {
-          std::cout<<"steal error, with h:"<<h<<", t:"<<t<<std::endl;
-        }
-#endif
         return true;
       }
-#ifdef FUNCTION_FLOW_DEBUG
-        r.op_res = false;
-#endif
       return false;
     }
 
     uint64_t size()
     {
-      return static_cast<uint64_t>(tail.load() - head.load());
+      return static_cast<uint64_t>(tail - head);
     }
 
     void resize(int64_t s, int64_t h, int64_t t)
@@ -223,24 +168,20 @@ public:
       {
         c1[i&m1] = array[i&mask];
       }
-      rflag.store(rflag.load() | (1<<8));
-      while(rflag.load() &((1<<8) - 1)) yield();
+      rflag = (rflag | (1<<8));
+      while(rflag &((1<<8) - 1)){__sync_synchronize(); yield();}
       cap = s;
       auto tp = array;
       array = c1;
-      rflag.store(rflag.load() & ((1<<8) - 1));
+      rflag = (rflag & ((1<<8) - 1));
       delete[] tp;
     }
-    int64_t  get_head() const { head.load();}
-    int64_t  get_tail() const { tail.load();}
+    int64_t  get_head() const { head;}
+    int64_t  get_tail() const { tail;}
 protected:
-#ifdef FUNCTION_FLOW_DEBUG
-    std::atomic<int64_t>   m_rid;
-    thrd_id_t   m_id;
-#endif
-    std::atomic<int16_t>    rflag; //for resizing
-    std::atomic<int64_t>   head;
-    std::atomic<int64_t>   tail;
+    int16_t rflag;
+    int64_t head;
+    int64_t tail;
     int64_t   cap;
     T *       array;
 };//end class classical_work_stealing_queue

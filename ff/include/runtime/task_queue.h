@@ -42,7 +42,8 @@ THE SOFTWARE.
 #endif
 
 #ifdef USING_WORK_STEALING_QUEUE
-#include "runtime/twsq.h"
+//#include "runtime/twsq.h"
+#include "runtime/gtwsq.h"
 #endif
 
 #include "runtime/env.h"
@@ -67,7 +68,8 @@ typedef mimo_lock_free_queue<task_base_ptr, 6> work_stealing_queue;
 #endif
 
 #ifdef USING_WORK_STEALING_QUEUE
-typedef classical_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
+//typedef classical_work_stealing_queue<task_base_ptr, 20> work_stealing_queue;
+typedef gcc_work_stealing_queue<task_base_ptr, 20> work_stealing_queue;
 #endif
 
 typedef work_stealing_queue * work_stealing_queue_ptr;
