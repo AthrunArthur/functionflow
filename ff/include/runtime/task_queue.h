@@ -69,7 +69,7 @@ typedef mimo_lock_free_queue<task_base_ptr, 6> work_stealing_queue;
 
 #ifdef USING_WORK_STEALING_QUEUE
 //typedef classical_work_stealing_queue<task_base_ptr, 20> work_stealing_queue;
-typedef gcc_work_stealing_queue<task_base_ptr, 20> work_stealing_queue;
+typedef gcc_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
 typedef work_stealing_queue * work_stealing_queue_ptr;
