@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "runtime/rtcmn.h"
 #include "common/log.h"
 #include "common/scope_guard.h"
+#include "common/spin_lock.h"
 
 #ifdef FUNCTION_FLOW_DEBUG
 #include "runtime/record.h"
@@ -159,13 +160,19 @@ public:
 
     bool steal(T & val)
     {
-      if (rflag.load() >= 1<<8) return false;
       scope_guard _sg([this](){
-          rflag ++;
+          slock.lock();
+          rflag++;
+          if(rflag == 1)
+                rlock.lock();
+          slock.unlock();
       }, [this](){
+          slock.lock();
           rflag --;
+          if(rflag == 0)
+                rlock.unlock();
+          slock.unlock();
       });
-      if (rflag.load() >= 1<<8) return false;
       auto h = head.load();
       auto t = tail.load();
 #ifdef FUNCTION_FLOW_DEBUG
@@ -223,12 +230,11 @@ public:
       {
         c1[i&m1] = array[i&mask];
       }
-      rflag.store(rflag.load() | (1<<8));
-      while(rflag.load() &((1<<8) - 1)) yield();
+      rlock.lock();
       cap = s;
       auto tp = array;
       array = c1;
-      rflag.store(rflag.load() & ((1<<8) - 1));
+      rlock.unlock();
       delete[] tp;
     }
     int64_t  get_head() const { head.load();}
@@ -243,6 +249,8 @@ protected:
     std::atomic<int64_t>   tail;
     int64_t   cap;
     T *       array;
+    spinlock  rlock;
+    spinlock  slock;
 };//end class classical_work_stealing_queue
 #undef MEM_SEQ_CST
 #undef MEM_ACQUIRE

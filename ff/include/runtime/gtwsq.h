@@ -28,6 +28,7 @@ THE SOFTWARE.
 #include "runtime/rtcmn.h"
 #include "common/log.h"
 #include "common/scope_guard.h"
+#include "common/spin_lock.h"
 
 
 namespace ff{
@@ -55,12 +56,17 @@ class gcc_work_stealing_queue
 {
     const static int64_t INITIAL_SIZE=1<<N;
 public:
+    int p1, p2, p3, p4;
     gcc_work_stealing_queue()
       : rflag(0)
       , head(0)
       , tail(0)
       , cap(1<<N)
-      , array(new T[1<<N]){
+      , array(new T[1<<N])
+        , p1(0)
+        , p2(0)
+        , p3(0)
+        , p4(0){
         if(array == nullptr)
         {
           assert(false && "Allocation Failed!");
@@ -70,6 +76,7 @@ public:
 
     ~gcc_work_stealing_queue()
     {
+      //std::cout<<p1<<", "<<p2<<", "<<p3<<", "<<p4<<std::endl;
       if(array != nullptr)
       {
         delete[] array;
@@ -125,18 +132,27 @@ public:
 
     bool steal(T & val)
     {
-      if (rflag >= 1<<8) return false;
+      //if (rflag.load() >= 1<<8){p1++; return false;}
       scope_guard _sg([this](){
-          rflag ++;
+          slock.lock();
+          rflag++;
+          if(rflag == 1)
+                rlock.lock();
+          slock.unlock();
       }, [this](){
+          slock.lock();
           rflag --;
+          if(rflag == 0)
+                rlock.unlock();
+          slock.unlock();
       });
-      if (rflag >= 1<<8) return false;
+     // if (rflag.load() >= 1<<8){p2++; return false;}
       int64_t h = head;
       int64_t t = tail;
 
       int s = t - h;
       if ( s <= 0){
+        p3 ++;
         return false;
       }
       auto mask = cap - 1;
@@ -145,6 +161,7 @@ public:
       {
         return true;
       }
+      p4 ++;
       return false;
     }
 
@@ -168,12 +185,11 @@ public:
       {
         c1[i&m1] = array[i&mask];
       }
-      rflag = (rflag | (1<<8));
-      while(rflag &((1<<8) - 1)){__sync_synchronize(); yield();}
+      rlock.lock();
       cap = s;
       auto tp = array;
       array = c1;
-      rflag = (rflag & ((1<<8) - 1));
+      rlock.unlock();
       delete[] tp;
     }
     int64_t  get_head() const { head;}
@@ -184,6 +200,8 @@ protected:
     int64_t tail;
     int64_t   cap;
     T *       array;
+    spinlock  rlock;
+    spinlock  slock;
 };//end class classical_work_stealing_queue
 #undef MEM_SEQ_CST
 #undef MEM_ACQUIRE
