@@ -99,4 +99,12 @@ internal::wait_any any(paragroup & pg)
 {
 	return internal::wait_any(pg.all_entities());
 }
+internal::wait_all all(paracontainer & pc)
+{
+   return internal::wait_all(pc.all_entities());
+}
+internal::wait_any any(paracontainer & pc)
+{
+    return internal::wait_any(pc.all_entities());
+}
 }//end namespace ff

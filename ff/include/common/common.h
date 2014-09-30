@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include <atomic>
 #include <thread>
 #include <type_traits>
+#include <iterator>
 #include <cassert>
 #ifdef FUNCTION_FLOW_DEBUG
 #include <iostream>

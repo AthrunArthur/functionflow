@@ -21,31 +21,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_H_
-#define FF_H_
+#ifndef FF_PARA_PARAS_WITH_LOCK_H_
+#define FF_PARA_PARAS_WITH_LOCK_H_
 
 #include "common/common.h"
-#include "para/data_wrapper.h"
+
 #include "para/para.h"
-#include "para/paragroup.h"
-#include "para/paracontainer.h"
-#include "para/wait.h"
-#include "common/scope_guard.h"
-#include "utilities/mutex.h"
+#include "common/spin_lock.h"
 
-namespace ff{
-
-template<class W>
-void ff_wait(W && wexpr)
+namespace ff
 {
-	(wexpr).then([](){});
-}//end wait
-template<class RT>
-void ff_wait(para<RT> & sexpr)
-{
-	ff_wait(sexpr && sexpr);
+    namespace internal
+    {
+        class paras_with_lock{
+        public:
+            std::vector<para<void> >  entities;
+            ff::spinlock	lock;
+        };
+    }
 }
-
-}//end namespace ff
-
 #endif

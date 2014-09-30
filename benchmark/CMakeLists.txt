@@ -50,16 +50,16 @@ if(QS OR All)
   TARGET_LINK_LIBRARIES(quicksort ${LIBS})
 endif(QS OR All)
 
-if(CANNY OR All)
-  message(STATUS "Building canny...")
-  SET(CANNY_LIST canny/ff/run_canny.cpp
-		canny/ff/canny_edge_detector.cpp)
-
-  find_package(wxWidgets COMPONENTS core base REQUIRED)
-  include( "${wxWidgets_USE_FILE}")		
-  ADD_EXECUTABLE(canny ${CANNY_LIST})
-  TARGET_LINK_LIBRARIES(canny ${wxWidgets_LIBRARIES} ${LIBS})
-endif(CANNY OR All)
+#if(CANNY OR All)
+#  message(STATUS "Building canny...")
+#  SET(CANNY_LIST canny/ff/run_canny.cpp
+#		canny/ff/canny_edge_detector.cpp)
+#
+#  find_package(wxWidgets COMPONENTS core base REQUIRED)
+#  include( "${wxWidgets_USE_FILE}")		
+#  ADD_EXECUTABLE(canny ${CANNY_LIST})
+#  TARGET_LINK_LIBRARIES(canny ${wxWidgets_LIBRARIES} ${LIBS})
+#endif(CANNY OR All)
 
 if(KMEANS OR All)
   message(STATUS "Building kmeans...")

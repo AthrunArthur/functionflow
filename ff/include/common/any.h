@@ -21,31 +21,49 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_H_
-#define FF_H_
+#ifndef FF_COMMON_ANY_H_
+#define FF_COMMON_ANY_H_
 
 #include "common/common.h"
-#include "para/data_wrapper.h"
-#include "para/para.h"
-#include "para/paragroup.h"
-#include "para/paracontainer.h"
-#include "para/wait.h"
-#include "common/scope_guard.h"
-#include "utilities/mutex.h"
+
 
 namespace ff{
+    namespace internal{
+       class any_base{};
 
-template<class W>
-void ff_wait(W && wexpr)
-{
-	(wexpr).then([](){});
-}//end wait
-template<class RT>
-void ff_wait(para<RT> & sexpr)
-{
-	ff_wait(sexpr && sexpr);
-}
+        template <class T>
+        class any_impl : public any_base{
+        public:
+            any_impl(const T & t)
+                    : m_val(t){};
+            T &  get(){return m_val;}
+            const T & get() const {return m_val;}
 
+        protected:
+            T   m_val;
+        };
+    }//end namespace internal
+    class any_value
+    {
+    public:
+        template <class T> any_value(const T & t)
+        : m_pVal(nullptr)
+        {m_pVal = std::shared_ptr<internal::any_base>(new internal::any_impl<T>(t));};
+
+        template <class T>
+        T & get(){
+            internal::any_impl<T> * p = static_cast<internal::any_impl<T> *>(m_pVal.get());
+            return p->get();
+        };
+
+        template <class T>
+        const T & get() const {
+            const internal::any_impl<T> * p = static_cast<const internal::any_impl<T> * >(m_pVal.get());
+            return p->get();
+        };
+    protected:
+        std::shared_ptr<internal::any_base>  m_pVal;
+    };
 }//end namespace ff
 
 #endif

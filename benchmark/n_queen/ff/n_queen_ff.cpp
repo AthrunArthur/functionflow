@@ -84,7 +84,7 @@ int queen_para(const int* x,int t) {
         queen_parallel(xx,t);
     }
     else {
-        ff::paragroup pp;
+        ff::paracontainer pp;
         //tbb::task_list list;
         for(int i=1; i<=N; i++)
         {

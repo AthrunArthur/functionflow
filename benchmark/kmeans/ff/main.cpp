@@ -90,7 +90,7 @@ void kmeans(Points & points, bool isPara)
     //update
     for(int step = 0; step < MAXSTEP; step++) {// && !mLloyd.isEnd(MAXDELTA); step++) {
         if(isPara) {
-            ff::paragroup pg;
+            ff::paracontainer pg;
            // pg.for_each(0,blockSize,[&vecLloyd,&points,blockSize](int i) {
 // 	      cout << "para" << endl;
              /*   int start = i * PARASIZE,end;

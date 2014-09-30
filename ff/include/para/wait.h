@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "common/tuple_type.h"
 #include "para/para.h"
 #include "para/paragroup.h"
+#include "para/paracontainer.h"
 #include "para/bin_wait_func_deducer.h"
 #include "common/log.h"
 
@@ -326,8 +327,10 @@ is_para_or_wait<typename std::remove_reference<T2>::type>::value,
 }
 
 auto all(paragroup & pg) -> internal::wait_all;
-
 auto any(paragroup & pg) -> internal::wait_any;
+
+auto all(paracontainer & pc) -> internal::wait_all;
+auto any(paracontainer & pc) -> internal::wait_any;
 
 }//end namespace ff
 

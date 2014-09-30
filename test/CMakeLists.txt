@@ -16,7 +16,7 @@ if(Release)
 	add_definitions(-DNDEBUG)
 else(Release)
     add_definitions(-g)
-    add_definitions(-DFUNCTION_FLOW_DEBUG)
+    #add_definitions(-DFUNCTION_FLOW_DEBUG)
     include_directories(${PROJECT_SOURCE_DIR}/../libs)
 endif(Release)
 
@@ -64,6 +64,9 @@ TARGET_LINK_LIBRARIES(test_ws ${LIBS_LINK_LIBS})
 
 ADD_EXECUTABLE(paragroup_test test_paragroup.cpp)
 TARGET_LINK_LIBRARIES(paragroup_test ${LIBS_LINK_LIBS})
+
+ADD_EXECUTABLE(any_test test_any.cpp)
+TARGET_LINK_LIBRARIES(any_test ${LIBS_LINK_LIBS})
 
 #ADD_EXECUTABLE(mutex_test test_mutex.cpp)
 #TARGET_LINK_LIBRARIES(mutex_test ${LIBS_LINK_LIBS})
