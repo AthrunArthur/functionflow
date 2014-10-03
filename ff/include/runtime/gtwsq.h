@@ -30,6 +30,9 @@ THE SOFTWARE.
 #include "common/scope_guard.h"
 #include "common/spin_lock.h"
 
+#ifdef FUNCTION_FLOW_DEBUG
+#include "runtime/record.h"
+#endif
 
 namespace ff{
 namespace rt{
@@ -56,17 +59,16 @@ class gcc_work_stealing_queue
 {
     const static int64_t INITIAL_SIZE=1<<N;
 public:
-    int p1, p2, p3, p4;
     gcc_work_stealing_queue()
       : rflag(0)
       , head(0)
       , tail(0)
       , cap(1<<N)
+#ifdef FUNCTION_FLOW_DEBUG
+      , m_rid(-1)
+#endif
       , array(new T[1<<N])
-        , p1(0)
-        , p2(0)
-        , p3(0)
-        , p4(0){
+        {
         if(array == nullptr)
         {
           assert(false && "Allocation Failed!");
@@ -86,12 +88,21 @@ public:
 
     void push_back(const T & val)
     {
+#ifdef FUNCTION_FLOW_DEBUG
+      thread_local static thrd_id_t id = get_thrd_id();
+      m_id = id;
+      m_rid ++;
+#endif
       auto t = tail;
       auto h = head;
       if(t - h == cap - 1)
       {
         resize(cap<<1, h, t);
       }
+#ifdef FUNCTION_FLOW_DEBUG
+      record r(m_rid.load(), m_id, id, record::op_push, h, t);
+      all_records::getInstance()->add(r);
+#endif
       auto mask = cap - 1;
       array[t&mask] = val;
       tail = t + 1;
@@ -104,9 +115,22 @@ public:
       tail = t;
       int64_t h = head;
       int s = t-h;
+#ifdef FUNCTION_FLOW_DEBUG
+      if (t<h)
+        assert(s<0 && "xxxxx");
+      thread_local static thrd_id_t id = get_thrd_id();
+      m_rid ++;
+      record r(m_rid.load(), m_id, id, record::op_pop, h, t);
+      scope_guard _sg([](){}, [&r](){
+          all_records::getInstance()->add(r);
+          });
+#endif
       if (s < 0)
       {
         tail = h;
+#ifdef FUNCTION_FLOW_DEBUG
+        r.op_res = false;
+#endif
         return false;
       }
       auto mask = cap - 1;
@@ -117,8 +141,16 @@ public:
            s > INITIAL_SIZE)
         {
           resize(cap >> 1, h, t);
+          mask = cap - 1;
         }
         val = array[t & mask];
+#ifdef FUNCTION_FLOW_DEBUG
+        r.op_res = true;
+        if(val == 0)
+        {
+          std::cout<<"pop error 1, with h:"<<h<<", t:"<<t<<std::endl;
+        }
+#endif
         return true;
       }
       bool res = true; 
@@ -127,12 +159,18 @@ public:
         res = false;
       }
       tail = h + 1;
+#ifdef FUNCTION_FLOW_DEBUG
+      r.op_res = res;
+      if(res && val==0)
+      {
+        std::cout<<"pop error 2, with h:"<<h<<", t:"<<t<<std::endl;
+      }
+#endif
       return res;
     }
 
     bool steal(T & val)
     {
-      //if (rflag.load() >= 1<<8){p1++; return false;}
       scope_guard _sg([this](){
           slock.lock();
           rflag++;
@@ -146,22 +184,40 @@ public:
                 rlock.unlock();
           slock.unlock();
       });
-     // if (rflag.load() >= 1<<8){p2++; return false;}
       int64_t h = head;
       int64_t t = tail;
+#ifdef FUNCTION_FLOW_DEBUG
+      thread_local static thrd_id_t id = get_thrd_id();
+      m_rid ++;
+      record r(m_rid.load(), m_id, id, record::op_steal, h, t);
+      scope_guard _rg([](){}, [&r](){
+          all_records::getInstance()->add(r);
+          });
+#endif
 
       int s = t - h;
       if ( s <= 0){
-        p3 ++;
+#ifdef FUNCTION_FLOW_DEBUG
+        r.op_res = false;
+#endif
         return false;
       }
       auto mask = cap - 1;
       val = array[h&mask];
       if(__sync_bool_compare_and_swap(&head, h, h+1))
       {
+#ifdef FUNCTION_FLOW_DEBUG
+        r.op_res = true;
+        if(val == 0)
+        {
+          std::cout<<"steal error, with h:"<<h<<", t:"<<t<<std::endl;
+        }
+#endif
         return true;
       }
-      p4 ++;
+#ifdef FUNCTION_FLOW_DEBUG
+        r.op_res = false;
+#endif
       return false;
     }
 
@@ -172,7 +228,6 @@ public:
 
     void resize(int64_t s, int64_t h, int64_t t)
     {
-      assert(false &&" no resize");
       auto c1 = new T[s];
       if(c1 == nullptr)
       {
@@ -181,7 +236,7 @@ public:
       }
       auto mask = cap - 1;
       auto m1 = s - 1;
-      for(int64_t i = h; i < t; ++i)
+      for(int64_t i = h; i <= t; ++i)
       {
         c1[i&m1] = array[i&mask];
       }
@@ -195,6 +250,10 @@ public:
     int64_t  get_head() const { head;}
     int64_t  get_tail() const { tail;}
 protected:
+#ifdef FUNCTION_FLOW_DEBUG
+    std::atomic<int64_t>   m_rid;
+    thrd_id_t   m_id;
+#endif
     int16_t rflag;
     int64_t head;
     int64_t tail;

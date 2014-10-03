@@ -45,7 +45,6 @@ void ff_wait(para<RT> & sexpr)
 {
 	ff_wait(sexpr && sexpr);
 }
-
 }//end namespace ff
 
 #endif

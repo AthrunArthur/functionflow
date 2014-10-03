@@ -68,5 +68,7 @@ TARGET_LINK_LIBRARIES(paragroup_test ${LIBS_LINK_LIBS})
 ADD_EXECUTABLE(any_test test_any.cpp)
 TARGET_LINK_LIBRARIES(any_test ${LIBS_LINK_LIBS})
 
+ADD_EXECUTABLE(rangemap_test test_range_map.cpp)
+TARGET_LINK_LIBRARIES(rangemap_test ${LIBS_LINK_LIBS})
 #ADD_EXECUTABLE(mutex_test test_mutex.cpp)
 #TARGET_LINK_LIBRARIES(mutex_test ${LIBS_LINK_LIBS})

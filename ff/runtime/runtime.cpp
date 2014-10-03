@@ -158,13 +158,23 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
         _DEBUG(
         if(b)
         {
-                ff::rt::all_records::getInstance()->dump_all();
+                if(pTask == nullptr){
+                    ff::rt::all_records::getInstance()->dump_all();
+                    std::cout<<"steal invalid task"<<std::endl;
+                }
                 assert(pTask !=nullptr && "Steal invalid task!");
         })
     }
     
     else{
-      assert(pTask != nullptr && "Invalid task");
+#ifdef FUNCTION_FLOW_DEBUG
+      if(pTask==nullptr)
+      {
+        ff::rt::all_records::getInstance()->dump_all();
+        std::cout<<"pop invalid task"<<std::endl;
+        assert(pTask != nullptr && "Invalid task");
+      }
+#endif
     }
     return b;
 }
