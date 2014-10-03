@@ -21,31 +21,35 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
+#define BOOST_TEST_MODULE test_ff
+
+#include <boost/test/unit_test.hpp>
 #include "ff.h"
 #include "common/log.h"
 #include <iostream>
 
-int fib(int n)
+
+BOOST_AUTO_TEST_SUITE(minimal_test)
+
+BOOST_AUTO_TEST_CASE(paragroup_for_each_test)
 {
-  if(n <= 2)
-    return 1;
-  return fib(n-1) + fib(n-2);
-}
-int main(int argc, char *argv[])
-{
-	_DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
-	_DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
+	std::vector<int> s;
+	s.push_back(10);
+	s.push_back(11);
+	s.push_back(15);
+	s.push_back(9);
 	
-	int num = 100;	
-	std::vector<int> vec;
-	for(int i = 0; i < num; ++i)
-	  vec.push_back(10);
+	int ssum = 0;
+	std::for_each(s.begin(), s.end(), [&ssum](int x){ssum += x;});
 	
-	ff::paragroup pg;
-	pg.for_each(vec.begin(), vec.end(), [](long t){
-	  std::cout<<"\nfib "<<t<<" is "<<fib(t);}
-	);
-	ff::ff_wait(all(pg));
-	std::cout<<"all done"<<std::endl;
-	return 0;
+	ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
+	ff::paragroup pg1;
+	pg1.for_each(s.begin(), s.end(), [&sum](int x){
+	  sum.increase(x);
+	});
+        ff::ff_wait(all(pg1));
+	
+	BOOST_CHECK(ssum == sum.get());
 }
+
+BOOST_AUTO_TEST_SUITE_END()

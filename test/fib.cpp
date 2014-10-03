@@ -21,9 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
+#define BOOST_TEST_MODULE test_ff
 #include "ff.h"
 #include "common/log.h"
 #include <iostream>
+#include <boost/test/unit_test.hpp>
+#include <vector>
 
 int64_t fib(int n)
 {
@@ -42,22 +45,20 @@ int64_t sfib(int n )
  return sfib(n -1 ) + sfib(n-2);
 }
 
-
-int main(int argc, char *argv[])
+BOOST_AUTO_TEST_SUITE(fib_test)
+BOOST_AUTO_TEST_CASE(fib_t1)
 {
-	_DEBUG(ff::fflog<>::init(ff::INFO, "log.txt"))
-	_DEBUG(LOG_INFO(main)<<"main start, id:"<<ff::rt::get_thrd_id());
-	
-	int num = 20;	
-	
-	int64_t fib_res = fib(num);
-	int64_t p_res = sfib(num);
-        if (fib_res == p_res)
-          std::cout<<"fib correct!!"<<std::endl;
-        else
-        {
-          std::cout<<"Something is wrong here! The result is wrong!"<<std::endl;
-        }
-	std::cout<<"fib( "<<num<<" )="<<fib_res<<std::endl;
-	return 0;
+  std::vector<int> nums;
+  nums.push_back(0);
+  nums.push_back(1);
+  nums.push_back(2);
+  nums.push_back(10);
+  for(int i = 0; i < nums.size(); i++)
+  {
+    int64_t f_res = fib(nums[i]);
+    int64_t p_res = sfib(nums[i]);
+    BOOST_CHECK(f_res == p_res);
+  }
+
 }
+BOOST_AUTO_TEST_SUITE_END()

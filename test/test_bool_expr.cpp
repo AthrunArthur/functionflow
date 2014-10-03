@@ -46,18 +46,32 @@ double inc(double t)
 {
 	return t + 1;
 }
-BOOST_AUTO_TEST_CASE(para_test)
+
+BOOST_AUTO_TEST_CASE(bool_or_expr_test_case)
 {
-	int num = 10;
-	para<int> a;
-	a([&num](){return inc(num);}).then([&num](int x){
-		BOOST_CHECK(x == inc(num));
+	ff::para<int> f1;
+	ff::para<double> f2;
+	f1([](){return inc(1);});
+	f2([](){return inc(2.2);});
+	(f1 || f2).then([](int index, std::tuple<int, double> res){
+		if(index == 0)
+			BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
+		else if(index == 1)
+			BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
 	});
-	ff::para<> b;
-	int b_res;
-	b[a]([&num, &a, &b_res](){b_res = inc(num + a.get());}).then([&num, &a, &b, &b_res](){
-		BOOST_CHECK(b_res == inc(num + a.get()));
+}
+
+BOOST_AUTO_TEST_CASE(bool_and_expr_test_case)
+{
+	ff::para<> f3;
+	f3([](){return inc(3);});
+	ff::para<double> f4;
+	f4[f3]([](){return inc(4.5);}).then([](double x){
+		BOOST_CHECK(x == inc(4.5));
 	});
+	(f3 && f4).then([](double x){
+		BOOST_CHECK(x == inc(4.5));
+	});	
 }
 
 BOOST_AUTO_TEST_SUITE_END()
