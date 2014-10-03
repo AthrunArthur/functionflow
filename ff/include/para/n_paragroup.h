@@ -44,8 +44,6 @@ namespace ff {
     struct auto_partitioner {};
     struct simple_partitioner {};
 
-//#define FF_DEFAULT_PARTITIONER auto_partitioner
-#define FF_DEFAULT_PARTITIONER simple_partitioner //auto_partitioner
     class paragroup {
     public:
         typedef void ret_type;

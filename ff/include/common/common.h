@@ -31,11 +31,16 @@ THE SOFTWARE.
 #include <type_traits>
 #include <iterator>
 #include <cassert>
+
+#define CACHE_LINE_SIZE 64
+#define FF_DEFAULT_PARTITIONER simple_partitioner //or auto_partitioner
+//#define RECORD_WORK_STEAL //This is the on-off switch for logging work-stealing behavior
+//#define FUNCTION_FLOW_DEBUG
+
+
 #ifdef FUNCTION_FLOW_DEBUG
 #include <iostream>
 #endif
-
-#define CACHE_LINE_SIZE 64
 
 namespace ff {
 

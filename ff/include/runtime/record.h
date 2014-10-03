@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "runtime/rtcmn.h"
 #include "runtime/env.h"
 
+
 namespace ff{
   namespace rt{
   struct record{
@@ -67,6 +68,7 @@ namespace ff{
 
       void      init(int thrd_num, const char * fp)
       {
+#ifdef RECORD_WORK_STEAL 
         m_fp = fp;
         for(int i = 0; i <=thrd_num; ++i)
         {
@@ -76,11 +78,12 @@ namespace ff{
                 std::ofstream file(ss.str(), std::ios::out | std::ios::binary);
                 file.close();
         }
-        
+#endif 
       }
 
       void      add(record r)
       {
+#ifdef RECORD_WORK_STEAL 
         thread_local static thrd_id_t id = get_thrd_id();
         if(m_oRecords[id] == nullptr)
         {
@@ -90,24 +93,29 @@ namespace ff{
         if(m_oRecords[id]->size() >= 100000)
           write_to_file(id);
         m_oRecords[id]->push_back(r);
+#endif
       }
 
       void      write_to_file(thrd_id_t id)
       {
+#ifdef RECORD_WORK_STEAL 
         std::stringstream ss;
         ss<<id<<m_fp;
         std::ofstream myFile (ss.str(), std::ios::out | std::ios::app | std::ios::binary);
         myFile.write((const char *)(m_oRecords[id]->data()), sizeof(record) * m_oRecords[id]->size());
         m_oRecords[id]->clear();
         myFile.close();
+#endif
       }
 
       void      dump_all()
       {
+#ifdef RECORD_WORK_STEAL 
         for(int i = 0; i < m_oRecords.size(); ++i)
         {
           write_to_file(i);
         }
+#endif
       }
 
     protected:
