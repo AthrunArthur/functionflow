@@ -31,6 +31,18 @@ THE SOFTWARE.
 
 BOOST_AUTO_TEST_SUITE(minimal_test)
 
+BOOST_AUTO_TEST_CASE(paragroup_test_all_null)
+{
+    ff::paragroup pg1;
+    ff::ff_wait(all(pg1));
+}
+
+BOOST_AUTO_TEST_CASE(paragroup_test_any_null)
+{
+    ff::paragroup pg1;
+    ff::ff_wait(any(pg1));
+}
+
 BOOST_AUTO_TEST_CASE(paragroup_empty_test)
 {
     std::vector<int> s;
