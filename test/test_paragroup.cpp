@@ -31,25 +31,92 @@ THE SOFTWARE.
 
 BOOST_AUTO_TEST_SUITE(minimal_test)
 
+BOOST_AUTO_TEST_CASE(paragroup_empty_test)
+{
+    std::vector<int> s;
+    int sum = 0;
+    ff::paragroup pg1;
+    pg1.for_each(s.begin(), s.end(), [&sum](int x){
+        sum += x;
+    });
+    ff::ff_wait(all(pg1));
+    BOOST_CHECK(sum == 0);
+}
+
 BOOST_AUTO_TEST_CASE(paragroup_for_each_test)
 {
-	std::vector<int> s;
-	s.push_back(10);
-	s.push_back(11);
-	s.push_back(15);
-	s.push_back(9);
-	
-	int ssum = 0;
-	std::for_each(s.begin(), s.end(), [&ssum](int x){ssum += x;});
-	
-	ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
-	ff::paragroup pg1;
-	pg1.for_each(s.begin(), s.end(), [&sum](int x){
-	  sum.increase(x);
-	});
-        ff::ff_wait(all(pg1));
-	
-	BOOST_CHECK(ssum == sum.get());
+    std::vector<int> s;
+    s.push_back(10);
+    s.push_back(11);
+    s.push_back(15);
+    s.push_back(9);
+
+    int ssum = 0;
+    std::for_each(s.begin(), s.end(), [&ssum](int x){ssum += x;});
+
+    ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
+    ff::paragroup pg1;
+    pg1.for_each(s.begin(), s.end(), [&sum](int x){
+       sum.increase(x);
+    });
+    ff::ff_wait(all(pg1));
+
+    BOOST_CHECK(ssum == sum.get());
 }
+
+BOOST_AUTO_TEST_CASE(paragroup_for_each_large_test)
+{
+    std::vector<int> s;
+    for(int i = 0; i < 10000; i ++)
+      s.push_back(i);
+
+    int ssum = 0;
+    std::for_each(s.begin(), s.end(), [&ssum](int x){ssum += x;});
+
+    ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
+    ff::paragroup pg1;
+    pg1.for_each(s.begin(), s.end(), [&sum](int x){
+       sum.increase(x);
+    });
+    ff::ff_wait(all(pg1));
+
+    BOOST_CHECK(ssum == sum.get());
+}
+
+BOOST_AUTO_TEST_CASE(paragroup_for_each_search_test)
+{
+    std::vector<int> s;
+    for(int i = 0; i < 10000; i ++)
+      s.push_back(i);
+    ff::single_assign<int> pos;
+    int to_search = 983;
+    pos = to_search;
+    ff::paragroup pg1;
+    pg1.for_each(s.begin(), s.end(), [&pos, to_search](int x){
+                pos = to_search;});
+    ff::ff_wait(all(pg1));
+    BOOST_CHECK(pos.get() == to_search);
+}
+
+BOOST_AUTO_TEST_CASE(paragroup_for_each_any_test)
+{
+    std::vector<int> s;
+    for(int i = 0; i < 10000; i ++)
+      s.push_back(i);
+
+    int ssum = 0;
+    std::for_each(s.begin(), s.end(), [&ssum](int x){ssum += x;});
+
+    ff::accumulator<int> psum(0, [](const int & x, const int& y){return x + y;});
+    ff::paragroup pg1;
+    pg1.for_each(s.begin(), s.end(), [&psum](int x){
+       psum.increase(x);
+    });
+    ff::ff_wait(any(pg1));
+
+    BOOST_CHECK(psum.get() > 0);
+    BOOST_CHECK(psum.get() <= ssum);
+}
+    
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -29,6 +29,7 @@
 #include "para/paras_with_lock.h"
 #include "common/log.h"
 #include "runtime/env.h"
+#include "para/wait_impl.h"
 
 #include <cmath>
 #include <algorithm>
@@ -127,14 +128,18 @@ namespace ff {
                    )
             return (*m_pEntities).entities[index];
         }
+
         size_t 	size() const
         {
             if(m_pEntities)
             return m_pEntities->entities.size();
             return 0;
         }
+
         ~paragroup()
         {
+          internal::wait_all wa(m_pEntities);
+          wa.then([](){});
         }
 
         //! For arithmetic iterator

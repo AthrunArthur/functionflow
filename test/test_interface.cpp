@@ -46,18 +46,57 @@ double inc(double t)
 {
 	return t + 1;
 }
+
+BOOST_AUTO_TEST_CASE(para_test_simple)
+{
+    para<> a;
+    para<int> b;
+    a([](){});
+    b([](){return 10;});
+    ff_wait(a);
+    ff_wait(b);
+    BOOST_CHECK(b.get() == 10);
+    BOOST_CHECK(a.check_if_over());
+    BOOST_CHECK(b.check_if_over());
+}
+
+BOOST_AUTO_TEST_CASE(para_test_then)
+{
+    int num = 10;
+    para<int> a;
+    a([&num](){return inc(num);}).then([num](int n){BOOST_CHECK(n == inc(num));}); 
+    BOOST_CHECK(a.check_if_over());
+}
+
+BOOST_AUTO_TEST_CASE(para_test_empty)
+{
+  int num = 10;
+  double b_res;
+  para<int> a;
+  para<> b;
+
+  BOOST_REQUIRE_THROW(
+      b[a]([&num, &a, &b_res](){b_res=inc(num + a.get());}).then([&num, &a, &b, &b_res](){
+        BOOST_CHECK(b_res == inc(num + a.get()));
+      }), empty_para_exception); 
+  BOOST_REQUIRE_THROW(ff_wait(b), empty_para_exception);
+  BOOST_REQUIRE_THROW(ff_wait(a), empty_para_exception);
+  BOOST_CHECK(!a.check_if_over());
+  BOOST_CHECK(!b.check_if_over());
+}
+
 BOOST_AUTO_TEST_CASE(para_test)
 {
-	int num = 10;
-	para<int> a;
-	a([&num](){return inc(num);}).then([&num](int x){
-		BOOST_CHECK(x == inc(num));
-	});
-	ff::para<> b;
-	int b_res;
-	b[a]([&num, &a, &b_res](){b_res = inc(num + a.get());}).then([&num, &a, &b, &b_res](){
-		BOOST_CHECK(b_res == inc(num + a.get()));
-	});
+    int num = 10;
+    para<int> a;
+    a([&num](){return inc(num);}).then([&num](int x){
+        BOOST_CHECK(x == inc(num));
+    });
+    ff::para<> b;
+    int b_res;
+    b[a]([&num, &a, &b_res](){b_res = inc(num + a.get());}).then([&num, &a, &b, &b_res](){
+        BOOST_CHECK(b_res == inc(num + a.get()));
+    });
 }
 
 BOOST_AUTO_TEST_SUITE_END()

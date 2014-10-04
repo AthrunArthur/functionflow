@@ -30,28 +30,28 @@ public:
     para_accepted_wait(const para_accepted_wait<PT, WT> &) = default;
     para_accepted_wait(PT & p, const WT & w)
         : m_refP(p)	
-		, m_oWaiting(w){}
+	, m_oWaiting(w){}
 
     template<class F>
     auto		operator ()(F && f) -> internal::para_accepted_call<PT, ret_type>
     {
-		typedef typename std::remove_reference<WT>::type WT_t;
-		internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
-		m_refP.m_pImpl = pImpl;
-		//internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
+	typedef typename std::remove_reference<WT>::type WT_t;
+	internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
+	m_refP.m_pImpl = pImpl;
+	//internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
         internal::para_impl_wait_ptr<WT_t> pTask = std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
 	_DEBUG(LOG_INFO(para)<<"generate a task with wait cond: "<<pTask.get())
-		internal::schedule(pTask);
+	internal::schedule(pTask);
         return internal::para_accepted_call<PT, ret_type>(m_refP);
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
     auto		operator ()(F && f, int32_t thrd) -> internal::para_accepted_call<PT, ret_type>
     {
-		typedef typename std::remove_reference<WT>::type WT_t;
-		internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
-		m_refP.m_pImpl = pImpl;
-		//internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
+	typedef typename std::remove_reference<WT>::type WT_t;
+	internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
+	m_refP.m_pImpl = pImpl;
+	//internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
         internal::para_impl_wait_ptr<WT_t> pTask = std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
 	_DEBUG(LOG_INFO(para)<<"generate a task with wait cond: "<<pTask.get())
 		internal::schedule(pTask, thrd);
@@ -61,5 +61,5 @@ public:
 #endif
 protected:
     PT & m_refP;
-	WT	m_oWaiting;
+    WT	m_oWaiting;
 };//end class para_accepted_wait;

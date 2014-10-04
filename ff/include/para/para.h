@@ -51,6 +51,8 @@ public:
     template<class WT>
     para_accepted_wait<DT, WT> operator[](WT && cond)
     {
+        if(cond.get_state() == exe_state::exe_empty)
+            throw empty_para_exception();
         return para_accepted_wait<DT, WT>(*(static_cast<DT *>(this)),std::forward<WT>(cond));
     }
     template<class F>
@@ -59,9 +61,9 @@ public:
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
-	m_pImpl->setHoldMutex(id);
+        m_pImpl->setHoldMutex(id);
         schedule(m_pImpl);
-	_DEBUG(LOG_INFO(rt)<<"schedule1 end ")
+        _DEBUG(LOG_INFO(rt)<<"schedule1 end ")
         return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
@@ -92,7 +94,7 @@ public:
     {
         if(m_pImpl)
             return m_pImpl->get_state();
-        return exe_state::exe_unknown;
+        return exe_state::exe_empty;
     }
     bool	check_if_over()
     {

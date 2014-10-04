@@ -48,8 +48,8 @@ public:
     auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
-		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
+        if(!m_refP.check_if_over())
+            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         f(m_refP.get());
     }
 
@@ -57,8 +57,8 @@ public:
     auto  then(FT && f ) ->
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
     {
-		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
+        if(!m_refP.check_if_over())
+            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         return f(m_refP.get());
     }
 
@@ -77,20 +77,20 @@ public:
     auto  then(FT && f)
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value, void>::type
     {
-		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
+        if(!m_refP.check_if_over())
+            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         f();
     }
 
     template<class FT>
     auto  then(FT && f ) ->
     typename std::enable_if<
-	      !std::is_void<typename function_res_traits<FT>::ret_type>::value,
-	    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-	    >::type 
+         !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+            >::type 
     {
-		if(!m_refP.check_if_over())
-			::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
+        if(!m_refP.check_if_over())
+            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
         return f();
     }
 

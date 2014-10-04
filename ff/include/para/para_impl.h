@@ -68,7 +68,7 @@ public:
         : ff::rt::task_base(TKind::user_t)
         , m_oRet(*this)
         , m_oFunc(std::move(f))
-        , m_iES(exe_state::exe_unknown){}
+        , m_iES(exe_state::exe_init){}
 
     virtual ~para_impl()
     {}
@@ -106,7 +106,7 @@ public:
     template< class F>
     para_impl(F && f)
         : ff::rt::task_base(TKind::user_t)
-        , m_iES(exe_state::exe_unknown)
+        , m_iES(exe_state::exe_init)
         , m_oFunc(std::move(f))
     {}
 
@@ -198,7 +198,7 @@ public:
     template<class RT>
     para_impl_wait(WT &  w, const para_impl_ptr<RT> & p)
         : ff::rt::task_base(TKind::user_t)
-        , m_iES(exe_state::exe_unknown)
+        , m_iES(exe_state::exe_init)
         , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
         //, m_pFunc(p)
         , m_oWaitingPT(w) {}

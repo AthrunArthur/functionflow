@@ -23,22 +23,27 @@ THE SOFTWARE.
 *************************************************/
 #include "common/common.h"
 #include "common/fsetjmp.h"
+#include "para/exception.h"
 
 namespace ff{
 
 exe_state operator &&(exe_state e1, exe_state e2)
 {
-	if(e1 == e2)
-		return e1;
-	return exe_state::exe_unknown;
+    if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
+        throw empty_para_exception();
+    if(e1 == e2)
+        return e1;
+    return exe_state::exe_wait;
 }
 
 exe_state operator ||(exe_state e1, exe_state e2)
 {
-	if(e1 == exe_state::exe_over ||
-		e2 == exe_state::exe_over)
-		return exe_state::exe_over;
-	return exe_state::exe_unknown;
+    if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
+        throw empty_para_exception();
+    if(e1 == exe_state::exe_over ||
+        e2 == exe_state::exe_over)
+        return exe_state::exe_over;
+    return exe_state::exe_wait;
 }
 
 

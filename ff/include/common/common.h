@@ -45,10 +45,11 @@ THE SOFTWARE.
 namespace ff {
 
 enum exe_state {
-    exe_wait = 1,
+    exe_empty = 1,
+    exe_init,
+    exe_wait,
     exe_over,
     exe_run,
-    exe_unknown,
 };
 exe_state operator &&(exe_state e1, exe_state  e2);
 exe_state operator ||(exe_state e1, exe_state e2);

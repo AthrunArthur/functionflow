@@ -38,7 +38,6 @@ public:
 public:
     typedef std::function<T (const T&, const T&)> Functor_t;
     template<class FT>
-// 		accumulator(T && value, FT && functor)
     accumulator(const T & value, FT && functor)
         : m_oValue(std::move(value))
         , Functor(std::move(functor)) {
@@ -58,24 +57,26 @@ public:
         }
     }
 
+    ~accumulator(){
+        for(int i = 0; i < m_pAllValues.size(); ++i)
+          delete m_pAllValues[i];
+    }
+
     template<class TT>
-// 		accumulator<T>& increase(TT && value){
     accumulator<T>& increase(const TT & value) {
         thread_local static thrd_id_t id = ff::rt::get_thrd_id();
         T * plocal = m_pAllValues[id];
-// 		  *plocal = std::move(Functor(*plocal, std::forward<TT>(value)));
         *plocal = std::move(Functor(*plocal, value));
         return *this;
     }
 
-    T & get() {
+    T  get() {
+        T v = m_oValue;
         for(T * p : m_pAllValues)
         {
-            m_oValue = std::move(Functor(m_oValue, *p));
-            delete p;
-            p = nullptr;
+            v = std::move(Functor(v, *p));
         }
-        return m_oValue;
+        return v;
     }
 protected:
     T m_oValue;

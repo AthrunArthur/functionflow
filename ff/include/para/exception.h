@@ -41,6 +41,20 @@ namespace ff
 	protected:
 		const char * msg;
 	};//end class used_para_exception
+
+	class empty_para_exception : public std::exception
+	{
+	public:
+		empty_para_exception()
+			: std::exception()
+			, msg("Fatal error! Can't use an empty para or paragroup!"){}
+		virtual const char * what() const throw()
+		{
+			return msg;
+		}
+	protected:
+		const char * msg;
+	};//end class used_para_exception
 }//end namespace ff;
 
 #endif
