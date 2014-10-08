@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "ff.h"
 
 #include "common/any.h"
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 
 BOOST_AUTO_TEST_SUITE(ff_any_value)
 BOOST_AUTO_TEST_CASE(any_value)

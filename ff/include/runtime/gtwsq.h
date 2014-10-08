@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include "common/log.h"
 #include "common/scope_guard.h"
 #include "common/spin_lock.h"
+#include "common/thread_local_storage.h"
 
 #ifdef FUNCTION_FLOW_DEBUG
 #include "runtime/record.h"
@@ -89,7 +90,7 @@ public:
     void push_back(const T & val)
     {
 #ifdef FUNCTION_FLOW_DEBUG
-      thread_local static thrd_id_t id = get_thrd_id();
+      thrd_id_t id = get_thrd_id();
       m_id = id;
       m_rid ++;
 #endif
@@ -118,7 +119,7 @@ public:
 #ifdef FUNCTION_FLOW_DEBUG
       if (t<h)
         assert(s<0 && "xxxxx");
-      thread_local static thrd_id_t id = get_thrd_id();
+      thrd_id_t id = get_thrd_id();
       m_rid ++;
       record r(m_rid.load(), m_id, id, record::op_pop, h, t);
       scope_guard _sg([](){}, [&r](){
@@ -187,7 +188,7 @@ public:
       int64_t h = head;
       int64_t t = tail;
 #ifdef FUNCTION_FLOW_DEBUG
-      thread_local static thrd_id_t id = get_thrd_id();
+      thrd_id_t id = get_thrd_id();
       m_rid ++;
       record r(m_rid.load(), m_id, id, record::op_steal, h, t);
       scope_guard _rg([](){}, [&r](){

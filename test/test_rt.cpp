@@ -95,7 +95,7 @@ void ff_test_para()
 
     ff::para<> f3;
     f3([]() {
-        return inc(3);
+        inc(3);
     });
     ff::para<double> f4;
     f4[f3]([]() {

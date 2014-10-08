@@ -23,7 +23,9 @@ THE SOFTWARE.
 *************************************************/
 #define BOOST_TEST_MODULE test_ff
 
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
+//#include <boost/test/unit_test.hpp>
+//#include <boost/test/unit_test.hpp>
 
 #include <iostream>
 #include <vector>
@@ -64,7 +66,7 @@ BOOST_AUTO_TEST_CASE(bool_or_expr_test_case)
 BOOST_AUTO_TEST_CASE(bool_and_expr_test_case)
 {
 	ff::para<> f3;
-	f3([](){return inc(3);});
+	f3([](){inc(3);});
 	ff::para<double> f4;
 	f4[f3]([](){return inc(4.5);}).then([](double x){
 		BOOST_CHECK(x == inc(4.5));

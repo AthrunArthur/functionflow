@@ -64,7 +64,7 @@ public:
 
     template<class TT>
     accumulator<T>& increase(const TT & value) {
-        thread_local static thrd_id_t id = ff::rt::get_thrd_id();
+        thrd_id_t id = ff::rt::get_thrd_id();
         T * plocal = m_pAllValues[id];
         *plocal = std::move(Functor(*plocal, value));
         return *this;
@@ -81,13 +81,10 @@ public:
 protected:
     T m_oValue;
     Functor_t	Functor;
-    static thread_local T * plocal;
     std::vector<T *>	m_pAllValues;
     std::mutex			m_oMutex;
 };//end class accumulator
 
-template <class T>
-thread_local T * accumulator<T>::plocal(nullptr);
 
 template< class T>
 class single_assign

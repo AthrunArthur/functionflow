@@ -42,7 +42,7 @@ THE SOFTWARE.
 #endif
 
 #ifdef USING_WORK_STEALING_QUEUE
-#include "runtime/twsq.h"
+//#include "runtime/twsq.h"
 #include "runtime/gtwsq.h"
 #endif
 

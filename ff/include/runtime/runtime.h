@@ -23,10 +23,8 @@ THE SOFTWARE.
 *************************************************/
 #ifndef FF_RUNTIME_RUNTIME_H_
 #define FF_RUNTIME_RUNTIME_H_
-#include <memory>
 #include "runtime/task_queue.h"
 #include "runtime/threadpool.h"
-#include <memory>
 #include "runtime/env.h"
 #include "common/log.h"
 #include "runtime/hazard_pointer.h"
@@ -109,8 +107,8 @@ template <class Func>
 void 	yield_and_ret_until(Func && f)
 {
     _DEBUG(LOG_INFO(rt)<<"yield_and_ret_until(), enter...";)
-    thread_local static int cur_id = get_thrd_id();
-    thread_local static runtime_ptr r = runtime::instance();
+    int cur_id = get_thrd_id();
+    runtime_ptr r = runtime::instance();
     bool b = f();
     task_base_ptr pTask;
     while(!b)

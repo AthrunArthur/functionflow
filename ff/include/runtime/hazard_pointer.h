@@ -40,9 +40,13 @@ class hp_owner
 public:
     hp_owner()
     : m_oflag(){
+#ifdef __clang__
+        m_pPointers = new std::atomic<T *>[ff::rt::rt_concurrency()];
+#else
         std::call_once(m_oflag, [this]() {
             m_pPointers = new std::atomic<T *>[ff::rt::rt_concurrency()];
         });
+#endif
     }
 
     ~hp_owner(){
@@ -56,7 +60,7 @@ public:
     //! return true if other thread had it.
     bool  outstanding_hazard_pointer_for(T * p)
     {
-        thread_local static thrd_id_t id = ff::rt::get_thrd_id();
+        TLS_t thrd_id_t id = ff::rt::get_thrd_id();
         if(!p)
             return false;
         for(int i = 0; i < ff::rt::rt_concurrency(); i++)

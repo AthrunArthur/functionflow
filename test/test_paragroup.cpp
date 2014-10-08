@@ -22,8 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
 #define BOOST_TEST_MODULE test_ff
+#include <boost/test/included/unit_test.hpp>
 
-#include <boost/test/unit_test.hpp>
+//#include <boost/test/unit_test.hpp>
 #include "ff.h"
 #include "common/log.h"
 #include <iostream>

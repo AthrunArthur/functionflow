@@ -89,7 +89,11 @@ runtime::~runtime()
 runtime_ptr 	runtime::instance()
 {
     if(!s_pInstance)
+#ifdef __clang__
+        init();
+#else
         std::call_once(s_oOnce, runtime::init);
+#endif
     return s_pInstance;
 }
 
@@ -130,7 +134,7 @@ void			runtime::init()
 
 void	runtime::schedule(task_base_ptr p)
 {
-    thread_local static int i = get_thrd_id();
+    TLS_t int i = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
     m_oQueues[i] ->push_back(p);
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() end id:"<<i<<" task: "<<p.get();)
@@ -140,7 +144,7 @@ void	runtime::schedule(task_base_ptr p)
 #ifdef USING_MIMO_QUEUE
 void runtime::schedule(task_base_ptr p, thrd_id_t target_thrd)
 {
-    thread_local static int i = get_thrd_id();
+    TLS_t int i = get_thrd_id();
     //target_thrd = get_idle();
     if(i == target_thrd || ! m_oQueues[target_thrd]->concurrent_push(p))
         m_oQueues[target_thrd]->push_back(p);
@@ -150,7 +154,7 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
 {
     bool b = false;
 
-    thread_local static int i = get_thrd_id();
+    TLS_t int i = get_thrd_id();
     b = m_oQueues[i]->pop(pTask);
     if(!b)
     {
@@ -186,7 +190,7 @@ void 			runtime::run_task(task_base_ptr & pTask)
 #if 0
 void 			runtime::run_task(task_base_ptr & pTask)
 {
-    thread_local static int i = get_thrd_id();
+    TLS_t int i = get_thrd_id();
     int take_times = 0;
     int steal_times = 0;
     double least_cost = 1;
@@ -248,7 +252,7 @@ START:
 #if 0 //The old scheduler
 void 			runtime::run_task(task_base_ptr & pTask)
 {
-    thread_local static int i = get_thrd_id();
+    TLS_t int i = get_thrd_id();
     int take_times = 0;
     int steal_times = 0;
 START:
@@ -298,7 +302,7 @@ START:
 void			runtime::thread_run()
 {
     bool flag = false;
-    thread_local static int cur_id = get_thrd_id();
+    TLS_t int cur_id = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::thread_run() id:"<<cur_id<<" enter...")
     task_base_ptr pTask;
     while(!m_bAllThreadsQuit)
@@ -316,7 +320,7 @@ void			runtime::thread_run()
 
 bool		runtime::steal_one_task(task_base_ptr & pTask)
 {
-    thread_local static int cur_id = get_thrd_id();
+    TLS_t int cur_id = get_thrd_id();
     size_t dis = 1;
     size_t ts = m_oQueues.size();
     while((cur_id + dis)%ts !=cur_id)
@@ -334,8 +338,8 @@ bool		runtime::steal_one_task(task_base_ptr & pTask)
 
 bool		runtime::is_idle()
 {
-    thread_local static int cur_id = get_thrd_id();
-    thread_local static size_t ts = m_oQueues.size();
+    TLS_t int cur_id = get_thrd_id();
+    size_t ts = m_oQueues.size();
     if(m_oQueues[cur_id]->size() != 0)
         return false;
 
@@ -351,8 +355,8 @@ bool		runtime::is_idle()
 
 thrd_id_t	runtime::get_idle()
 {
-    thread_local static int cur_id = get_thrd_id();
-    thread_local static size_t ts = m_oQueues.size();
+    TLS_t int cur_id = get_thrd_id();
+    size_t ts = m_oQueues.size();
     size_t dis = 1;
     thrd_id_t idle_id = (cur_id + 1) %ts;
     auto idle_queue_size = m_oQueues[(cur_id + 1)%ts]->size();

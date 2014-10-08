@@ -87,7 +87,7 @@ public:
     void push_back(const T & val)
     {
 #ifdef FUNCTION_FLOW_DEBUG
-      thread_local static thrd_id_t id = get_thrd_id();
+      TLS_t thrd_id_t id = get_thrd_id();
       m_id = id;
       m_rid ++;
 #endif
@@ -116,7 +116,7 @@ public:
 #ifdef FUNCTION_FLOW_DEBUG
       if (t<h)
         assert(s<0 && "xxxxx");
-      thread_local static thrd_id_t id = get_thrd_id();
+      TLS_t thrd_id_t id = get_thrd_id();
       m_rid ++;
       record r(m_rid.load(), m_id, id, record::op_pop, h, t);
       scope_guard _sg([](){}, [&r](){
@@ -176,14 +176,13 @@ public:
       auto h = head.load();
       auto t = tail.load();
 #ifdef FUNCTION_FLOW_DEBUG
-      thread_local static thrd_id_t id = get_thrd_id();
+      TLS_t thrd_id_t id = get_thrd_id();
       m_rid ++;
       record r(m_rid.load(), m_id, id, record::op_steal, h, t);
       scope_guard _rg([](){}, [&r](){
           all_records::getInstance()->add(r);
           });
 #endif
-
       auto s = t - h;
       if ( s <= 0){
 #ifdef FUNCTION_FLOW_DEBUG

@@ -84,7 +84,7 @@ namespace ff{
       void      add(record r)
       {
 #ifdef RECORD_WORK_STEAL 
-        thread_local static thrd_id_t id = get_thrd_id();
+        thrd_id_t id = get_thrd_id();
         if(m_oRecords[id] == nullptr)
         {
           std::cout<<".";

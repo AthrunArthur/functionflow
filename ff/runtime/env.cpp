@@ -28,33 +28,46 @@ THE SOFTWARE.
 #include <functional>
 #include <thread>
 #include <iostream>
+#include "common/thread_local_storage.h"
+
 namespace ff {
 namespace rt {
-thread_local static thrd_id_t id = 0;
-
+#ifdef __clang__
+static ::ff::thread_local_storage<thrd_id_t> s_id;
+#else
+thread_local static thrd_id_t s_id;
+#endif
 static size_t max_concurrency = std::thread::hardware_concurrency();//added by sherry
 
 void  set_hardware_concurrency(size_t t){//added by sherry
-	if(t <= 0 || t > max_concurrency)
-	{		
-		t = max_concurrency;
-	}
-	static size_t concurrency = t;//can be changed only once 
-	max_concurrency = concurrency;
+    if(t <= 0 || t > max_concurrency)
+    {
+        t = max_concurrency;
+    }
+    static size_t concurrency = t;//can be changed only once
+    max_concurrency = concurrency;
 }
 
 size_t  get_hardware_concurrency(){//added by sherry
-	return max_concurrency;
+    return max_concurrency;
 }
 
 thrd_id_t get_thrd_id()
 {
-	return id;
+#ifdef __clang__
+    return s_id.get();
+#else
+    return s_id;
+#endif
 }
 
 void set_local_thrd_id(thrd_id_t i)
 {
-  id = i;
+#ifdef __clang__
+    s_id.set(i);
+#else
+    s_id = i;
+#endif
 }
 }//end namespace rt
 }//end namespace ff

@@ -25,7 +25,7 @@ THE SOFTWARE.
 #include "ff.h"
 #include "common/log.h"
 #include <iostream>
-#include <boost/test/unit_test.hpp>
+#include <boost/test/included/unit_test.hpp>
 #include <vector>
 
 int64_t fib(int n)
