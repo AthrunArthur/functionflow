@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
         }).then([](int x) {});
         ff::para<> b;
         b[a]([&num, &a]() {
-            return num + a.get();
+            num + a.get();
         }).then([]() {});
 
         //!Start test parallel version
