@@ -21,53 +21,39 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_COMMON_COMMON_H_
-#define FF_COMMON_COMMON_H_
+#ifndef FF_PARA_PARA_WAIT_TRAITS_H_
+#define FF_PARA_PARA_WAIT_TRAITS_H_
+#include "common/common.h"
+namespace ff{
+template <class RT>
+class para;
+namespace internal{
+  template<class T1, class T2>
+  class wait_and;
+  template<class T1, class T2>
+  class wait_or;
 
-#include <cstdint>
-#include <functional>
-#include <atomic>
-#include <thread>
-#include <type_traits>
-#include <iterator>
-#include <cassert>
-#include "common/error_msg.h"
+  class wait_all;
+  class wait_any;
+}//end namespace internal
 
-#define CACHE_LINE_SIZE 64
-#define FF_DEFAULT_PARTITIONER simple_partitioner //or auto_partitioner
-//#define RECORD_WORK_STEAL //This is the on-off switch for logging work-stealing behavior
-//#define FUNCTION_FLOW_DEBUG
+template<class T>
+struct is_para_or_wait: public std::false_type {};
 
+template<class T>
+struct is_para_or_wait<para <T> > : public std::true_type {};
 
-#ifdef FUNCTION_FLOW_DEBUG
-#include <iostream>
-#endif
+template<class T1, class T2>
+struct is_para_or_wait<internal::wait_and<T1, T2> > : public std::true_type {};
 
-namespace ff {
+template<class T1, class T2>
+struct is_para_or_wait<internal::wait_or<T1, T2> > : public std::true_type {};
 
-enum exe_state {
-    exe_empty = 1,
-    exe_init,
-    exe_wait,
-    exe_over,
-    exe_run,
-};
-exe_state operator &&(exe_state e1, exe_state  e2);
-exe_state operator ||(exe_state e1, exe_state e2);
+template<>
+struct is_para_or_wait<internal::wait_all> : public std::true_type {};
 
-typedef void *  mutex_id_t;
-const mutex_id_t invalid_mutex_id = NULL;
-
-typedef int32_t thrd_id_t;
-const thrd_id_t invalid_thrd_id = -1;
-
+template<>
+struct is_para_or_wait<internal::wait_any> : public std::true_type {};
 }//end namespace ff
-
-#ifdef CLANG_LLVM
-#define TLS_t
-#else
-#define TLS_t thread_local static
-#endif
-
 
 #endif

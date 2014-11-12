@@ -21,53 +21,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_COMMON_COMMON_H_
-#define FF_COMMON_COMMON_H_
 
-#include <cstdint>
-#include <functional>
-#include <atomic>
-#include <thread>
-#include <type_traits>
-#include <iterator>
-#include <cassert>
-#include "common/error_msg.h"
+//!This file is used to define compile-time error messages.
+#ifndef FF_COMMON_ERROR_MSG_H_
+#define FF_COMMON_ERROR_MSG_H_
 
-#define CACHE_LINE_SIZE 64
-#define FF_DEFAULT_PARTITIONER simple_partitioner //or auto_partitioner
-//#define RECORD_WORK_STEAL //This is the on-off switch for logging work-stealing behavior
-//#define FUNCTION_FLOW_DEBUG
+#define FF_EM_CALL_THEN_WITHOUT_CALL_PAREN "You can only call *then* after operater(...)"
 
+#define FF_EM_CALL_WITH_TYPE_MISMATCH "The function's return type in operatoer(...) doesn't match para<...>"
 
-#ifdef FUNCTION_FLOW_DEBUG
-#include <iostream>
-#endif
+#define FF_EM_THEN_WITH_TYPE_MISMATCH "The parameter's type in then's callback function doesn't match associated para<...>'s return type"
 
-namespace ff {
+#define FF_EM_THEN_WITH_NON_FUNC_TYPE "*then* must take a callable object as parameter, like lambda, functor, or std::function"
 
-enum exe_state {
-    exe_empty = 1,
-    exe_init,
-    exe_wait,
-    exe_over,
-    exe_run,
-};
-exe_state operator &&(exe_state e1, exe_state  e2);
-exe_state operator ||(exe_state e1, exe_state e2);
+#define FF_EM_CALL_SQPAREN_AFTER_PAREN "Cannot using operator[] to wait for others!"
 
-typedef void *  mutex_id_t;
-const mutex_id_t invalid_mutex_id = NULL;
+#define FF_EM_WRONG_USE_SQPAREN "You can only wait for a para<...> object or a dependency expression while using operator[]"
 
-typedef int32_t thrd_id_t;
-const thrd_id_t invalid_thrd_id = -1;
+#define FF_EM_CALL_PAREN_AFTER_PAREN "You cannot call operator() after operator()"
 
-}//end namespace ff
+#define FF_EM_COMBINE_PARA_AND_OTHER "Cannot combine para<...> object and other object as dependency expression"
 
-#ifdef CLANG_LLVM
-#define TLS_t
-#else
-#define TLS_t thread_local static
-#endif
-
+#define FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP "paragroup is only for data parallelism (for_each), use paracontainer to hold multiple para<...> objects!"
 
 #endif

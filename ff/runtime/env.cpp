@@ -32,7 +32,7 @@ THE SOFTWARE.
 
 namespace ff {
 namespace rt {
-#ifdef __clang__
+#ifdef CLANG_LLVM
 static ::ff::thread_local_storage<thrd_id_t> s_id;
 #else
 thread_local static thrd_id_t s_id;
@@ -54,7 +54,7 @@ size_t  get_hardware_concurrency(){//added by sherry
 
 thrd_id_t get_thrd_id()
 {
-#ifdef __clang__
+#ifdef CLANG_LLVM 
     return s_id.get();
 #else
     return s_id;
@@ -63,7 +63,7 @@ thrd_id_t get_thrd_id()
 
 void set_local_thrd_id(thrd_id_t i)
 {
-#ifdef __clang__
+#ifdef CLANG_LLVM
     s_id.set(i);
 #else
     s_id = i;

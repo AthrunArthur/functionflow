@@ -40,7 +40,7 @@ class hp_owner
 public:
     hp_owner()
     : m_oflag(){
-#ifdef __clang__
+#ifdef CLANG_LLVM 
         m_pPointers = new std::atomic<T *>[ff::rt::rt_concurrency()];
 #else
         std::call_once(m_oflag, [this]() {

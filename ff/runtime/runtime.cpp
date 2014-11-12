@@ -89,7 +89,7 @@ runtime::~runtime()
 runtime_ptr 	runtime::instance()
 {
     if(!s_pInstance)
-#ifdef __clang__
+#ifdef  CLANG_LLVM 
         init();
 #else
         std::call_once(s_oOnce, runtime::init);

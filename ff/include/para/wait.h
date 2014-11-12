@@ -31,29 +31,9 @@ THE SOFTWARE.
 #include "para/bin_wait_func_deducer.h"
 #include "common/log.h"
 #include "para/wait_impl.h"
+#include "para/para_wait_traits.h"
 
 namespace ff {
-
-template<class RT>
-class para;
-
-template<class T>
-struct is_para_or_wait: public std::false_type {};
-
-template<class T>
-struct is_para_or_wait<para <T> > : public std::true_type {};
-
-template<class T1, class T2>
-struct is_para_or_wait<internal::wait_and<T1, T2> > : public std::true_type {};
-
-template<class T1, class T2>
-struct is_para_or_wait<internal::wait_or<T1, T2> > : public std::true_type {};
-
-template<>
-struct is_para_or_wait<internal::wait_all> : public std::true_type {};
-
-template<>
-struct is_para_or_wait<internal::wait_any> : public std::true_type {};
 
 template<class T1, class T2>
 auto operator &&(T1 && t1, T2 && t2)
@@ -72,6 +52,29 @@ is_para_or_wait<typename std::remove_reference<T2>::type>::value,
 {
     return internal::wait_or<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
 }
+
+template<class T1, class T2>
+auto operator &&(T1 && t1, T2 && t2)
+->typename std::enable_if< (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) || 
+                           (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+                            !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
+                internal::wait_and<para<void>, para<void>>>::type
+{
+    static_assert(std::is_same<T1, void>::value, FF_EM_COMBINE_PARA_AND_OTHER);
+}
+
+template<class T1, class T2>
+auto operator ||(T1 && t1, T2 && t2)
+->typename std::enable_if< (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) || 
+                           (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+                            !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
+                internal::wait_or<para<void>, para<void>>>::type
+{
+    static_assert(std::is_same<T1, void>::value, FF_EM_COMBINE_PARA_AND_OTHER);
+}
+
 
 auto all(paragroup & pg) -> internal::wait_all;
 auto any(paragroup & pg) -> internal::wait_any;

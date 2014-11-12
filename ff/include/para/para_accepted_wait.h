@@ -44,6 +44,10 @@ public:
 	internal::schedule(pTask);
         return internal::para_accepted_call<PT, ret_type>(m_refP);
     }
+    template<class F>
+    void        then(F && f) {
+      static_assert(std::is_same<F, void>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
+    }
 #ifdef USING_MIMO_QUEUE
     template<class F>
     auto		operator ()(F && f, int32_t thrd) -> internal::para_accepted_call<PT, ret_type>

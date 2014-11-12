@@ -110,7 +110,6 @@ namespace ff {
             WT	m_oWaiting;
         };//end class para_accepted_wait;
         
-        //void		push(const para<RT> & p) {}
         
         template <class WT>
         para_accepted_wait<paragroup,WT> operator[](WT && cond)
@@ -190,6 +189,11 @@ namespace ff {
         void clear()
         {
             m_pEntities.reset();
+        }
+        template<class T>
+        void add(T && t)
+        {
+          static_assert(std::is_same<T, void>::value, FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP);
         }
     protected:
         typedef std::shared_ptr<internal::paras_with_lock > Entities_t;

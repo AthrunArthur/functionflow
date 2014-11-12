@@ -30,6 +30,7 @@ THE SOFTWARE.
 #include "para/para_impl.h"
 #include "runtime/rtcmn.h"
 #include "common/log.h"
+#include "para/para_wait_traits.h"
 
 
 namespace ff {
@@ -49,11 +50,18 @@ public:
     {
     }
     template<class WT>
-    para_accepted_wait<DT, WT> operator[](WT && cond)
+    auto operator[](WT && cond) ->
+    typename std::enable_if<is_para_or_wait<typename std::remove_reference<WT>::type>::value, para_accepted_wait<DT, WT> >::type
     {
         if(cond.get_state() == exe_state::exe_empty)
             throw empty_para_exception();
         return para_accepted_wait<DT, WT>(*(static_cast<DT *>(this)),std::forward<WT>(cond));
+    }
+    template<class WT>
+    auto operator[](WT && cond) ->
+    typename std::enable_if<!is_para_or_wait<typename std::remove_reference<WT>::type>::value, para_accepted_wait<DT, para<void>> >::type
+    {
+      static_assert(std::is_same<WT, void>::value, FF_EM_WRONG_USE_SQPAREN);
     }
     template<class F>
     auto		exe(F && f, const mutex_id_t & id= invalid_mutex_id) -> para_accepted_call<DT, ret_type>
@@ -67,10 +75,18 @@ public:
         return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
     }
     template<class F>
-    auto		operator ()(F && f, const mutex_id_t & id= invalid_mutex_id) -> para_accepted_call<DT, ret_type>
+    auto		operator ()(F && f, const mutex_id_t & id= invalid_mutex_id) -> 
+    typename std::enable_if<std::is_same<typename ::ff::utils::function_res_traits<F>::ret_type, ret_type>::value, para_accepted_call<DT, ret_type> >::type
     {
 	_DEBUG(LOG_INFO(rt)<<"() start")
 	return exe(std::forward<F>(f),id);
+    }
+
+    template<class F>
+    auto operator()(F && f, const mutex_id_t & id = invalid_mutex_id) ->
+    typename std::enable_if<!std::is_same<typename ::ff::utils::function_res_traits<F>::ret_type, ret_type>::value, para_accepted_call<DT, ret_type> >::type
+    {
+      static_assert(std::is_same<F, void>::value, FF_EM_CALL_WITH_TYPE_MISMATCH);
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
@@ -105,6 +121,12 @@ public:
 
     internal::para_impl_ptr<ret_type> get_internal_impl() {
         return m_pImpl;
+    }
+
+    template<class F>
+    void     then(const F& f)
+    {
+      static_assert(std::is_same<F, void>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
     }
 protected:
     internal::para_impl_ptr<ret_type> m_pImpl;

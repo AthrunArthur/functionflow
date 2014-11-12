@@ -143,13 +143,7 @@ public:
         : m_1(t1)
         , m_2(t2)
         , m_iES(exe_state::exe_init) {}
-    /*
-    wait_or(T1_t & t1, T2_t & t2)
-        : m_1(t1)
-        , m_2(t2)
-    	, m_iES(exe_state::exe_unknown){
-    }
-    */
+
     template<class FT>
     auto  then(FT && f)
     -> typename std::enable_if<
