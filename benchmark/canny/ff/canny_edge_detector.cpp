@@ -554,7 +554,7 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 
 void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
-    ff::paragroup pg;
+    ff::paracontainer pg;
     typedef std::vector<std::tuple<uint32_t, uint32_t> > pos_t;
     pos_t ts;
     for (uint32_t tx = 0; tx < height; tx++) {
