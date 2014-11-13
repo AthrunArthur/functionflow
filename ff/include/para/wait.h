@@ -61,7 +61,7 @@ auto operator &&(T1 && t1, T2 && t2)
                             !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
                 internal::wait_and<para<void>, para<void>>>::type
 {
-    static_assert(std::is_same<T1, void>::value, FF_EM_COMBINE_PARA_AND_OTHER);
+    static_assert(Please_Check_The_Assert_Msg<T1>::value, FF_EM_COMBINE_PARA_AND_OTHER);
 }
 
 template<class T1, class T2>
@@ -72,7 +72,7 @@ auto operator ||(T1 && t1, T2 && t2)
                             !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
                 internal::wait_or<para<void>, para<void>>>::type
 {
-    static_assert(std::is_same<T1, void>::value, FF_EM_COMBINE_PARA_AND_OTHER);
+    static_assert(Please_Check_The_Assert_Msg<T1>::value, FF_EM_COMBINE_PARA_AND_OTHER);
 }
 
 

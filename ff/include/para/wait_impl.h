@@ -112,7 +112,7 @@ public:
             !is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and,
             typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type > :: type
     {
-      static_assert(std::is_same<FT, void>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
+      static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
     auto get() -> typename deduct_t::and_type
@@ -221,7 +221,7 @@ public:
             !is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or,
             typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type > :: type
     {
-      static_assert(std::is_same<FT, void>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
+      static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
     auto get() -> typename deduct_t::or_type

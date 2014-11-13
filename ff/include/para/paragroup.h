@@ -193,7 +193,7 @@ namespace ff {
         template<class T>
         void add(T && t)
         {
-          static_assert(std::is_same<T, void>::value, FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP);
+          static_assert(Please_Check_The_Assert_Msg<T>::value, FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP);
         }
     protected:
         typedef std::shared_ptr<internal::paras_with_lock > Entities_t;

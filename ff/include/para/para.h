@@ -61,7 +61,7 @@ public:
     auto operator[](WT && cond) ->
     typename std::enable_if<!is_para_or_wait<typename std::remove_reference<WT>::type>::value, para_accepted_wait<DT, para<void>> >::type
     {
-      static_assert(std::is_same<WT, void>::value, FF_EM_WRONG_USE_SQPAREN);
+      static_assert(Please_Check_The_Assert_Msg<WT>::value, FF_EM_WRONG_USE_SQPAREN);
     }
     template<class F>
     auto		exe(F && f, const mutex_id_t & id= invalid_mutex_id) -> para_accepted_call<DT, ret_type>
@@ -86,7 +86,7 @@ public:
     auto operator()(F && f, const mutex_id_t & id = invalid_mutex_id) ->
     typename std::enable_if<!std::is_same<typename ::ff::utils::function_res_traits<F>::ret_type, ret_type>::value, para_accepted_call<DT, ret_type> >::type
     {
-      static_assert(std::is_same<F, void>::value, FF_EM_CALL_WITH_TYPE_MISMATCH);
+      static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_WITH_TYPE_MISMATCH);
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
@@ -126,7 +126,7 @@ public:
     template<class F>
     void     then(const F& f)
     {
-      static_assert(std::is_same<F, void>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
+      static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
     }
 protected:
     internal::para_impl_ptr<ret_type> m_pImpl;

@@ -26,6 +26,14 @@ THE SOFTWARE.
 #ifndef FF_COMMON_ERROR_MSG_H_
 #define FF_COMMON_ERROR_MSG_H_
 
+namespace ff{
+template<class F>
+struct Please_Check_The_Assert_Msg
+{
+  const static bool value = false;
+};//end struct Please_Check_The_Assert_Msg
+}//end namespace ff
+
 #define FF_EM_CALL_THEN_WITHOUT_CALL_PAREN "You can only call *then* after operater(...)"
 
 #define FF_EM_CALL_WITH_TYPE_MISMATCH "The function's return type in operatoer(...) doesn't match para<...>"

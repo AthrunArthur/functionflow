@@ -46,7 +46,7 @@ public:
     }
     template<class F>
     void        then(F && f) {
-      static_assert(std::is_same<F, void>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
+      static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
     }
 #ifdef USING_MIMO_QUEUE
     template<class F>
