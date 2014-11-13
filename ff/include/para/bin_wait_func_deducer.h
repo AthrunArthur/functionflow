@@ -24,6 +24,7 @@ THE SOFTWARE.
 #ifndef FF_PARA_BIN_WAIT_FUNC_DEDUCER_H_
 #define FF_PARA_BIN_WAIT_FUNC_DEDUCER_H_
 #include "common/common.h"
+#include "para/is_compatible_then.h"
 #include <tuple>
 
 

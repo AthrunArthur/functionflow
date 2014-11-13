@@ -44,4 +44,6 @@ THE SOFTWARE.
 
 #define FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP "paragroup is only for data parallelism (for_each), use paracontainer to hold multiple para<...> objects!"
 
+#define FF_EM_THEN_FUNC_TYPE_MISMATCH "The function's type in *then* doesn't match with associated dependency expression"
+
 #endif

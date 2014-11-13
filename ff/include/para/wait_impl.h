@@ -40,6 +40,8 @@ class wait_and
 public:
     typedef typename std::remove_reference<T1>::type T1_t;
     typedef typename std::remove_reference<T2>::type T2_t;
+    typedef typename T1_t::ret_type RT1_t;
+    typedef typename T2_t::ret_type RT2_t;
     typedef bin_wait_func_deducer<typename T1_t::ret_type, typename T2_t::ret_type> deduct_t;
     typedef typename deduct_t::and_type ret_type;
 public:
@@ -52,7 +54,7 @@ public:
     auto  then(FT && f)
     -> typename std::enable_if<
     std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-    !utils::function_args_traits<FT>::is_no_args, void>::type
+    is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args, void>::type
     {
         if(!check_if_over())
             ::ff::rt::yield_and_ret_until([this]() {
@@ -65,7 +67,7 @@ public:
     auto  then(FT && f ) ->
     typename std::enable_if<
     !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-    !utils::function_args_traits<FT>::is_no_args,
+    is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args,
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
     >::type
     {
@@ -92,7 +94,7 @@ public:
     auto  then(FT && f ) ->
     typename std::enable_if<
     !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-    utils::is_no_args_function<FT>::value,
+    utils::function_args_traits<FT>::is_no_args,
           typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           >::type
     {
@@ -101,6 +103,16 @@ public:
             return check_if_over();
         });
         return f();
+    }
+
+    template<class FT>
+    auto then(FT && f) ->
+        typename std::enable_if<
+            !utils::function_args_traits<FT>::is_no_args && 
+            !is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type > :: type
+    {
+      static_assert(std::is_same<FT, void>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
     auto get() -> typename deduct_t::and_type
@@ -136,6 +148,8 @@ class wait_or
 public:
     typedef typename std::remove_reference<T1>::type T1_t;
     typedef typename std::remove_reference<T2>::type T2_t;
+    typedef typename T1_t::ret_type RT1_t;
+    typedef typename T2_t::ret_type RT2_t;
     typedef bin_wait_func_deducer<typename T1_t::ret_type, typename T2_t::ret_type> deduct_t;
     typedef typename deduct_t::or_type ret_type;
 public:
@@ -148,7 +162,7 @@ public:
     auto  then(FT && f)
     -> typename std::enable_if<
     std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-    !utils::function_args_traits<FT>::is_no_args
+    is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args
     , void>::type
     {
         if(!check_if_over())
@@ -162,7 +176,7 @@ public:
     auto  then(FT && f ) ->
     typename std::enable_if<
     !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-    !utils::function_args_traits<FT>::is_no_args,
+    is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args, 
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
     >::type
     {
@@ -198,6 +212,16 @@ public:
             return check_if_over();
         });
         return f();
+    }
+
+    template<class FT>
+    auto then(FT && f) ->
+        typename std::enable_if<
+            !utils::is_no_args_function<FT>::value && 
+            !is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type > :: type
+    {
+      static_assert(std::is_same<FT, void>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
     auto get() -> typename deduct_t::or_type

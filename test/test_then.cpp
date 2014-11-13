@@ -61,10 +61,10 @@ int main(int argc, char *argv[])
             std::cout<<std::get<1>(res)<<std::endl;
     });
 
-    (v1 && i1).then([](double d) {
+    (v1 && i1).then([](int d) {
         std::cout<<d<<std::endl;
     });
-    (v2 || i2).then([](bool b, double d) {
+    (v2 || i2).then([](bool b, int d) {
         std::cout<<d<<std::endl;
     });
 

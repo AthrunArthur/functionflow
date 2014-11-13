@@ -37,7 +37,6 @@ endif (Boost_FOUND)
 link_directories(${PROJECT_SOURCE_DIR}/../bin)
 
 
-
 ADD_EXECUTABLE(fftest test_interface.cpp)
 TARGET_LINK_LIBRARIES(fftest ${LIBS_LINK_LIBS})
 add_test(functional_test fftest)
@@ -48,6 +47,18 @@ TARGET_LINK_LIBRARIES(helloworld ${LIBS_LINK_LIBS})
 ADD_EXECUTABLE(fib fib.cpp)
 TARGET_LINK_LIBRARIES(fib ${LIBS_LINK_LIBS})
 add_test(fibonacci fib)
+
+ADD_EXECUTABLE(callable test_callable.cpp)
+TARGET_LINK_LIBRARIES(callable ${LIBS_LINK_LIBS})
+add_test(is_callable callable)
+
+add_executable(func_with_one_type test_func_with_type.cpp)
+target_link_libraries(func_with_one_type ${LIBS_LINK_LIBS})
+add_test(check_func_with_one_type func_with_one_type)
+
+add_executable(compatible test_compatible.cpp)
+target_link_libraries(compatible ${LIBS_LINK_LIBS})
+add_test(check_compatible_then_func compatible)
 
 ADD_EXECUTABLE(test_jmp test_jmp.cpp)
 TARGET_LINK_LIBRARIES(test_jmp ${LIBS_LINK_LIBS})
@@ -75,5 +86,6 @@ add_test(ff_any_value any_test)
 
 ADD_EXECUTABLE(rangemap_test test_range_map.cpp)
 TARGET_LINK_LIBRARIES(rangemap_test ${LIBS_LINK_LIBS})
+
 #ADD_EXECUTABLE(mutex_test test_mutex.cpp)
 #TARGET_LINK_LIBRARIES(mutex_test ${LIBS_LINK_LIBS})
