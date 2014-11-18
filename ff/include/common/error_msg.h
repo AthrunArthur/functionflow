@@ -34,24 +34,26 @@ struct Please_Check_The_Assert_Msg
 };//end struct Please_Check_The_Assert_Msg
 }//end namespace ff
 
-#define FF_EM_CALL_THEN_WITHOUT_CALL_PAREN "You can only call *then* after operater(...)"
+#define FF_EM_CALL_THEN_WITHOUT_CALL_PAREN "\033[31m\033[1mYou can only call *then* right after calling operator(...), like this, \n\tpara<> a;\n\ta([](){...}).then(...);\033[0m"
 
-#define FF_EM_CALL_WITH_TYPE_MISMATCH "The function's return type in operatoer(...) doesn't match para<...>"
+#define FF_EM_CALL_WITH_TYPE_MISMATCH "\033[31m\033[1mThe function's return type in operator(...) doesn't match para<...>\033[0m"
 
-#define FF_EM_THEN_WITH_TYPE_MISMATCH "The parameter's type in then's callback function doesn't match associated para<...>'s return type"
+#define FF_EM_THEN_WITH_TYPE_MISMATCH "\033[31m\033[1mThe parameter's type in then's callback function doesn't match associated para<...>'s return type\033[0m"
 
-#define FF_EM_THEN_WITH_NON_FUNC_TYPE "*then* must take a callable object as parameter, like lambda, functor, or std::function"
+#define FF_EM_THEN_WITH_NON_FUNC_TYPE "\033[31m\033[1m*then* must take a callable object as parameter, like lambda, functor, or std::function\033[0m"
 
-#define FF_EM_CALL_SQPAREN_AFTER_PAREN "Cannot using operator[] to wait for others!"
+#define FF_EM_CALL_SQPAREN_AFTER_PAREN "\033[31m\033[1mYou can only call operator[] before calling calling operator(...), instead of after calling operator(...)!\033[0m"
 
-#define FF_EM_WRONG_USE_SQPAREN "You can only wait for a para<...> object or a dependency expression while using operator[]"
+#define FF_EM_WRONG_USE_SQPAREN "\033[31m\033[1mYou can only wait for a para<...> object or a dependency expression while using operator[]\033[0m"
 
-#define FF_EM_CALL_PAREN_AFTER_PAREN "You cannot call operator() after operator()"
+#define FF_EM_CALL_PAREN_AFTER_PAREN "\033[31m\033[1mYou cannot call operator() after operator()\033[0m"
 
-#define FF_EM_COMBINE_PARA_AND_OTHER "Cannot combine para<...> object and other object as dependency expression"
+#define FF_EM_COMBINE_PARA_AND_OTHER "\033[31m\033[1mCannot combine para<...> object and other object as dependency expression\033[0m"
 
-#define FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP "paragroup is only for data parallelism (for_each), use paracontainer to hold multiple para<...> objects!"
+#define FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP "\033[31m\033[1mparagroup is only for data parallelism (for_each), use paracontainer to hold multiple para<...> objects!\033[0m"
 
-#define FF_EM_THEN_FUNC_TYPE_MISMATCH "The function's type in *then* doesn't match with associated dependency expression"
+#define FF_EM_THEN_FUNC_TYPE_MISMATCH "\033[31m\033[1mThe function's type in *then* doesn't match with associated dependency expression\033[0m"
+
+#define FF_EM_CALL_NO_SUPPORT_FOR_PARA "\033[31m\033[1mCurrently, we don't support that returning a para object in another para object\033[0m"
 
 #endif

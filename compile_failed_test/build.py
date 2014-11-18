@@ -11,7 +11,10 @@ def get_all_cpp_files():
     return files
 
 def generate_compile_cmd(fp):
-    cmd = 'g++ -std=c++11 -DUSING_WORK_STEALING_QUEUE -I' + ff_path
+    cxx = os.getenv('CXX')
+    if len(cxx) == 0:
+        cxx = 'g++'
+    cmd = cxx + ' -std=c++11 -DUSING_WORK_STEALING_QUEUE -I' + ff_path
     cmd += ' ' + fp + ' '
     cmd += '-o m'
     return cmd

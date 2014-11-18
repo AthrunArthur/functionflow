@@ -147,6 +147,13 @@ template<>
 class para<void> : public internal::para_common<para<void>, void > {
 };//end class para;
 
+template<class T>
+class para< para<T> > {
+  public:
+    para(){
+      static_assert(Please_Check_The_Assert_Msg<para<T>>::value, FF_EM_CALL_NO_SUPPORT_FOR_PARA);
+    };
+};//end class para;
 
 }//end namespace ff
 #endif
