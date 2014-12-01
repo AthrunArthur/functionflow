@@ -6,9 +6,9 @@ Function Flow is a library which targets on "ease parallel programming", especia
     2. automatically performance tuning;
     3. tool chains with static program analysis.
 
-In the part of easy used programming interfaces, we carefully desgined Function Flow to avoid any "anti-intuitive" programming statements. All things in expressing parallelism are done directly without anything like initialization, constraints of tasks, tricks of waiting expressiong and etc. 
+In the part of easy used programming interfaces, we carefully desgined Function Flow to avoid any "anti-intuitive" programming statement. All things in expressing parallelism are done directly without anything like initialization, constraints of tasks, tricks of waiting expressiong and etc. 
 
-Besides, Function Flow also makes a big effort to make parallel programming "safe" by leveraging compiling-time check, instead of runtime assert. This makes a successfully compiled Function Flow program satisfies some parallel constraints already. Such feature largely helps improving productivity.
+Besides, Function Flow also makes a huge effort to make parallel programming "safe" by leveraging compiling-time check, instead of runtime assert. This makes a successfully compiled Function Flow program satisfies some parallel constraints already. Such feature largely helps improving productivity. Also, we customize some compile errors to help users understanding why their programs are "invalid".
 
 In the part of automatically performance tuning, Function Flow tries to get hints from static analysis to balance different choices in runtime subsystem.
 
