@@ -60,7 +60,7 @@ public:
     //! return true if other thread had it.
     bool  outstanding_hazard_pointer_for(T * p)
     {
-        TLS_t thrd_id_t id = ff::rt::get_thrd_id();
+        thread_local static thrd_id_t id = ff::rt::get_thrd_id();
         if(!p)
             return false;
         for(int i = 0; i < ff::rt::rt_concurrency(); i++)

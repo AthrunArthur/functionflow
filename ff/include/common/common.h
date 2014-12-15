@@ -63,11 +63,13 @@ const thrd_id_t invalid_thrd_id = -1;
 
 }//end namespace ff
 
+/*
 #ifdef CLANG_LLVM
 #define TLS_t
 #else
 #define TLS_t thread_local static
 #endif
+*/
 
 
 #endif

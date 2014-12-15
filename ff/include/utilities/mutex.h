@@ -76,7 +76,7 @@ public:
     }
 
     double & thread_schedule_cost() {
-      TLS_t thrd_id_t thrd_id = rt::get_thrd_id();
+      thread_local static thrd_id_t thrd_id = rt::get_thrd_id();
       return m_thread_schedule_cost[thrd_id];
     }
 

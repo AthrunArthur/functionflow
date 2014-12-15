@@ -43,43 +43,41 @@ namespace ff{
     public:
         typedef void ret_type;
     public:
+        paracontainer()
+          : m_pEntities(new internal::paras_with_lock()){}
+
         para<void> &  operator [](int index)
         {
+            std::scope_lock<std::mutex> _l(m_pEntities->lock);
             _DEBUG(
-                    if(!m_pEntities)
-                    {
-                        LOG_FATAL(para)<<" m_pEntities is null";
-                    }
+                if(index >= (*m_pEntities).entities.size())
+                {
+                    assert(false && "index out of range);
+                }
             )
             return (*m_pEntities).entities[index];
         }
         size_t 	size() const
         {
-            if(m_pEntities)
-                return m_pEntities->entities.size();
-            return 0;
+            std::scope_lock<std::mutex> _l(m_pEntities->lock);
+            return m_pEntities->entities.size();
         }
         ~paracontainer()
         {
         }
 
-        //! Not thread safe!
         void add(const para< void >&  p)
         {
-            add_impl(p);
+            std::scope_lock<std::mutex> _l(m_pEntities->lock);
+            m_pEntities->entities.push_back(p);
         }
 
         void clear()
         {
-            m_pEntities.reset();
+            std::scope_lock<std::mutex> _l(m_pEntities->lock);
+            m_pEntities->entities.reset();
         }
     protected:
-        void add_impl(const para<void> & p)
-        {
-            if(!m_pEntities)
-                m_pEntities = std::make_shared<internal::paras_with_lock>();
-            m_pEntities->entities.push_back(p);
-        }
 
         typedef std::shared_ptr<internal::paras_with_lock > Entities_t;
 
