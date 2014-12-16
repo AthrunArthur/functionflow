@@ -48,18 +48,18 @@ namespace ff{
 
         para<void> &  operator [](int index)
         {
-            std::scope_lock<std::mutex> _l(m_pEntities->lock);
+            std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
             _DEBUG(
                 if(index >= (*m_pEntities).entities.size())
                 {
-                    assert(false && "index out of range);
+                    assert(false && "index out of range");
                 }
             )
             return (*m_pEntities).entities[index];
         }
         size_t 	size() const
         {
-            std::scope_lock<std::mutex> _l(m_pEntities->lock);
+            std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
             return m_pEntities->entities.size();
         }
         ~paracontainer()
@@ -68,14 +68,14 @@ namespace ff{
 
         void add(const para< void >&  p)
         {
-            std::scope_lock<std::mutex> _l(m_pEntities->lock);
+            std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
             m_pEntities->entities.push_back(p);
         }
 
         void clear()
         {
-            std::scope_lock<std::mutex> _l(m_pEntities->lock);
-            m_pEntities->entities.reset();
+            std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
+            m_pEntities->entities.clear();
         }
     protected:
 
