@@ -29,6 +29,7 @@ THE SOFTWARE.
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <functional>
 #include "ff.h"
 #include "common/log.h"
 
@@ -48,6 +49,7 @@ double inc(double t)
 	return t + 1;
 }
 
+
 BOOST_AUTO_TEST_CASE(para_test_simple)
 {
     para<> a;
@@ -61,12 +63,95 @@ BOOST_AUTO_TEST_CASE(para_test_simple)
     BOOST_CHECK(b.check_if_over());
 }
 
+int intinc(int t)
+{
+  return t + 1;
+}
+int incone()
+{
+  return 10;
+}
+class IncOne
+{
+public:
+  IncOne(int & i):
+    m_i(i){}
+  int get(){return m_i;}
+  int operator()()
+  {
+    return m_i + 1;
+  }
+protected:
+  int & m_i;
+};//end class IncOne
+
+BOOST_AUTO_TEST_CASE(para_test_simple_function)
+{
+  para<int> b;
+  b(incone);
+  ff_wait(b);
+  BOOST_CHECK(b.get() == 10);
+  BOOST_CHECK(b.check_if_over());
+}
+
+BOOST_AUTO_TEST_CASE(para_test_simple_stdbind)
+{
+  para<int> b;
+  int a = 9;
+  b(std::bind(intinc, a));
+  ff_wait(b);
+  BOOST_CHECK(b.get() == 10);
+  BOOST_CHECK(b.check_if_over());
+}
+
+BOOST_AUTO_TEST_CASE(para_test_simple_functor)
+{
+  para<int> b;
+  int t = 9;
+  IncOne v(t);
+  b(v);
+  ff_wait(b);
+  BOOST_CHECK(b.get() == 10);
+  BOOST_CHECK(b.check_if_over());
+}
 BOOST_AUTO_TEST_CASE(para_test_then)
 {
     int num = 10;
     para<int> a;
     a([&num](){return inc(num);}).then([num](int n){BOOST_CHECK(n == inc(num));}); 
     BOOST_CHECK(a.check_if_over());
+}
+
+BOOST_AUTO_TEST_CASE(para_test_thensimple_function)
+{
+    int num = 10;
+    para<int> a;
+    int t = a([&num](){return inc(num);}).then(intinc);
+    BOOST_CHECK(t == intinc(inc(num)));
+}
+struct IntFunctor
+{
+  int operator()(int n){return n + 1;}
+};//end class IntFunctor
+BOOST_AUTO_TEST_CASE(para_test_then_functor)
+{
+  int num = 10;
+  para<int> a;
+  IntFunctor ftr;
+  int t = a([&num](){return inc(num);}).then(ftr);
+  BOOST_CHECK(t == inc(num) + 1);
+}
+
+int add(int a, int b)
+{
+  return a + b;
+}
+BOOST_AUTO_TEST_CASE(para_test_then_stdbind)
+{
+  int num = 10;
+  para<int> a;
+  int t = a([&num](){return inc(num);}).then(std::bind(add, std::placeholders::_1, 10));
+  BOOST_CHECK(t == add(10, inc(num)));
 }
 
 BOOST_AUTO_TEST_CASE(para_test_empty)

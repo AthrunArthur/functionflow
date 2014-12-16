@@ -81,16 +81,97 @@ struct is_no_args_function<Ret (*)(void)> {
   const static bool value = true;
 };
 
-template<class F>
-struct function_res_traits
-{
-	typedef typename deduce_function<decltype(&std::remove_reference<F>::type::operator())>::ret_type ret_type;
+template<class F, bool flag>
+struct functor_res_traits{
+  typedef typename deduce_function<decltype(&std::remove_reference<F>::type::operator())>::ret_type ret_type;
 };
 
 template<class F>
+struct functor_res_traits<F, false>{
+  typedef void ret_type;
+};
+
+template<class F, bool flag>
+struct bind_res_traits{
+  typedef typename F::result_type ret_type;
+};
+
+template<class F>
+struct bind_res_traits<F, false>{
+  typedef void ret_type;
+};
+
+template<class F, bool flag>
+struct function_res_traits_impl{
+  typedef typename deduce_function<F>::ret_type ret_type;
+};
+template<class F>
+struct function_res_traits_impl<F, false>{
+  typedef void ret_type;
+};
+
+template<class F>
+struct function_res_traits_impl<F *, true>{
+  typedef typename deduce_function<F>::ret_type ret_type;
+};
+template<class F>
+struct function_res_traits_impl<F&, true>{
+  typedef typename deduce_function<F>::ret_type ret_type;
+};
+
+template<class F>
+struct function_res_traits
+{
+  typedef typename std::remove_reference<F>::type  FT;
+  const static bool s_is_class = std::is_class<FT>::value;
+  const static bool s_is_bind_expr = std::is_bind_expression<FT>::value;
+
+  typedef typename std::conditional<s_is_class,
+          typename std::conditional<s_is_bind_expr,
+                                    typename bind_res_traits<FT, s_is_bind_expr>::ret_type,
+                                    typename functor_res_traits<FT, !s_is_bind_expr && s_is_class>::ret_type
+                                   >::type,
+          typename function_res_traits_impl<FT, !s_is_class>::ret_type>::type ret_type;
+};
+
+template<class F, bool flag>
+struct functor_args_traits{
+  const static bool is_no_args = is_no_args_function<decltype(&std::remove_reference<F>::type::operator())>::value;
+};
+
+template<class F>
+struct functor_args_traits<F, false>
+{
+  const static bool is_no_args = false;
+};
+
+template<class F, bool flag>
+struct function_args_traits_impl{
+  const static bool is_no_args = is_no_args_function<F>::value;
+};
+
+template<class F>
+struct function_args_traits_impl<F, false>{
+  const static bool is_no_args = false;
+};
+
+template<class F>
+struct function_args_traits_impl<F *, true>{
+  const static bool is_no_args = is_no_args_function<F>::value;
+};
+template<class F>
+struct function_args_traits_impl<F &, true>{
+  const static bool is_no_args = is_no_args_function<F>::value;
+};
+template<class F>
 struct function_args_traits
 {
-  const static bool is_no_args = is_no_args_function<decltype(&std::remove_reference<F>::type::operator())>::value;
+  typedef typename std::remove_reference<F>::type FT;
+  const static bool s_is_class = std::is_class<FT>::value;
+  
+  const static bool is_no_args = 
+        functor_args_traits<FT, s_is_class>::is_no_args ||
+        function_args_traits_impl<FT, !s_is_class> ::is_no_args;
 };
 
 }//end namespace utils

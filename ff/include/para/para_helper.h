@@ -62,7 +62,7 @@ public:
     {
         if(!m_refP.check_if_over())
             ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
-        return f(m_refP.get());
+        return std::move(f(m_refP.get()));
     }
 
     template<class FT>

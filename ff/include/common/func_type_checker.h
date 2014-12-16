@@ -75,10 +75,21 @@ struct is_functor_with_arg_type<F, AT, true>
 };
 
 template<class F, class AT>
+struct is_function_with_arg_type
+{
+  typedef typename std::remove_reference<F>::type FT;
+  const static bool s_is_class = std::is_class<FT>::value;
+  const static bool s_is_bind_expr = std::is_bind_expression<FT>::value;
+  const static bool value = s_is_bind_expr || 
+                        is_functor_with_arg_type<FT, AT, s_is_class && !s_is_bind_expr && is_callable<FT>::value>::value ||
+                        is_function_with_arg_type_impl<FT, AT>::value;
+};
+/*
+template<class F, class AT>
 struct is_function_with_arg_type : public std::conditional<std::is_class<typename std::remove_reference<F>::type>::value,
                                             is_functor_with_arg_type<F, AT, std::is_class<typename std::remove_reference<F>::type>::value && is_callable<F>::value>,
                                             is_function_with_arg_type_impl<typename std::remove_reference<F>::type, AT> >::type{};
-
+*/
 ////////////////////////////////
 
 template<class F, class AT1, class AT2>
