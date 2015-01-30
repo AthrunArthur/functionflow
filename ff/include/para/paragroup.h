@@ -30,6 +30,10 @@
 #include "common/log.h"
 #include "runtime/env.h"
 #include "para/wait_impl.h"
+#include "common/func_type_checker.h"
+#include "common/is_callable.h"
+#include "common/error_msg.h"
+
 
 #include <cmath>
 #include <algorithm>
@@ -58,6 +62,7 @@ namespace ff {
             : m_refP(p)
             , m_oWaiting(w) {}
             
+
 
             //!For arithmetic iterators
             template<class Iterator_t, class Functor_t>
@@ -104,7 +109,6 @@ namespace ff {
                 return internal::para_accepted_call<paragroup, ret_type>(m_refP);
             }
 
-            
         protected:
             PT & m_refP;
             WT	m_oWaiting;
@@ -146,7 +150,8 @@ namespace ff {
         auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
         -> typename std::enable_if<
         std::is_arithmetic<
-        typename std::remove_cv<Iterator_t>::type>::value,
+        typename std::remove_cv<Iterator_t>::type>::value &&
+        ff::utils::is_function_with_arg_type<Functor_t, Iterator_t>::value,
         internal::para_accepted_call<paragroup, void>>::type
         {
             FF_DEFAULT_PARTITIONER  *p = nullptr;
@@ -160,7 +165,8 @@ namespace ff {
         auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
         -> typename std::enable_if<
         !std::is_arithmetic<typename std::remove_cv<Iterator_t>::type>::value &&
-                std::is_same<typename std::iterator_traits<Iterator_t>::iterator_category, std::random_access_iterator_tag>::value,
+                std::is_same<typename std::iterator_traits<Iterator_t>::iterator_category, std::random_access_iterator_tag>::value &&
+            ff::utils::is_function_with_arg_type<Functor_t, typename std::iterator_traits<Iterator_t>::value_type>::value, 
         internal::para_accepted_call<paragroup, void>>::type
         {
             FF_DEFAULT_PARTITIONER  *p = nullptr;
@@ -176,7 +182,8 @@ namespace ff {
         auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
         -> typename std::enable_if<
                 !std::is_arithmetic<typename std::remove_cv<Iterator_t>::type>::value &&
-                        ! std::is_same<typename std::iterator_traits<Iterator_t>::iterator_category, std::random_access_iterator_tag>::value,
+                        ! std::is_same<typename std::iterator_traits<Iterator_t>::iterator_category, std::random_access_iterator_tag>::value &&
+            ff::utils::is_function_with_arg_type<Functor_t, typename std::iterator_traits<Iterator_t>::value_type>::value, 
                 internal::para_accepted_call<paragroup, void>>::type
         {
             FF_DEFAULT_PARTITIONER  *p = nullptr;
@@ -184,6 +191,23 @@ namespace ff {
                 f(*t);
             }, m_pEntities, p);
             return internal::para_accepted_call<paragroup, ret_type>(*this);
+        }
+
+        template<class Iterator_t, class Functor_t>
+        auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+        -> typename std::enable_if< !ff::utils::is_callable<Functor_t>::value,
+        internal::para_accepted_call<paragroup, void>>::type
+        {
+          static_assert(Please_Check_The_Assert_Msg<Functor_t>::value, FF_EM_CALL_FOR_EACH_WITHOUT_FUNCTION);
+        }
+
+        template<class Iterator_t, class Functor_t>
+        auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+        -> typename std::enable_if< ff::utils::is_callable<Functor_t>::value &&
+             ! ff::utils::is_function_with_arg_type<Functor_t, Iterator_t>::value, 
+        internal::para_accepted_call<paragroup, void>>::type
+        {
+          static_assert(Please_Check_The_Assert_Msg<Functor_t>::value, FF_EM_CALL_FOR_EACH_WRONG_FUNCTION);
         }
 
         void clear()
