@@ -21,55 +21,27 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_COMMON_COMMON_H_
-#define FF_COMMON_COMMON_H_
-
-#include <cstdint>
-#include <functional>
-#include <atomic>
-#include <thread>
-#include <type_traits>
-#include <iterator>
-#include <cassert>
-#include "common/error_msg.h"
-
-#define CACHE_LINE_SIZE 64
-#define FF_DEFAULT_PARTITIONER simple_partitioner //or auto_partitioner
-//#define RECORD_WORK_STEAL //This is the on-off switch for logging work-stealing behavior
-//#define FUNCTION_FLOW_DEBUG
-
-
-#ifdef FUNCTION_FLOW_DEBUG
+#define BOOST_TEST_MODULE test_ff
+#include "ff.h"
+#include "common/log.h"
 #include <iostream>
-#endif
+#include <boost/test/included/unit_test.hpp>
+#include <sstream>
 
-namespace ff {
-
-enum exe_state {
-    exe_empty = 1,
-    exe_init,
-    exe_wait,
-    exe_over,
-    exe_run,
-};
-exe_state exe_state_and(exe_state e1, exe_state  e2);
-exe_state exe_state_or(exe_state e1, exe_state e2);
-
-typedef void *  mutex_id_t;
-const mutex_id_t invalid_mutex_id = NULL;
-
-typedef int32_t thrd_id_t;
-const thrd_id_t invalid_thrd_id = -1;
-
-}//end namespace ff
-
-/*
-#ifdef CLANG_LLVM
-#define TLS_t
-#else
-#define TLS_t thread_local static
-#endif
-*/
-
-
-#endif
+BOOST_AUTO_TEST_SUITE(pipeline1_test)
+BOOST_AUTO_TEST_CASE(pip1)
+{
+  ff::input_filter<int> f1;
+  f1([]()->int{return 10;});
+  ff::filter<std::string> f2;
+  f2[f1]([](int d){
+      std::stringstream ss;
+      ss<< d;
+      return ss.str();
+      });
+  f1.start();
+  f2.then([](std::string s){
+      BOOST_CHECK(s == "10");
+      });
+}
+BOOST_AUTO_TEST_SUITE_END()

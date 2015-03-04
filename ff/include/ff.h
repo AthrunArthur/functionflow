@@ -32,6 +32,7 @@ THE SOFTWARE.
 #include "para/wait.h"
 #include "common/scope_guard.h"
 #include "utilities/mutex.h"
+//#include "pipeline/filter.h"
 
 namespace ff{
 

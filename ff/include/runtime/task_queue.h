@@ -29,7 +29,7 @@ THE SOFTWARE.
 #include "runtime/ring_buff.h"
 #endif
 
-#ifdef USING_FF_NONBLOCKING_QUEUE
+#ifdef USING_MUTEX_QUEUE
 #include "runtime/mutex_steal_queue.h"
 #endif
 
@@ -51,7 +51,7 @@ THE SOFTWARE.
 namespace ff {
 namespace rt {
 
-#ifdef USING_FF_NONBLOCKING_QUEUE
+#ifdef USING_MUTEX_QUEUE
 typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
 #endif
 

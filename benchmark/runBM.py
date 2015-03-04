@@ -17,7 +17,7 @@ if __name__ == '__main__':
 	if not os.path.exists(r'%s/build' %path):
 		execute_cmd('cd %s; mkdir build;' %path)
 	path = '%s/build' %path
-	cmd = 'cd %s; rm -rf *;cmake -DAll=1 ../; make;' % path
+	cmd = 'cd %s; rm -rf *;cmake -DLU=1 ../; make;' % path
 	execute_cmd(cmd)
 
 	file_all = execute_cmd('ls %s' % path)
@@ -27,12 +27,12 @@ if __name__ == '__main__':
 			if item not in sys.argv:
 				#Shouldn't remove the item or the pointer may change, thus not deleting all the unmatched.
 				file_list[file_list.index(item)]=""
-	
+
 	for item in file_list:
 		ifile = r'%s/%s' % (path, item)
 		if os.path.isfile('%s' %ifile) and os.access('%s' % ifile, os.X_OK):
 			if not cmp(item,'lu'):
-				para_n = 1 
+				para_n = 1
 			elif not cmp(item,'quicksort'):
 				para_n = 256
 			elif not cmp(item,'canny'):
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 			time_path = '%s/para_time.txt' % path
 			if os.path.exists(r'%s' %time_path):
 				execute_cmd('rm %s' % time_path)
-			cycle = 3;
+			cycle = 10;
 			for i in range(cycle):
 				print execute_cmd('cd %s; ./%s %s' % (path, item, para_n)).strip('\n')
 			time_file = open(time_path)
@@ -73,12 +73,12 @@ if __name__ == '__main__':
 			time_file.close()
 			#test std::mutex
 			if not cmp(item,'mutex'):
-				print 'Use std::mutex'	
+				print 'Use std::mutex'
 				print execute_cmd('cd %s; ./%s %s 1' % (path, item, para_n)).strip('\n')
-			execute_cmd('rm %s' % time_path)			
+			execute_cmd('rm %s' % time_path)
 			if not cmp(item,'phash'):
 				continue;
-			execute_cmd('cd %s; ./%s' % (path, item))			
+			execute_cmd('cd %s; ./%s' % (path, item))
 			time_path2 = '%s/time.txt' % path
 			time_file = open(time_path2)
 			print 'Serial time:' + time_file.read().strip('\n') + 'us'

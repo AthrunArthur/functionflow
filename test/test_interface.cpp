@@ -160,7 +160,6 @@ BOOST_AUTO_TEST_CASE(para_test_empty)
   double b_res;
   para<int> a;
   para<> b;
-
   BOOST_REQUIRE_THROW(
       b[a]([&num, &a, &b_res](){b_res=inc(num + a.get());}).then([&num, &a, &b, &b_res](){
         BOOST_CHECK(b_res == inc(num + a.get()));

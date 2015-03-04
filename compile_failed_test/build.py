@@ -2,6 +2,7 @@ import os
 
 cur_dir = os.path.dirname(os.path.abspath(__file__))
 ff_path = os.path.join(cur_dir, '../ff/include/')
+lib_path = os.path.join(cur_dir, '../bin/')
 
 def get_all_cpp_files():
     files = []
@@ -14,7 +15,7 @@ def generate_compile_cmd(fp):
     cxx = os.getenv('CXX')
     if len(cxx) == 0:
         cxx = 'g++'
-    cmd = cxx + ' -std=c++11 -DUSING_WORK_STEALING_QUEUE -I' + ff_path
+    cmd = cxx + ' -std=c++11 -DUSING_WORK_STEALING_QUEUE -I' + ff_path + ' -L' +lib_path + ' -lff -lpthread'
     cmd += ' ' + fp + ' '
     cmd += '-o m'
     return cmd

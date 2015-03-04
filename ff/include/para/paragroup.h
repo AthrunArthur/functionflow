@@ -204,7 +204,17 @@ namespace ff {
         template<class Iterator_t, class Functor_t>
         auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
         -> typename std::enable_if< ff::utils::is_callable<Functor_t>::value &&
+            std::is_arithmetic<typename std::remove_cv<Iterator_t>::type >::value &&
              ! ff::utils::is_function_with_arg_type<Functor_t, Iterator_t>::value, 
+        internal::para_accepted_call<paragroup, void>>::type
+        {
+          static_assert(Please_Check_The_Assert_Msg<Functor_t>::value, FF_EM_CALL_FOR_EACH_WRONG_FUNCTION);
+        }
+
+        template<class Iterator_t, class Functor_t>
+        auto for_each(Iterator_t begin, Iterator_t end, Functor_t && f)
+        -> typename std::enable_if< ff::utils::is_callable<Functor_t>::value &&
+             ! ff::utils::is_function_with_arg_type<Functor_t, typename std::iterator_traits<Iterator_t>::value_type >::value, 
         internal::para_accepted_call<paragroup, void>>::type
         {
           static_assert(Please_Check_The_Assert_Msg<Functor_t>::value, FF_EM_CALL_FOR_EACH_WRONG_FUNCTION);

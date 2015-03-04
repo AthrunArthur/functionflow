@@ -27,19 +27,28 @@ THE SOFTWARE.
 
 namespace ff{
 
-exe_state operator &&(exe_state e1, exe_state e2)
+exe_state exe_state_and(exe_state e1, exe_state e2)
 {
     if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
         throw empty_para_exception();
+    /*
+    {
+      if(e1 != exe_state::exe_empty)
+        return e1;
+      if(e2 != exe_state::exe_empty)
+        return e2;
+      return exe_state::exe_over;
+    }*/
     if(e1 == e2)
         return e1;
     return exe_state::exe_wait;
 }
 
-exe_state operator ||(exe_state e1, exe_state e2)
+exe_state exe_state_or(exe_state e1, exe_state e2)
 {
     if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
         throw empty_para_exception();
+    //    return exe_state::exe_over;
     if(e1 == exe_state::exe_over ||
         e2 == exe_state::exe_over)
         return exe_state::exe_over;

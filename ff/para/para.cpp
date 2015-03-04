@@ -44,7 +44,7 @@ exe_state wait_all::get_state()
 		for(auto p = all_ps->entities.begin(); p != all_ps->entities.end();++p)
 		{
 		  _DEBUG(LOG_TRACE(para)<<"item state is "<< p->get_state())
-		  m_iES = m_iES && p->get_state();
+		  m_iES = exe_state_and(m_iES,p->get_state());
 		}
 		all_ps->lock.unlock();
 	}
@@ -77,7 +77,7 @@ exe_state wait_any::get_state()
         m_iES = exe_state::exe_over;
         all_ps->lock.lock();
         for(auto p = all_ps->entities.begin(); p != all_ps->entities.end();++p)
-            m_iES = m_iES || p->get_state();
+            m_iES = exe_state_or(m_iES, p->get_state());
         all_ps->lock.unlock();
     }
     return m_iES;

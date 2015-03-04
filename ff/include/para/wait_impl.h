@@ -123,14 +123,14 @@ public:
     exe_state	get_state()
     {
         if(m_iES != exe_state::exe_over)
-            m_iES = (m_1.get_state() && m_2.get_state());
+            m_iES = exe_state_and(m_1.get_state(), m_2.get_state());
         return m_iES;
     }
     bool	check_if_over()
     {
         if(m_iES == exe_state::exe_over)
             return true;
-        m_iES = ( m_1.get_state() && m_2.get_state());
+        m_iES = exe_state_and( m_1.get_state(),  m_2.get_state());
         if(m_iES == exe_state::exe_over)
             return true;
         return false;
@@ -232,14 +232,14 @@ public:
     exe_state	get_state()
     {
         if(m_iES != exe_state::exe_over)
-            m_iES = ( m_1.get_state() || m_2.get_state() );
+            m_iES = exe_state_or( m_1.get_state(), m_2.get_state() );
         return m_iES;
     }
     bool	check_if_over()
     {
         if(m_iES == exe_state::exe_over)
             return true;
-        m_iES = ( m_1.get_state() || m_2.get_state() );
+        m_iES = exe_state_or( m_1.get_state(), m_2.get_state() );
         if(m_iES == exe_state::exe_over)
             return true;
         return false;
