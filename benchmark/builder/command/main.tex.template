@@ -1,0 +1,31 @@
+\documentclass{article}
+\usepackage{pgfplots}
+\pgfplotsset{compat=newest}
+\pgfplotsset{avgbar/.style={%
+  legend style = {
+    cells={anchor=east},
+    legend pos=outer north east,
+  },
+  ybar,
+  xtick pos = left,
+}}
+
+\pgfplotsset{seqline/.style={%
+  legend style = {
+    cells={anchor=east},
+    legend pos=outer north east,
+  },
+  xtick pos = left,
+}}
+\pgfplotsset{sortline/.style={%
+  legend style = {
+    cells={anchor=east},
+    legend pos=outer north east,
+  },
+  xtick pos = left,
+}}
+\begin{document}
+
+{{input_figures}}
+
+\end{document}

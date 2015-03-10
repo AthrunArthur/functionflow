@@ -206,5 +206,10 @@ if __name__=='__main__':
   #bms = [benchmark_configs.MUTEX]
   #bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   bms = [benchmark_configs.LU,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
-  build(common_config.CommonConfig, bms)
-  print run(common_config.CommonConfig, bms, 1)
+  if sys.argv[1] == 'build':
+    if len(sys.argv) == 3:
+        common_config.CommonConfig.CXX_FLAGS.append('-D' + sys.argv[2])
+    build(common_config.CommonConfig, bms)
+  elif sys.argv[1] == 'run':
+    rs = run(common_config.CommonConfig, bms, 1)
+    open(sys.argv[2], 'w').write(json.dumps(rs))
