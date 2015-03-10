@@ -84,6 +84,18 @@ ADD_EXECUTABLE(any_test test_any.cpp)
 TARGET_LINK_LIBRARIES(any_test ${LIBS_LINK_LIBS})
 add_test(ff_any_value any_test)
 
+add_executable(test_miso_queue test_miso_queue.cpp)
+target_link_libraries(test_miso_queue ${LIBS_LINK_LIBS})
+add_test(test_miso_queue test_miso_queue)
+
+add_executable(test_paracontainer test_paracontainer.cpp)
+target_link_libraries(test_paracontainer ${LIBS_LINK_LIBS})
+add_test(test_paracontainer test_paracontainer)
+
+add_executable(test_simo_queue test_simo_queue.cpp)
+target_link_libraries(test_simo_queue ${LIBS_LINK_LIBS})
+add_test(test_simo_queue test_simo_queue)
+
 ADD_EXECUTABLE(rangemap_test test_range_map.cpp)
 TARGET_LINK_LIBRARIES(rangemap_test ${LIBS_LINK_LIBS})
 

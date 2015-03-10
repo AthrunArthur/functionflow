@@ -136,7 +136,14 @@ void	runtime::schedule(task_base_ptr p)
 {
     thread_local static int i = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
+#ifdef USING_FLEXIBLE_QUEUE
     m_oQueues[i] ->push_back(p);
+#else
+    if(!m_oQueues[i] ->push_back(p))
+    {
+      p->run();
+    }
+#endif
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() end id:"<<i<<" task: "<<p.get();)
 }
 

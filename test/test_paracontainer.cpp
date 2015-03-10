@@ -21,34 +21,54 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_H_
-#define FF_H_
+#define BOOST_TEST_MODULE test_ff
+#include <boost/test/included/unit_test.hpp>
 
-#include "common/common.h"
-#include "para/data_wrapper.h"
-#include "para/para.h"
-#include "para/paragroup.h"
-#include "para/paracontainer.h"
-#include "para/wait.h"
-#include "common/scope_guard.h"
-#include "utilities/mutex.h"
-#include "runtime/miso_queue.h"
-#include "runtime/simo_queue.h"
+//#include <boost/test/unit_test.hpp>
+#include "ff.h"
+#include "common/log.h"
+#include <iostream>
 
-//#include "pipeline/filter.h"
+using namespace ff;
 
-namespace ff{
-
-template<class W>
-void ff_wait(W && wexpr)
+BOOST_AUTO_TEST_SUITE(minimal_test)
+BOOST_AUTO_TEST_CASE(paracontainer_test_all_null)
 {
-	(wexpr).then([](){});
-}//end wait
-template<class RT>
-void ff_wait(para<RT> & sexpr)
-{
-	ff_wait(sexpr && sexpr);
+  ff::paracontainer pc;
+  ff::ff_wait(all(pc));
 }
-}//end namespace ff
 
-#endif
+BOOST_AUTO_TEST_CASE(paracontainer_test_any_null)
+{
+  ff::paracontainer pc;
+  ff::ff_wait(any(pc));
+}
+BOOST_AUTO_TEST_CASE(paracontainer_test_empty)
+{
+  ff::paracontainer pc;
+  ff::paracontainer pc2;
+  ff::para<> a;
+  pc.add(a);
+  pc2.add(a);
+  BOOST_REQUIRE_THROW(ff::ff_wait(all(pc)), empty_para_exception);
+  BOOST_REQUIRE_THROW(ff::ff_wait(any(pc2)), empty_para_exception);
+}
+
+BOOST_AUTO_TEST_CASE(paracontainer_test_sum)
+{
+  ff::paracontainer pc;
+
+  int require_sum = 0;
+  const static int max = 1000;
+  std::atomic_int para_sum(0);
+  for(int i = 0; i < max; ++i)
+  {
+    require_sum += i;
+    ff::para<> a;
+    a([i, &para_sum](){para_sum += i;});
+    pc.add(a);
+  }
+  ff::ff_wait(all(pc));
+  BOOST_CHECK(para_sum.load() == require_sum);
+}
+BOOST_AUTO_TEST_SUITE_END()

@@ -43,7 +43,11 @@ THE SOFTWARE.
 
 #ifdef USING_WORK_STEALING_QUEUE
 //#include "runtime/twsq.h"
+#ifdef USING_FLEXIBLE_QUEUE
 #include "runtime/gtwsq.h"
+#else
+#include "runtime/gtwsq_fixed.h"
+#endif
 #endif
 
 #include "runtime/env.h"

@@ -58,85 +58,75 @@ protected:
     T m_oValue;
 };//end class para_ret;
 
-
 template<class RT>
-class para_impl : public ff::rt::task_base
+class para_impl_base : public ff::rt::task_base
+{
+public:
+    template <class F>
+    para_impl_base(F && f)
+        : ff::rt::task_base(TKind::user_t)
+        , m_oFunc(std::move(f))
+        , m_iES(exe_state::exe_init){}
+
+    virtual ~para_impl_base(){}
+    //virtual void	run(){}
+
+    exe_state	get_state()
+    {
+        return m_iES.load();
+    }
+    bool	check_if_over()
+    {
+        if(m_iES.load() == exe_state::exe_over)
+            return true;
+        return false;
+    }
+protected:
+    std::function<RT ()> m_oFunc;
+    std::atomic<exe_state>  m_iES;
+};
+template<class RT>
+class para_impl : public para_impl_base<RT>
 {
 public:
     template <class F>
     para_impl(F && f)
-        : ff::rt::task_base(TKind::user_t)
-        , m_oRet(*this)
-        , m_oFunc(std::move(f))
-        , m_iES(exe_state::exe_init){}
+        : para_impl_base<RT>(std::forward<F>(f))
+        , m_oRet(*this){}
 
-    virtual ~para_impl()
-    {}
     virtual void	run()
     {
-        m_iES = exe_state::exe_run;
-        m_oRet.set(m_oFunc());
+        m_iES.store(exe_state::exe_run);
+        m_oRet.set(para_impl_base<RT>::m_oFunc());
         m_iES.store(exe_state::exe_over);
     }
     RT & get() {
         return m_oRet.get();
     }
-
-
-    exe_state	get_state()
-    {
-        return m_iES.load();
-    }
-    bool	check_if_over()
-    {
-        if(m_iES.load() == exe_state::exe_over)
-            return true;
-        return false;
-    }
 protected:
+    using para_impl_base<RT>::m_iES;
     para_ret<RT>	m_oRet;
-    std::function<RT ()> m_oFunc;
-    volatile std::atomic<exe_state>  m_iES;
 };//end class para_impl
 
 template<>
-class para_impl<void> : public ff::rt::task_base
+class para_impl<void> : public para_impl_base<void>
 {
 public:
     template< class F>
     para_impl(F && f)
-        : ff::rt::task_base(TKind::user_t)
-        , m_iES(exe_state::exe_init)
-        , m_oFunc(std::move(f))
-    {}
+        : para_impl_base<void>(std::forward<F>(f)){}
 
-    virtual ~para_impl()
-    {
-    }
+    virtual ~para_impl(){}
 
     virtual void	run()
     {
-        //LOG_INFO(para)<<"para_impl::run(), "<<this;
-        m_iES = exe_state::exe_run;
-        m_oFunc();
+        m_iES.store(exe_state::exe_run);
+        para_impl_base<void>::m_oFunc();
         m_iES.store(exe_state::exe_over);
     }
-
-
-    exe_state	get_state()
-    {
-        return m_iES.load();
-    }
-    bool	check_if_over()
-    {
-        if(m_iES.load() == exe_state::exe_over)
-            return true;
-        return false;
-    }
 protected:
-    volatile std::atomic<exe_state>  m_iES;
-    std::function<void ()> m_oFunc;
-};//end class para_impl_ptr
+    using para_impl_base<void>::m_iES;
+};//end class para_impl
 
 #if 0
 template<class RT>
