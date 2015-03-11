@@ -1,9 +1,12 @@
 #ifndef BENCHMARK_PARAMETER_PARSER_H_
 #define BENCHMARK_PARAMETER_PARSER_H_
-#include "boost/program_options.hpp" 
-#include <iostream>
 #include <string>
-namespace bpo = boost::program_options;
+#include <sstream>
+#include <cstdlib>
+#include <map>
+#include <vector>
+#include <set>
+
 
 class ParamParser
 {
@@ -12,23 +15,30 @@ class ParamParser
 
     void parse(int argc, char *argv[]);
 
-    template<class Ty>
-    void add_option(const std::string & name, const std::string & desc)
-    {
-      m_desc.add_options()(name.c_str(), bpo::value<Ty>(), desc.c_str());
-    }
+    void add_option(const std::string & name, const std::string & desc);
 
     template<class Ty>
     Ty get(const std::string & name)
     {
-      return m_vm[name].as<Ty>();
+      std::stringstream ss;
+      Ty t;
+      ss<<m_opt_vals[name];
+      ss>>t;
+      return t;
     }
 
-    inline bool is_set(const std::string & name){return m_vm.count(name);}
+    inline bool is_set(const std::string & name){
+      return m_opt_vals.find(name) != m_opt_vals.end() || m_set_opts.find(name) != m_set_opts.end();
+    }
 
   protected:
-    bpo::options_description m_desc;
-    bpo::variables_map m_vm;
-    int     m_thrd_num;
+    std::string options_to_str();
+
+  protected:
+    typedef std::map<std::string, std::string> SMap_t;
+
+    std::map<std::string, std::string > m_opt_desc;
+    std::map<std::string, std::string> m_opt_vals;
+    std::set<std::string> m_set_opts;
 };//end class ParamParser
 #endif

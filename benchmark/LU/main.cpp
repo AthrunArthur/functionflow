@@ -137,7 +137,7 @@ extern void parallel_lu(Matrix & m);
 
 int main(int argc, char *argv[])
 {
-  RRecord rr("time.json", "kmeans");
+  RRecord rr("time.json", "lu");
   ParamParser pp;
   pp.parse(argc, argv);
   int thrd_num = pp.get<int>("thrd-num");

@@ -57,7 +57,6 @@ int main(int argc, char *argv[])
 
   RRecord rr("time.json", "nqueen");
   ParamParser pp;
-  pp.add_option<int>("div", "the granularity of parallelism");
   pp.parse(argc, argv);
   int thrd_num = pp.get<int>("thrd-num");
   rr.put("thrd-num", thrd_num);

@@ -26,8 +26,8 @@ int main(int argc, char *argv[])
 
   RRecord rr("time.json", "canny");
   ParamParser pp;
-  pp.add_option<std::string>("input-file", "input bmp file");
-  pp.add_option<std::string>("output-file", "output bmp file");
+  pp.add_option("input-file", "input bmp file");
+  pp.add_option("output-file", "output bmp file");
   pp.parse(argc, argv);
   int thrd_num = pp.get<int>("thrd-num");
   rr.put("thrd-num", thrd_num);

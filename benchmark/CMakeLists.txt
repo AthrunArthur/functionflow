@@ -37,7 +37,7 @@ set(LIBS_LINK_DIRS ${PROJECT_SOURCE_DIR}/../bin)
 link_directories(${LIBS_LINK_DIRS})
 
 add_library(util utils/rrecord.cpp utils/parameter_parser.cpp)
-set(COMMON_LIBS util boost_program_options)
+set(COMMON_LIBS util)
 
 add_library(utiltbb utils/initial_tbb.cpp)
 add_library(utilff utils/initial_ff.cpp)

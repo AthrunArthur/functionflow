@@ -1,6 +1,6 @@
 all : ff tbb openmp
 
-ff: canny_ff fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff
+ff: fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff
 
 tbb: canny_tbb fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb
 
