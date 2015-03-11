@@ -61,7 +61,7 @@ set(BINARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 
 add_subdirectory(LU)
-#add_subdirectory(quick_sort)
+add_subdirectory(quick_sort)
 add_subdirectory(canny)
 #find_package(wxWidgets COMPONENTS core base REQUIRED)
 

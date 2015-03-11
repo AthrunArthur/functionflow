@@ -29,5 +29,6 @@ class ParamParser
   protected:
     bpo::options_description m_desc;
     bpo::variables_map m_vm;
+    int     m_thrd_num;
 };//end class ParamParser
 #endif
