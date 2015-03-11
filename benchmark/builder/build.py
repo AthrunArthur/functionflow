@@ -204,8 +204,9 @@ if __name__=='__main__':
     execute_cmd('cd %s; mkdir build;' %benchmark_base_dir)
   print 'This is for test!!'
   #bms = [benchmark_configs.MUTEX]
-  #bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
-  bms = [benchmark_configs.LU,benchmark_configs.QSORT,benchmark_configs.MUTEX,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
+  #bms = [benchmark_configs.LU,benchmark_configs.CANNY,benchmark_configs.QSORT,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
+  bms = [benchmark_configs.QSORT,benchmark_configs.CANNY,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
+  #bms = [benchmark_configs.LU,benchmark_configs.QSORT,benchmark_configs.CANNY,benchmark_configs.NQUEEN,benchmark_configs.FIB,benchmark_configs.KMEANS]
   if sys.argv[1] == 'build':
     if len(sys.argv) == 3:
         common_config.CommonConfig.CXX_FLAGS.append('-D' + sys.argv[2])

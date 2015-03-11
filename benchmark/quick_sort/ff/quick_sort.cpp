@@ -80,7 +80,8 @@ void para_quick_sort(int * data,int i,int j,int para_len)
 
 int main(int argc, char *argv[])
 {
-    ff::rt::set_hardware_concurrency(8);//Set concurrency
+    //ff::rt::set_hardware_concurrency(8);//Set concurrency
+    ff::rt::set_hardware_concurrency(16);//Set concurrency
     boost::property_tree::ptree pt;
     pt.put("time-unit", "us");
     string in_file_name = "../quick_sort/ff/numbers.txt";

@@ -13,6 +13,7 @@
 #include <vector>
 #include <iostream>//needed
 #include <chrono>
+#include <tuple>
 #ifdef CACHE_EVAL
 #include <papi.h>//add for cache miss
 #endif
@@ -20,7 +21,6 @@
 
 
 using namespace std;//chrono needed
-using namespace ff;
 typedef unsigned char uint8_t;
 
 /**

@@ -33,7 +33,8 @@ PROG=canny
 # The C++ compiler
 CXX=g++
 CXXFLAGS =-std=c++11 `wx-config --libs` `wx-config --cxxflags`
-SOURCES = run_canny.cpp ../canny_edge_detector.cpp ../main.cpp
+CXXFLAGS += -I../../utils
+SOURCES = run_canny.cpp ../canny_edge_detector.cpp ../main.cpp 
 
 ifeq ($(shell uname), Linux)
 ifeq ($(target), android)

@@ -40,10 +40,10 @@ thread_local static thrd_id_t s_id;
 static size_t max_concurrency = std::thread::hardware_concurrency();//added by sherry
 
 void  set_hardware_concurrency(size_t t){//added by sherry
-    if(t <= 0 || t > max_concurrency)
-    {
-        t = max_concurrency;
-    }
+    //if(t <= 0 || t > max_concurrency)
+    //{
+    //    t = max_concurrency;
+    //}
     static size_t concurrency = t;//can be changed only once
     max_concurrency = concurrency;
 }

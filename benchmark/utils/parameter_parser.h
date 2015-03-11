@@ -15,7 +15,7 @@ class ParamParser
     template<class Ty>
     void add_option(const std::string & name, const std::string & desc)
     {
-      m_desc.add_options()(name, bpo::value<Ty>(), desc);
+      m_desc.add_options()(name.c_str(), bpo::value<Ty>(), desc.c_str());
     }
 
     template<class Ty>

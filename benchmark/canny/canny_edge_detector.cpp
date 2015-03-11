@@ -463,7 +463,7 @@ void CannyEdgeDetector::HysteresisPixel(long int tx, long int ty,uint8_t highThr
     }
 }
 
-void CannyEdgeDetector::HysteresisRecursion(long x, long y, uint8_t lowThreshold)
+bool CannyEdgeDetector::HysteresisRecursion(long x, long y, uint8_t lowThreshold)
 {
     uint8_t value = 0;
     for (long x1 = x - 1; x1 <= x + 1; x1++) {
@@ -480,6 +480,7 @@ void CannyEdgeDetector::HysteresisRecursion(long x, long y, uint8_t lowThreshold
             }
         }
     }
+return true;
 }
 
 
