@@ -3,7 +3,7 @@
 #include <tbb/concurrent_vector.h>
 #include <tbb/parallel_for_each.h>
 #include <tbb/task_scheduler_init.h>
-
+#include <tuple>
 using namespace std;
 using namespace tbb;
 
