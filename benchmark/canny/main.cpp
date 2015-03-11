@@ -4,7 +4,6 @@
 #include <fstream>
 // #include <iostream>
 
-#include <omp.h>
 
 #include "canny_edge_detector.h"
 #include "rrecord.h"
@@ -34,7 +33,7 @@ int main(int argc, char *argv[])
   pp.add_option<std::string>("output-file", "output bmp file");
   pp.parse(argc, argv);
   int thrd_num = pp.get<int>("thrd-num");
-  rr.put('thrd-num', thrd_num);
+  rr.put("thrd-num", thrd_num);
 
   bool bIsPara = (thrd_num != 0);
   if(bIsPara)
@@ -43,7 +42,7 @@ int main(int argc, char *argv[])
   }
   if(pp.is_set("input-file"))
   {
-    inFileName = exString(pp.get<std::string>("input-file").c_str(), wxConvUTF8);
+    inFileName = wxString(pp.get<std::string>("input-file").c_str(), wxConvUTF8);
   }
   ofstream out_time_file;
 
@@ -62,7 +61,7 @@ int main(int argc, char *argv[])
   canny->ProcessImage(image.GetData(),image.GetWidth(),image.GetHeight(),1.0f, 15, 21);
   // The processed data will be stored in both the image.GetData() and the return data pointer.
 
-  rr.put("elapsed-time", canny->getHysteresisTime());
+  rr.put("elapsed-time", canny->GetHysteresisTime());
   cout << "Elapsed time: " << canny->GetHysteresisTime() << "us" << endl;
   image.SaveFile(outFileName, wxBITMAP_TYPE_BMP);
   //    image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
