@@ -31,7 +31,7 @@ typedef unsigned char uint8_t;
  */
 class CannyEdgeDetector
 {
-public:
+  public:
     /**
      * \var Approximation of pi constant.
      */
@@ -91,16 +91,16 @@ public:
      * \return Destination image, bitmap containing edges found.
      */
     uint8_t* ProcessImage(uint8_t* source_bitmap, unsigned int width,
-                          unsigned int height, float sigma = 1.0f,
-                          uint8_t lowThreshold = 30, uint8_t highThreshold = 80);
+        unsigned int height, float sigma = 1.0f,
+        uint8_t lowThreshold = 30, uint8_t highThreshold = 80);
     /**
      * \brief Get the hysteresis time in serial or in parallel.
      */
     inline unsigned int GetHysteresisTime() {
-        return hysteresis_time;
+      return hysteresis_time;
     };
 
-private:
+  private:
     /**
      * \var Bitmap with source image.
      */
@@ -155,8 +155,8 @@ private:
      */
     bool isPara;
     /**
-    * \var The time of Hysteresis
-    */
+     * \var The time of Hysteresis
+     */
     unsigned int hysteresis_time;
 
     /**
@@ -168,7 +168,10 @@ private:
      * \param y Pixel y coordinate.
      * \return Pixel (x, y) value.
      */
-    uint8_t GetPixelValue(unsigned int x, unsigned int y);
+    inline uint8_t GetPixelValue(unsigned int x, unsigned int y)
+    {
+      return (uint8_t) *(workspace_bitmap + (unsigned long) (x * width + y));
+    }
 
     /**
      * \brief Sets (x, y) pixel to certain value.
@@ -179,8 +182,11 @@ private:
      * \param y Pixel y coordinate.
      * \param value Pixel value (0-255).
      */
-    void SetPixelValue(unsigned int x, unsigned int y, uint8_t value);
-
+    void SetPixelValue(unsigned int x, unsigned int y,
+        uint8_t value)
+    {
+      workspace_bitmap[(unsigned long) (x * width + y)] = value;
+    }
     /**
      * \brief Initializes arrays for use by the algorithm.
      *
@@ -236,12 +242,12 @@ private:
      */
     void Hysteresis(uint8_t lowThreshold, uint8_t highThreshold);
 
-	/**
-	 * \brief Parallel version of Hysteresis
-	 */
-	void ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold);
-	
-	void HysteresisPixel(long x, long y, uint8_t highThreshold, uint8_t lowThreshold);
+    /**
+     * \brief Parallel version of Hysteresis
+     */
+    void ParaHysteresis(uint8_t lowThreshold, uint8_t highThreshold);
+
+    void HysteresisPixel(long x, long y, uint8_t highThreshold, uint8_t lowThreshold);
     /**
      * \brief Support method in hysteresis thresholding operation.
      *

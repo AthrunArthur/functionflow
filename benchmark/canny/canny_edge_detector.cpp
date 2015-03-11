@@ -81,16 +81,6 @@ uint8_t* CannyEdgeDetector::ProcessImage(uint8_t* source_bitmap, unsigned int wi
     return source_bitmap;
 }
 
-inline uint8_t CannyEdgeDetector::GetPixelValue(unsigned int x, unsigned int y)
-{
-    return (uint8_t) *(workspace_bitmap + (unsigned long) (x * width + y));
-}
-
-inline void CannyEdgeDetector::SetPixelValue(unsigned int x, unsigned int y,
-        uint8_t value)
-{
-    workspace_bitmap[(unsigned long) (x * width + y)] = value;
-}
 
 void CannyEdgeDetector::PreProcessImage(float sigma)
 {
