@@ -38,9 +38,9 @@ link_directories(${LIBS_LINK_DIRS})
 add_library(util utils/rrecord.cpp utils/parameter_parser.cpp)
 set(COMMON_LIBS util)
 
-add_custom_target(ff)
-add_custom_target(tbb)
-add_custom_target(openmp)
+add_custom_target(FF)
+add_custom_target(TBB)
+add_custom_target(OPENMP)
 
 if(CACHE_EVAL)
   add_definitions(-DCACHE_EVAL)

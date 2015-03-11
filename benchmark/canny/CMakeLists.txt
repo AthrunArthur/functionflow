@@ -20,9 +20,9 @@ if(wxWidgets_FOUND)
   add_dependencies(canny_tbb util)
   add_dependencies(canny_openmp util)
 
-  add_dependencies(ff canny_ff)
-  add_dependencies(tbb canny_tbb)
-  add_dependencies(openmp canny_tbb)
+  add_dependencies(FF canny_ff)
+  add_dependencies(TBB canny_tbb)
+  add_dependencies(OPENMP canny_tbb)
 
 else(wxWidgets_FOUND)
   message(WARNING "cannot find wxWidgets, ignore building canny")
