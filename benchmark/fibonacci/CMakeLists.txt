@@ -1,0 +1,3 @@
+SET(FIB_LIST fibonacci/ff/fib.cpp)
+ADD_EXECUTABLE(fib ${FIB_LIST})
+TARGET_LINK_LIBRARIES(fib ${LIBS}) 

@@ -1,0 +1,3 @@
+SET(LU_LIST LU/ff/lu_main.cpp)
+ADD_EXECUTABLE(lu ${LU_LIST})  
+TARGET_LINK_LIBRARIES(lu ${LIBS} )
