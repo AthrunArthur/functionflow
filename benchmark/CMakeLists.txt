@@ -68,7 +68,7 @@ add_subdirectory(canny)
 add_subdirectory(kmeans)
 
 #add_subdirectory(pbzip)
-#add_subdirectory(n_queen)
+add_subdirectory(n_queen)
 #add_subdirectory(parallel_hash_insert)
 #add_subdirectory(mutex)
 add_subdirectory(fibonacci)

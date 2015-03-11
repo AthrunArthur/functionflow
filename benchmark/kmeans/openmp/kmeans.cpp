@@ -2,6 +2,7 @@
 #include "../Lloyd.h"
 #include "../header.h"
 #include <omp.h>
+
 using namespace std;
 
 void kmeans(Points & points, bool isPara)
