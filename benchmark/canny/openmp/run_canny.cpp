@@ -74,7 +74,3 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
   //	#pragma omp taskwait
 }
 
-void initial_para_env(int thrd_num)
-{
-  omp_set_num_threads(8);
-}

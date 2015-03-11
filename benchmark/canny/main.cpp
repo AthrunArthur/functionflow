@@ -6,13 +6,10 @@
 
 
 #include "canny_edge_detector.h"
-#include "rrecord.h"
-#include "parameter_parser.h"
+#include "utils.h"
 
 
 using namespace std;
-
-extern void initial_para_env(int thrd_num);
 
 int main(int argc, char *argv[])
 {

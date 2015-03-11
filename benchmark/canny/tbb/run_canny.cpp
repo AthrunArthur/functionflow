@@ -130,12 +130,4 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
     tg.wait();
 }
 
-void initial_para_env(int thrd_num)
-{
-  task_scheduler_init init(8);//Construct task scheduler with p threads
-  tbb::task_group tg;
-  for(int i = 0; i < 5; ++i)
-    tg.run([&i]() {});
-  tg.wait();
-}
 

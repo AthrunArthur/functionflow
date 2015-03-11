@@ -19,7 +19,7 @@ class RRecord{
       {
         std::chrono::time_point<std::chrono::system_clock> start, end;
         start = std::chrono::system_clock::now();
-        Func_t(args...);
+        f(args...);
         end = std::chrono::system_clock::now();
         auto elapsed_seconds = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         m_PT.put(prefix, elapsed_seconds);

@@ -11,7 +11,8 @@ add_definitions(-DUSING_WORK_STEALING_QUEUE)
 #add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
 
 set(FF_LIBS ff pthread)
-set(TBB_LIBS rt)
+set(TBB_LIBS )
+set(OPENMP_LIBS -fopenmp)
 
 if(Debug)
   add_definitions(-g)
@@ -38,6 +39,15 @@ link_directories(${LIBS_LINK_DIRS})
 add_library(util utils/rrecord.cpp utils/parameter_parser.cpp)
 set(COMMON_LIBS util boost_program_options)
 
+add_library(utiltbb utils/initial_tbb.cpp)
+add_library(utilff utils/initial_ff.cpp)
+add_library(utilopenmp utils/initial_openmp.cpp)
+add_dependencies(util utiltbb utilff utilopenmp)
+
+set(FF_LIBS ${FF_LIBS} utilff)
+set(TBB_LIBS ${TBB_LIBS} utiltbb)
+set(OPENMP_LIBS ${OPENMP_LIBS} utilopenmp)
+
 add_custom_target(FF)
 add_custom_target(TBB)
 add_custom_target(OPENMP)
@@ -49,16 +59,17 @@ endif(CACHE_EVAL)
 set(CMAKE_BINARY_DIR ${PROJECT_BINARY_DIR})
 set(BINARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
+
 #add_subdirectory(LU)
 #add_subdirectory(quick_sort)
 add_subdirectory(canny)
 #find_package(wxWidgets COMPONENTS core base REQUIRED)
 
-#add_subdirectory(kmeans)
+add_subdirectory(kmeans)
 
 #add_subdirectory(pbzip)
 #add_subdirectory(n_queen)
 #add_subdirectory(parallel_hash_insert)
 #add_subdirectory(mutex)
-#add_subdirectory(fibonacci)
+add_subdirectory(fibonacci)
 

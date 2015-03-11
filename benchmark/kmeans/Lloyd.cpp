@@ -49,45 +49,12 @@ void Lloyd::setMeans(Points & omeans)
 void Lloyd::updateMean() {
     int means_size = means.size();
     int dimension = means.at(0).dimension;
-//         Points new_means;// parallel_reduce check
     if(!last_means.empty())
         last_means.clear();
     for(int i = 0; i < means.size(); i++) {
         last_means.push_back(means.at(i));
     }
 
-//     if(isPara) {
-//         vector<int> iVec;
-//         for(int i = 0; i < means_size; i++) {
-//             iVec.push_back(i);
-//         }
-//         ff::paragroup pp;
-//         pp.for_each(iVec.begin(),iVec.end(),[this,dimension](int i) {
-// // 	    Without parallel_reduce
-// // 	    Point sum(dimension);
-// //             int cluster_size = clusters[i].size();
-// //             for(int j = 0; j < cluster_size; j++) {
-// //                 sum += clusters[i].at(j);
-// //             }
-// //             means[i] = sum/cluster_size;
-//
-// // 	    With parallel_reduce : data_wrapper.h altered!
-//             int cluster_size = clusters[i].size();
-//             Point sum0(dimension);
-//             ff::accumulator<Point> sum(sum0, [](const Point & x, const Point & y) {
-//                 return x + y;
-//             });
-//             ff::paragroup pg1;
-//             pg1.for_each(clusters[i].begin(), clusters[i].end(), [&sum](Point x) {
-//                 sum.increase(x);
-//             });
-//             ff_wait(all(pg1));
-//             means[i] = sum.get()/cluster_size;
-//
-//         });
-//         ff_wait(all(pp));
-//     }
-//     else {
     means.clear();
     for (int i = 0; i < means_size; i++) {
         Point sum(dimension);
@@ -95,10 +62,8 @@ void Lloyd::updateMean() {
         for(int j = 0; j < cluster_size; j++) {
             sum += clusters[i].at(j);
         }
-//          new_means.push_back(sum/cluster_size);
         means.push_back(sum/cluster_size);
     }
-//     }
 
 }
 
@@ -107,35 +72,9 @@ void Lloyd::update(Points & points, int start, int end) {
         clusters.clear();
         clusters.resize(means.size());
     }
-//     if(isPara)
-//     {
-//         ff::paragroup pg;
-//         pg.for_each(points.begin(),points.end(),[this](Point data) {
-//             assignment(data);
-//         });
-//         vector<int> ivec;
-//         for(int i = 0; i  < points.size(); i++) {
-//             ivec.push_back(i);
-//             if(ff::is_idle() || (i == points.size() - 1)) {
-//                 ff::para<void> p;
-//                 p([this, ivec, points]() {
-//                     ff::paragroup pp;
-//                     pp.for_each(ivec.begin(), ivec.end(), [this, points](int i) {
-//                         assignment(points[i]);
-//                     });
-//                     ff_wait(all(pp));
-//                 });
-//                 pg.add(p);
-//                 ivec.clear();
-//             }
-//         }
-//         ff_wait(all(pg));
-//     }
-//     else {
     for(int i = start; i < end; i++) {
         assignment(points.at(i));
     }
-//     }
     updateMean();
 }
 
