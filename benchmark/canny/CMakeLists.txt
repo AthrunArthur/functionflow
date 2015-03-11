@@ -4,6 +4,7 @@ SET(CANNY_LIST main.cpp
 SET(FF_CANNY_LIST ${CANNY_LIST} ff/run_canny.cpp)
 SET(TBB_CANNY_LIST ${CANNY_LIST} tbb/run_canny.cpp)
 SET(OPENMP_CANNY_LIST ${CANNY_LIST} openmp/run_canny.cpp)
+set(CMAKE_BINARY_DIR ${PROJECT_BINARY_DIR}/../)
 
 find_package(wxWidgets)
 if(wxWidgets_FOUND)
@@ -15,7 +16,7 @@ if(wxWidgets_FOUND)
   target_link_libraries(canny_tbb ${wxWidgets_LIBRARIES} ${TBB_LIBS} ${COMMON_LIBS})
 
   add_executable(canny_openmp ${OPENMP_CANNY_LIST})
-  target_link_libraries(canny_openmp ${wxWidgets_LIBRARIES} ${COMMON_LIBS})
+  target_link_libraries(canny_openmp ${wxWidgets_LIBRARIES} ${COMMON_LIBS} -fopenmp)
   add_dependencies(canny_ff util)
   add_dependencies(canny_tbb util)
   add_dependencies(canny_openmp util)

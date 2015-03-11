@@ -1,6 +1,7 @@
 #include "ff.h"
 #include "common/log.h"
 #include "../canny_edge_detector.h"
+using namespace ff;
 
 void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
