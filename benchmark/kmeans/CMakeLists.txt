@@ -4,11 +4,15 @@ set(src Lloyd.cpp
   point.cpp)
 
 set(ff_src ${src} ff/kmeans.cpp)
+set(ru_ff_src ${src} ff/opt_kmeans.cpp)
 set(tbb_src ${src} tbb/kmeans.cpp)
 set(openmp_src ${src} openmp/kmeans.cpp)
 
 add_executable(kmeans_ff ${ff_src})
 target_link_libraries(kmeans_ff ${FF_LIBS} ${COMMON_LIBS})
+
+add_executable(kmeans_ff_reuse ${ru_ff_src})
+target_link_libraries(kmeans_ff_reuse ${FF_LIBS} ${COMMON_LIBS})
 
 add_executable(kmeans_tbb ${tbb_src})
 target_link_libraries(kmeans_tbb ${TBB_LIBS} ${COMMON_LIBS})

@@ -18,6 +18,11 @@ openmp: canny_openmp fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_open
 
 endif
 
+ff_reuse: kmeans_ff_reuse
+
+kmeans_ff_reuse:
+	cd kmeans && ./kmeans_ff_reuse --thrd-num 8 && cat time.json >> ../ffreuse_time.json && cd ../
+
 
 
 ##################### ff

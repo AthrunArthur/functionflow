@@ -110,11 +110,11 @@ int main(int argc, char *argv[])
     
   start_record_cache_access();
     if(!bIsPara){
-      rr.run("elapsed-seconds", quick_sort, data, 0, len);
+      rr.run("elapsed-time", quick_sort, data, 0, len);
     }
     else
     {
-      rr.run("elapsed-seconds", para_quick_sort, data, 0, len-1, para_len);
+      rr.run("elapsed-time", para_quick_sort, data, 0, len-1, para_len);
     }
     
 

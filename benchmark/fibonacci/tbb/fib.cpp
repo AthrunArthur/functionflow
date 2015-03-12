@@ -24,10 +24,10 @@ public:
             *sum = SerialFib(n);
         } else {
             int64_t x, y;
+            set_ref_count(3);
             FibTask& a = *new( allocate_child() ) FibTask(n-1,&x);
             FibTask& b = *new( allocate_child() ) FibTask(n-2,&y);
             // Set ref_count to 'two children plus one for the wait".
-            set_ref_count(3);
             // Start b running.
             spawn( b );
             // Start a running and wait for all children (a and b).
