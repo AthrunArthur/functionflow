@@ -267,7 +267,7 @@ void mul(const M1 & m1, const M2 & m2, M3 & res) {
             res(i, j) = sum;
         }
     }
-    /*
+   /* 
     std::cout<<"****************mul:"<<std::endl;
     std::cout<<"m1:";
     print(m1);

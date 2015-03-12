@@ -36,7 +36,7 @@ include_directories(${PROJECT_SOURCE_DIR}/utils)
 set(LIBS_LINK_DIRS ${PROJECT_SOURCE_DIR}/../bin)
 link_directories(${LIBS_LINK_DIRS})
 
-add_library(util utils/rrecord.cpp utils/parameter_parser.cpp)
+add_library(util utils/rrecord.cpp utils/parameter_parser.cpp utils/cache_eval.cpp)
 set(COMMON_LIBS util)
 
 add_library(utiltbb utils/initial_tbb.cpp)

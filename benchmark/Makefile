@@ -6,6 +6,8 @@ tbb: canny_tbb fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb
 
 openmp: canny_openmp fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_openmp
 
+
+
 #####################
 canny_ff:
 	cd canny && ./canny_ff --thrd-num 8 && cat time.json >> ../ff_time.json && cd ../
@@ -23,7 +25,7 @@ nqueen_ff:
 	cd n_queen && ./nqueen_ff --thrd-num 8 && cat time.json >> ../ff_time.json && cd ../
 
 qsort_ff:
-	cd quick_sort  && ./qsort_ff --thrd-num 8 --div 256 && cat time.json >> ../ff_time.json && cd ../
+	cd quick_sort &&./qsort_makedata && ./qsort_ff --thrd-num 8 --div 256 && cat time.json >> ../ff_time.json && cd ../
 
 #####################
 canny_tbb:

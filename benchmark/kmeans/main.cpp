@@ -6,10 +6,6 @@
 #include <chrono>
 #include "utils.h"
 
-#ifdef CACHE_EVAL
-#include <papi.h>
-#endif
-#include <assert.h>
 
 #define K 3
 #define PATHOUT "./"
@@ -97,43 +93,10 @@ int main(int argc, char *argv[])
 
   Points points = ReadData(fileName); //loads data from PATH into Points points
 
-#ifdef CACHE_EVAL
-  /*Add papi to trace cache miss*/
-  int EventSet,retVal;
-  long long startRecords[2], endRecords[2];
-  retVal = PAPI_library_init(PAPI_VER_CURRENT);
-  assert(retVal == PAPI_VER_CURRENT);
-  EventSet = PAPI_NULL;
-  retVal = PAPI_create_eventset(&EventSet);
-  assert(retVal == PAPI_OK);
-  //L1 TCM & TCA
-  retVal = PAPI_add_event(EventSet, PAPI_L1_TCM);
-  assert(retVal == PAPI_OK);
-  retVal = PAPI_add_event(EventSet, PAPI_L1_TCA);
-  assert(retVal == PAPI_OK);
-
-  retVal = PAPI_start(EventSet);
-  assert(retVal == PAPI_OK);
-  retVal = PAPI_read(EventSet, startRecords);
-  assert(retVal == PAPI_OK);
-  /*Add papi to trace cache miss*/
-#endif
+  start_record_cache_access();
   rr.run("elapsed-time", kmeans, points, bIsPara);
 
-#ifdef CACHE_EVAL
-  /*Stop papi trace*/
-  retVal = PAPI_stop(EventSet, endRecords);
-  assert(retVal == PAPI_OK);
-  retVal = PAPI_cleanup_eventset(EventSet);
-  assert(retVal == PAPI_OK);
-  retVal = PAPI_destroy_eventset(&EventSet);
-  assert(retVal == PAPI_OK);
-  PAPI_shutdown(); 
-  //L1 result
-  std::cout << "L1 total cache miss = " << endRecords[0] - startRecords[0] << std::endl;
-  std::cout << "L1 total cache access = " << endRecords[1] - startRecords[1] << std::endl;
-#endif 
-
+  end_record_cache_access(rr);
 
 
   return 0;
