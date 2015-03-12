@@ -4,6 +4,15 @@
 using namespace std;
 int main()
 {
+  std::string fp = "numbers.txt";
+
+  fstream mf;
+  mf.open(fp.c_str(), ios::in);
+  if(mf.is_open())
+  {
+    return 0;
+  }
+
 	ofstream out("numbers.txt");
 	for(int i = 0; i < 18000000; ++i)
 	{
