@@ -2,6 +2,7 @@
 #include "../point.h"
 #include "../Lloyd.h"
 #include "../header.h"
+using namespace ff;
 
 void kmeans(Points & points, bool)
 {
