@@ -51,6 +51,7 @@ set(OPENMP_LIBS ${OPENMP_LIBS} utilopenmp)
 add_custom_target(FF)
 add_custom_target(TBB)
 add_custom_target(OPENMP)
+add_custom_target(FFREUSE)
 
 if(CACHE_EVAL)
   add_definitions(-DCACHE_EVAL)
@@ -72,4 +73,4 @@ add_subdirectory(n_queen)
 #add_subdirectory(parallel_hash_insert)
 #add_subdirectory(mutex)
 add_subdirectory(fibonacci)
-
+add_subdirectory(scluster)

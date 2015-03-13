@@ -8,6 +8,9 @@ target_link_libraries(nqueen_tbb ${TBB_LIBS} ${COMMON_LIBS})
 add_executable(nqueen_openmp main.cpp openmp/nqueen.cpp)
 target_link_libraries(nqueen_openmp ${OPENMP_LIBS} ${COMMON_LIBS})
 
+add_custom_target(nqueen)
+add_dependencies(nqueen nqueen_ff nqueen_tbb nqueen_openmp)
+
 add_dependencies(nqueen_ff util)
 add_dependencies(nqueen_tbb util)
 add_dependencies(nqueen_openmp util)

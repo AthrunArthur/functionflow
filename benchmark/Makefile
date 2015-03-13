@@ -2,7 +2,7 @@ all : ff tbb openmp
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-ff: fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff
+ff: fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff scluster_ff
 
 tbb: fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb
 
@@ -10,7 +10,7 @@ openmp: fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_openmp
 
 endif
 ifeq ($(UNAME_S),Linux)
-ff: canny_ff fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff
+ff: canny_ff fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff scluster_ff
 
 tbb: canny_tbb fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb
 
@@ -22,6 +22,9 @@ ff_reuse: kmeans_ff_reuse
 
 kmeans_ff_reuse:
 	cd kmeans && ./kmeans_ff_reuse --thrd-num 8 && cat time.json >> ../ffreuse_time.json && cd ../
+
+scluster_ff_reuse:
+	cd scluster && ./scluster_ff_reuse --thrd-num 8 && cat time.json >> ../ffreuse_time.json && cd ../
 
 
 
@@ -43,6 +46,9 @@ nqueen_ff:
 
 qsort_ff:
 	cd quick_sort &&./qsort_makedata && ./qsort_ff --thrd-num 8 --div 256 && cat time.json >> ../ff_time.json && cd ../
+
+scluster_ff:
+	cd scluster && ./scluster_ff --thrd-num 8 && cat time.json >> ../ff_time.json && cd ../
 
 #####################tbb
 canny_tbb:

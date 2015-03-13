@@ -17,6 +17,10 @@ if(wxWidgets_FOUND)
 
   add_executable(canny_openmp ${OPENMP_CANNY_LIST})
   target_link_libraries(canny_openmp ${wxWidgets_LIBRARIES} ${OPENMP_LIBS} ${COMMON_LIBS})
+
+  add_custom_target(canny)
+  add_dependencies(canny canny_ff canny_tbb canny_openmp)
+
   add_dependencies(canny_ff util)
   add_dependencies(canny_tbb util)
   add_dependencies(canny_openmp util)

@@ -62,6 +62,14 @@ public:
           delete m_pAllValues[i];
     }
 
+    void reset(const T & value)
+    {
+      for(int i = 0; i < ::ff::rt::rt_concurrency();++i)
+      {
+        *(m_pAllValues[i]) = value;
+      }
+    }
+
     template<class TT>
     accumulator<T>& increase(const TT & value) {
         thrd_id_t id = ff::rt::get_thrd_id();

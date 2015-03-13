@@ -12,6 +12,9 @@ target_link_libraries(fib_tbb ${TBB_LIBS} ${COMMON_LIBS})
 add_executable(fib_openmp ${OPENMP_FIB_LIST})
 target_link_libraries(fib_openmp ${OPENMP_LIBS} ${COMMON_LIBS})
 
+add_custom_target(fib)
+add_dependencies(fib fib_ff fib_tbb fib_openmp)
+
 add_dependencies(fib_ff util)
 add_dependencies(fib_tbb util)
 add_dependencies(fib_openmp util)

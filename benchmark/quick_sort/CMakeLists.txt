@@ -9,6 +9,9 @@ target_link_libraries(qsort_tbb ${TBB_LIBS} ${COMMON_LIBS})
 add_executable(qsort_openmp main.cpp openmp/quick_sort.cpp)
 target_link_libraries(qsort_openmp ${OPENMP_LIBS} ${COMMON_LIBS})
 
+add_custom_target(qsort)
+add_dependencies(qsort qsort_ff qsort_tbb qsort_openmp)
+
 add_dependencies(qsort_ff util qsort_makedata)
 add_dependencies(qsort_tbb util qsort_makedata)
 add_dependencies(qsort_openmp util qsort_makedata)
