@@ -15,7 +15,6 @@ Lloyd::Lloyd(Points & points, int k, bool bIsPara):isPara(bIsPara)
         randomPoints.push_back(points.at(random1));
     }
     means = randomPoints;
-    clusters.resize(means.size());
 }
 
 Lloyd::Lloyd(Points & omeans, bool bIsPara):isPara(bIsPara)
@@ -23,7 +22,6 @@ Lloyd::Lloyd(Points & omeans, bool bIsPara):isPara(bIsPara)
     for(int i = 0; i < omeans.size(); i++) {
         means.push_back(omeans.at(i));
     }
-    clusters.resize(means.size());
 }
 
 Lloyd::~Lloyd()
@@ -93,11 +91,6 @@ bool Lloyd::isEnd(double delta)
     return retVal;
 }
 
-vector< Points > & Lloyd::getClusters()
-{
-    return clusters;
-}
-
 Points & Lloyd::getMeans()
 {
     return means;
@@ -118,7 +111,8 @@ int Lloyd::findMinIndex(Point & data) {
 }
 int Lloyd::assignment(Point & data) {
     int mean_index = findMinIndex(data);
-    std::cout<<"mean_index: "<<mean_index<<std::endl;
-    clusters[mean_index].push_back(data);
+//	locks[mean_index]->lock();
+//    clusters[mean_index].push_back(data);
+//	locks[mean_index]->unlock();
     return mean_index;
 }

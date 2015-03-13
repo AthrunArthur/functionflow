@@ -19,10 +19,10 @@ class Lloyd { //each object of this class contains a vector of k-means, and thei
     void update(Points & points, int start, int end); // reassigns data points from Points to class member clusters given new means
     Points & getMeans();
     void setMeans(Points & omeans);
-    vector< Points > & getClusters();		
+//    vector< Points > & getClusters();		
   private:
     Points means; // contains K means		
-    vector< Points > clusters; // contains K clusters
+//    vector< Points > clusters; // contains K clusters
     Points last_means; // contains last K means
     bool isPara;
     //void updateMean(); //this updates the mean given the class member clusters
