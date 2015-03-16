@@ -96,6 +96,10 @@ add_executable(test_simo_queue test_simo_queue.cpp)
 target_link_libraries(test_simo_queue ${LIBS_LINK_LIBS})
 add_test(test_simo_queue test_simo_queue)
 
+add_executable(test_simo_vec_queue test_simo_vec_queue.cpp)
+target_link_libraries(test_simo_vec_queue ${LIBS_LINK_LIBS})
+add_test(test_simo_vec_queue test_simo_vec_queue)
+
 ADD_EXECUTABLE(rangemap_test test_range_map.cpp)
 TARGET_LINK_LIBRARIES(rangemap_test ${LIBS_LINK_LIBS})
 

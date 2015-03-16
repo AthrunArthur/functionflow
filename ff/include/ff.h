@@ -34,6 +34,7 @@ THE SOFTWARE.
 #include "utilities/mutex.h"
 #include "runtime/miso_queue.h"
 #include "runtime/simo_queue.h"
+#include "runtime/simo_vec_queue.h"
 
 //#include "pipeline/filter.h"
 
