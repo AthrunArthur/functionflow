@@ -2,9 +2,10 @@
 #include <omp.h>
 
 #include "../canny_edge_detector.h"
-
+#include "utils.h"
 
 using namespace std;
+extern RRecord gRR;
 
 void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
 {
@@ -36,6 +37,8 @@ void CannyEdgeDetector::Hysteresis(uint8_t lowThreshold, uint8_t highThreshold)
   }
   end = chrono::system_clock::now();
   hysteresis_time = chrono::duration_cast<chrono::microseconds>(end-start).count();
+
+  gRR.put("elapsed-time", hysteresis_time);
 
   for (x = 0; x < height; x++) {//no big differences?
     for (y = 0; y < width; y++) {

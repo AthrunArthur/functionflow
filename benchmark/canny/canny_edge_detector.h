@@ -14,9 +14,6 @@
 #include <iostream>//needed
 #include <chrono>
 #include <tuple>
-#ifdef CACHE_EVAL
-#include <papi.h>//add for cache miss
-#endif
 #include <assert.h>
 
 
