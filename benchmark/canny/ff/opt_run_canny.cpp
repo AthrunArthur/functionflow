@@ -60,11 +60,10 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
   std::atomic_bool is_stopped(false);
   auto con_size  = ff::rt::rt_concurrency();
   ff::paracontainer pg;
-  is_stopped = false;
   for(int i = 0; i < con_size; ++i)
   {
     ff::para<> a;
-    a([this, lowThreshold, highThreshold](){
+    a([&is_stopped,&buf_queue, this, lowThreshold, highThreshold](){
         pos_t t;
         while(!is_stopped || buf_queue.size() != 0)
         {

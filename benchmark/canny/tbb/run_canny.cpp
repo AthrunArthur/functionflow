@@ -3,6 +3,7 @@
 // #include <tbb/concurrent_vector.h>//concurrent_vector
 #include "tbb/task_group.h"//task_group
 #include "../canny_edge_detector.h"
+#include "utils.h"
 
 
 using namespace std;

@@ -26,6 +26,9 @@ kmeans_ff_reuse:
 scluster_ff_reuse:
 	cd scluster && ./scluster_ff_reuse --thrd-num 8 && cat time.json >> ../ffreuse_time.json && cd ../
 
+canny_ff_reuse:
+	cd canny && ./canny_ff_reuse --thrd-num 8 && cat time.json >> ../ffreuse_time.json && cd ../
+
 
 
 ##################### ff
