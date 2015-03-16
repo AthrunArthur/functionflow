@@ -61,6 +61,8 @@ public:
 	bool		is_idle();
 	
 	thrd_id_t	get_idle();
+    std::tuple<uint64_t, uint64_t> current_task_counter();
+
 protected:
     //each thread run
   
@@ -75,6 +77,8 @@ protected:
 protected:
     std::unique_ptr<threadpool> 		m_pTP;
     std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
+    std::vector<uint64_t> m_oExeOverTasks;
+    std::vector<uint64_t> m_oScheduleTasks;
     
 //    thread_local static work_stealing_queue *				m_pLQueue;
     std::atomic< bool>  				m_bAllThreadsQuit;
@@ -97,6 +101,13 @@ public:
 protected:
     runtime *	m_pRT;
 };
+
+//!Get the number of exe_over_tasks and scheduled_tasks
+inline std::tuple<uint64_t, uint64_t> current_task_counter()
+{
+  static runtime_ptr r = runtime::instance();
+  return r->current_task_counter();
+}
 
 void	schedule(task_base_ptr p);
 #ifdef USING_MIMO_QUEUE

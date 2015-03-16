@@ -105,6 +105,8 @@ void			runtime::init()
     for(int i = 0; i<rt_concurrency(); ++i)
     {
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
+        s_pInstance->m_oExeOverTasks.push_back(0);
+        s_pInstance->m_oScheduleTasks.push_back(0);
     }
 #ifdef FUNCTION_FLOW_DEBUG
     all_records * prs = all_records::getInstance();
@@ -135,13 +137,14 @@ void			runtime::init()
 void	runtime::schedule(task_base_ptr p)
 {
     thread_local static int i = get_thrd_id();
+    m_oScheduleTasks[i] ++;
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
 #ifdef USING_FLEXIBLE_QUEUE
     m_oQueues[i] ->push_back(p);
 #else
     if(!m_oQueues[i] ->push_back(p))
     {
-      p->run();
+      run_task(p);
     }
 #endif
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() end id:"<<i<<" task: "<<p.get();)
@@ -192,7 +195,9 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
 
 void 			runtime::run_task(task_base_ptr & pTask)
 {
+  thread_local static int cur_id = get_thrd_id();
   pTask->run();
+  m_oExeOverTasks[cur_id] ++;
 }
 #if 0
 void 			runtime::run_task(task_base_ptr & pTask)
@@ -317,7 +322,7 @@ void			runtime::thread_run()
         _DEBUG(LOG_TRACE(rt)<<"thread run loop, thrd_id:"<<cur_id)
         flag = take_one_task(pTask);
         if(flag)
-            run_task(pTask);
+          run_task(pTask);
         //if(!flag)
         //    flag = steal_one_task_and_run();
         if(!flag)
@@ -382,6 +387,16 @@ thrd_id_t	runtime::get_idle()
         }
     }
     return idle_id;
+}
+
+std::tuple<uint64_t, uint64_t> runtime::current_task_counter()
+{
+  uint64_t r0=0, r1=0;
+  for(uint64_t t : m_oExeOverTasks)
+    r0 += t;
+  for(uint64_t t : m_oScheduleTasks)
+    r1 += t;
+  return std::make_tuple(r0, r1);
 }
 
 }//end namespace rt
