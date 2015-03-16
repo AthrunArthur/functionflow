@@ -5,45 +5,61 @@
 
 using namespace ff;
 
+std::vector<accumulator<Point> * > accs;
+std::vector<accumulator<int> * > accnums;
+void init_global(int s, int dimension)
+{
+	Point sum0(dimension);
+	for(int i = 0; i < s; ++i)
+	{
+		accs.push_back(new accumulator<Point>(sum0, [](const Point& x, const Point& y)
+					{
+					return x + y;
+					}));
+		accnums.push_back(new accumulator<int>(0, [](const int& x, const int& y)
+					{
+					return x + y;
+					}));
+	}
+}
+void destory_global(int s)
+{
+	for(int i = 0; i < s; ++i){
+		delete accs[i];
+		delete accnums[i];
+	}
+}
 void Lloyd::update(Points & points, int start, int end)
 {
-  if(!clusters.empty())
-  {
-    clusters.clear();
-    clusters.resize(means.size());
-  }
-  if(!last_means.empty())
-    last_means.clear();
-  copy(means.begin(),means.end(),back_inserter(last_means));
+	if(!last_means.empty())
+		last_means.clear();
+	//  copy(means.begin(),means.end(),back_inserter(last_means));
 
-  int dimension = means.at(0).dimension;
-  Point sum0(dimension);
-  std::vector<accumulator<Point> * > accs;
-  for(int i = 0; i < means.size(); ++i)
-  {
-    accs.push_back(new accumulator<Point>(sum0, [](const Point& x, const Point& y)
-          {
-          return x + y;
-          }));
-  }
+	int dimension = means.at(0).dimension;
+	Point sum0(dimension);
 
-  ff::paracontainer pc;
-  for(int i = start; i < end; i++)
-  {
-    ff::para<> a;
-    a([this, &points, i, &accs](){
-        std::cout<<"i : "<<i<<std::endl;
-        int ci = assignment(points.at(i));
-        accs[ci]->increase(points.at(i));
-        });
-    pc.add(a);
-  }
+	for(int i =0; i < means.size(); ++i)
+	{
+		accs[i]->reset(sum0);
+		accnums[i]->reset(0);
+	}
 
-  ff_wait(all(pc));
+	ff::paracontainer pc;
+	for(int i = start; i < end; i++)
+	{
+		ff::para<> a;
+		a([this, &points, i](){
+				int ci = assignment(points.at(i));
+				accnums[ci]->increase(1);
+				accs[ci]->increase(points.at(i));
+				});
+		pc.add(a);
+	}
 
-  for(int i = 0; i < means.size(); ++i)
-  {
-    means[i] = accs[i]->get()/clusters[i].size();
-    delete accs[i];
-  }
+	ff_wait(all(pc));
+
+	for(int i = 0; i < means.size(); ++i)
+	{
+		means[i] = accs[i]->get()/accnums[i]->get();
+	}
 }
