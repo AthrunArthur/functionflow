@@ -66,6 +66,14 @@ namespace ff{
         {
         }
 
+        template<typename Func_t>
+        void add(const Func_t & f)
+        {
+          para<void> p;
+          p(f);
+          add(p);
+        }
+
         void add(const para< void >&  p)
         {
             std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
