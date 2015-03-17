@@ -21,14 +21,54 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#include "ff.h"
-#include <string>
+#define BOOST_TEST_MODULE test_ff
+
+#include <boost/test/included/unit_test.hpp>
+//#include <boost/test/unit_test.hpp>
+
 #include <iostream>
+#include <vector>
+#include <algorithm>
+#include <functional>
+#include "ff.h"
+#include "common/log.h"
+
 using namespace ff;
-using namespace std;
 
+
+BOOST_AUTO_TEST_SUITE(minimal_test)
+
+BOOST_AUTO_TEST_CASE(para_test_simple)
+{
+    ff::para<int> i1, i2;
+    ff::para<double> d1, d2;
+
+    i1([]()->int {return 1;});
+    i2([]()->int {return 2;});
+    d1([]()->double {return 1.0;});
+    d2([]()->double {return 2.0;});
+
+    (i1 && d1).then([](int i, double d){
+        BOOST_CHECK(i == 1);
+        BOOST_CHECK(d == 1.0);
+        });
+
+    (i1 || d1).then([](int index, std::tuple<int, double> res){
+        if(index == 0)
+        {
+        BOOST_CHECK(std::get<0>(res) == 1);
+        }
+        else if(index == 1)
+        {
+        BOOST_CHECK(std::get<1>(res) == 1);
+        }
+        });
+    ff_wait(i1 && i2 && d1 && d2);
+}
+BOOST_AUTO_TEST_SUITE_END()
+#if 0
 //This is used to test "then function", just make sure this can be compiled!
-
+//
 int main(int argc, char *argv[])
 {
     ff::para<void> v1, v2;
@@ -86,3 +126,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+#endif

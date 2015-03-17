@@ -66,6 +66,7 @@ public:
     template<class F>
     auto		exe(F && f, const mutex_id_t & id= invalid_mutex_id) -> para_accepted_call<DT, ret_type>
     {
+      CT(timer::para_timer);
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
@@ -92,6 +93,7 @@ public:
     template<class F>
     auto		exe(F && f, int32_t thrd_id) -> para_accepted_call<DT, ret_type>
     {
+      CT(timer::para_timer);
         if(m_pImpl)
             throw used_para_exception();
         m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));

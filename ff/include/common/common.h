@@ -71,5 +71,13 @@ const thrd_id_t invalid_thrd_id = -1;
 #endif
 */
 
+#ifdef COUNT_TIME
+#define CT(idx) timer_instance().start< idx >();
+#define CTE(idx) timer_instance().pause< idx >();
+#else
+#define CT(a)
+#define CTE(a)
+#endif
+
 
 #endif

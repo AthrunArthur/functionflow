@@ -10,6 +10,11 @@ add_definitions(-DUSING_WORK_STEALING_QUEUE)
 #add_definitions(-DUSING_MIMO_QUEUE)
 #add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
 
+if(COUNT_TIME)
+  add_definitions(-DCOUNT_TIME)
+endif(COUNT_TIME)
+
+
 set(FF_LIBS ff pthread)
 set(TBB_LIBS )
 set(OPENMP_LIBS -fopenmp)
@@ -75,3 +80,4 @@ add_subdirectory(n_queen)
 add_subdirectory(fibonacci)
 add_subdirectory(scluster)
 add_subdirectory(bitonic_sort)
+add_subdirectory(ptd_overhead)

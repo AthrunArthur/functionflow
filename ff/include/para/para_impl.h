@@ -28,6 +28,9 @@ THE SOFTWARE.
 #include "runtime/taskbase.h"
 #include "runtime/rtcmn.h"
 #include "common/log.h"
+#ifdef COUNT_TIME
+#include "utilities/timer.h"
+#endif
 
 namespace ff {
 namespace internal
@@ -97,7 +100,16 @@ public:
     virtual void	run()
     {
         m_iES.store(exe_state::exe_run);
+#ifdef COUNT_TIME
+        auto s = single_timer::st_clock_t::now();
+#endif
+
         m_oRet.set(para_impl_base<RT>::m_oFunc());
+
+#ifdef COUNT_TIME
+  auto e = single_timer::st_clock_t::now();
+  timer_instance().append<timer::user_timer>(e-s);
+#endif
         m_iES.store(exe_state::exe_over);
     }
     RT & get() {
@@ -121,7 +133,16 @@ public:
     virtual void	run()
     {
         m_iES.store(exe_state::exe_run);
+#ifdef COUNT_TIME
+        auto s = single_timer::st_clock_t::now();
+#endif
+
         para_impl_base<void>::m_oFunc();
+
+#ifdef COUNT_TIME
+  auto e = single_timer::st_clock_t::now();
+  timer_instance().append<timer::user_timer>(e-s);
+#endif
         m_iES.store(exe_state::exe_over);
     }
 protected:
@@ -211,7 +232,16 @@ public:
                 return m_oWaitingPT.check_if_over();
             });
         }
+#ifdef COUNT_TIME
+        auto s = single_timer::st_clock_t::now();
+#endif
+
         m_pFunc->run();
+
+#ifdef COUNT_TIME
+  auto e = single_timer::st_clock_t::now();
+  timer_instance().append<timer::user_timer>(e-s);
+#endif
         m_iES.store(exe_state::exe_over);
     }
 

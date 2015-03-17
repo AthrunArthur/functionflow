@@ -26,7 +26,9 @@ THE SOFTWARE.
 #include "utilities/mutex.h"
 #ifdef FUNCTION_FLOW_DEBUG
 #include "runtime/record.h"
-
+#endif
+#ifdef COUNT_TIME
+#include "utilities/timer.h"
 #endif
 
 #ifdef FUNCTION_FLOW_DEBUG
@@ -141,10 +143,16 @@ void	runtime::schedule(task_base_ptr p)
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() id:"<<i<<" task: "<<p.get();)
 #ifdef USING_FLEXIBLE_QUEUE
     m_oQueues[i] ->push_back(p);
+    CTE(timer::para_timer);
 #else
     if(!m_oQueues[i] ->push_back(p))
     {
+      CTE(timer::para_timer);
       run_task(p);
+    }
+    else
+    {
+      CTE(timer::para_timer);
     }
 #endif
     _DEBUG(LOG_INFO(rt)<<"runtime::schedule() end id:"<<i<<" task: "<<p.get();)
@@ -163,6 +171,7 @@ void runtime::schedule(task_base_ptr p, thrd_id_t target_thrd)
 bool		runtime::take_one_task(task_base_ptr & pTask)
 {
     bool b = false;
+    CT(timer::schedule_timer);
 
     thread_local static int i = get_thrd_id();
     b = m_oQueues[i]->pop(pTask);
@@ -190,14 +199,22 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
       }
 #endif
     }
+    CTE(timer::schedule_timer);
     return b;
 }
 
 void 			runtime::run_task(task_base_ptr & pTask)
 {
+#ifdef COUNT_TIME
+  auto s = single_timer::st_clock_t::now();
+#endif
   thread_local static int cur_id = get_thrd_id();
   pTask->run();
   m_oExeOverTasks[cur_id] ++;
+#ifdef COUNT_TIME
+  auto e = single_timer::st_clock_t::now();
+  timer_instance().append<timer::runner_timer>(e-s);
+#endif
 }
 #if 0
 void 			runtime::run_task(task_base_ptr & pTask)
@@ -317,17 +334,18 @@ void			runtime::thread_run()
     thread_local static int cur_id = get_thrd_id();
     _DEBUG(LOG_INFO(rt)<<"runtime::thread_run() id:"<<cur_id<<" enter...")
     task_base_ptr pTask;
+    CT(timer::total_timer);
     while(!m_bAllThreadsQuit)
     {
         _DEBUG(LOG_TRACE(rt)<<"thread run loop, thrd_id:"<<cur_id)
         flag = take_one_task(pTask);
-        if(flag)
+        if(flag){
           run_task(pTask);
-        //if(!flag)
-        //    flag = steal_one_task_and_run();
+        }
         if(!flag)
             yield();
     }
+    CTE(timer::total_timer);
 }
 
 bool		runtime::steal_one_task(task_base_ptr & pTask)

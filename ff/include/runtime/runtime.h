@@ -28,6 +28,9 @@ THE SOFTWARE.
 #include "runtime/env.h"
 #include "common/log.h"
 #include "runtime/hazard_pointer.h"
+#ifdef COUNT_TIME
+#include "utilities/timer.h"
+#endif
 
 namespace ff {
 namespace rt
@@ -118,12 +121,14 @@ template <class Func>
 void 	yield_and_ret_until(Func && f)
 {
     _DEBUG(LOG_INFO(rt)<<"yield_and_ret_until(), enter...";)
+    CT(timer::dep_timer);
     int cur_id = get_thrd_id();
     runtime_ptr r = runtime::instance();
     bool b = f();
     task_base_ptr pTask;
     while(!b)
     {
+        CTE(timer::dep_timer);
         if(r->take_one_task(pTask))
         {
 	  r->run_task(pTask);
@@ -137,9 +142,11 @@ void 	yield_and_ret_until(Func && f)
 	  _DEBUG(LOG_TRACE(rt)<<"can't take task, just yield...")
             yield();
         }
+        CT(timer::dep_timer);
         b = f();
 	_DEBUG(LOG_TRACE(rt)<<"try check f() and get "<<b)
     }
+    CTE(timer::dep_timer);
     _DEBUG(LOG_INFO(rt)<<"exit!")
 }
 

@@ -7,7 +7,9 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <string>
-
+#ifdef COUNT_TIME
+#include "utilities/timer.h"
+#endif
 
 class RRecord{
   public:
@@ -19,7 +21,13 @@ class RRecord{
       {
         std::chrono::time_point<std::chrono::system_clock> start, end;
         start = std::chrono::system_clock::now();
+#ifdef COUNT_TIME
+        ff::timer_instance().all_reset<ff::timer::total_timer>();
+#endif
         f(args...);
+#ifdef COUNT_TIME
+  ff::timer_instance().all_pause<ff::timer::total_timer>();
+#endif
         end = std::chrono::system_clock::now();
         auto elapsed_seconds = std::chrono::duration_cast<std::chrono::microseconds>(end-start).count();
         m_PT.put(prefix, elapsed_seconds);

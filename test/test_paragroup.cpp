@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(paragroup_for_each_large_test)
     });
     ff::ff_wait(all(pg1));
 
-    BOOST_CHECK(ssum == sum.get());
+    BOOST_CHECK_MESSAGE(ssum == sum.get(), "sum is " <<sum.get()<<", should be "<<ssum);
 }
 
 BOOST_AUTO_TEST_CASE(paragroup_for_each_search_test)

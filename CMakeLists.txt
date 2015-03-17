@@ -38,6 +38,12 @@ SET(ff_src ff/runtime/env.cpp
   ff/runtime/runtime.cpp 
   ff/para/para.cpp 
   ff/common/common.cpp)
+
+if(COUNT_TIME)
+  add_definitions(-DCOUNT_TIME)
+  set(ff_src ${ff_src} ff/runtime/single_timer.cpp ff/runtime/timer.cpp)
+endif(COUNT_TIME)
+
 ADD_LIBRARY(ff SHARED ${ff_src})
 ADD_LIBRARY(ff_s STATIC ${ff_src})
 target_link_libraries(ff pthread)

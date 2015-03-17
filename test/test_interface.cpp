@@ -183,5 +183,17 @@ BOOST_AUTO_TEST_CASE(para_test)
         BOOST_CHECK(b_res == inc(num + a.get()));
     });
 }
+BOOST_AUTO_TEST_CASE(para_dep_test)
+{
+  int num = 10;
+  for(int i = 0; i < 1000; ++i)
+  {
+    para<int> a;
+    a([&num](){return num;});
+    para<void> b;
+    b[a]([&a, num](){BOOST_CHECK(a.get() == num);});
+    ff_wait(b&&a);
+  }
+}
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -8,7 +8,8 @@
 using namespace std;
 
 
-#define MSIZE 2048
+#define MSIZE 1024
+//#define MSIZE 2048
 
 template <class M1, class M2>
 bool check_Matrix(const M1 & m1, const M2& m2) {

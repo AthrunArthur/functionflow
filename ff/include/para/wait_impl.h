@@ -28,6 +28,9 @@ THE SOFTWARE.
 #include "para/para.h"
 #include "para/bin_wait_func_deducer.h"
 #include "common/log.h"
+#ifdef COUNT_TIME
+#include "utilities/timer.h"
+#endif
 
 namespace ff {
 template<class RT>
@@ -56,10 +59,14 @@ public:
     std::is_void<typename function_res_traits<FT>::ret_type>::value &&
     is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args, void>::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+        if(!check_if_over()){
+          CTE(timer::dep_timer);
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
+        }else{CTE(timer::dep_timer);}
+
         deduct_t::void_func_and(std::forward<FT>(f), m_1, m_2);
     }
 
@@ -83,7 +90,10 @@ public:
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
     utils::function_args_traits<FT>::is_no_args, void>::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -98,7 +108,10 @@ public:
           typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           >::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -165,7 +178,10 @@ public:
     is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args
     , void>::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -180,7 +196,10 @@ public:
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
     >::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -192,7 +211,10 @@ public:
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
     utils::function_args_traits<FT>::is_no_args, void>::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -207,7 +229,10 @@ public:
           typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           >::type
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -261,7 +286,10 @@ public:
     template<class FT>
     auto  then(FT && f ) -> void
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
@@ -287,7 +315,10 @@ public:
     template<class FT>
     auto  then(FT && f ) -> void
     {
-        if(!check_if_over())
+      CT(timer::dep_timer);
+      bool b = check_if_over();
+      CTE(timer::dep_timer);
+        if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
