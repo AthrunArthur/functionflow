@@ -4,90 +4,71 @@
 #include "ff.h"
 
 using namespace ff;
-  std::vector<accumulator<Point> * > accs;
-  std::vector<accumulator<int> * > accnums;
-void init_global(int s, int dimension)
-{
-  Point sum0(dimension);
-  for(int i = 0; i < s; ++i)
-  {
-    accs.push_back(new accumulator<Point>(sum0, [](const Point& x, const Point& y)
-          {
-          return x + y;
-          }));
-	accnums.push_back(new accumulator<int>(0, [](const int& x, const int& y)
-          {
-          return x + y;
-          }));
-  }
-}
 
-void destory_global(int s)
-{
-  for(int i = 0; i < s; ++i)
-  {
-    delete accs[i];
-    delete accnums[i];
-  }
-}
-
-int blockSize = 50;
 void Lloyd::update(Points & points, int start, int end)
 {
-  if(!last_means.empty())
-    last_means.clear();
-  //copy(means.begin(),means.end(),back_inserter(last_means));
+	if(!last_means.empty())
+		last_means.clear();
+	copy(means.begin(),means.end(),back_inserter(last_means));
 
-  int dimension = means.at(0).dimension;
-  Point sum0(dimension);
-  for(int i = 0; i < means.size(); ++i)
-  {
-	accs[i]->reset(sum0);
-	accnums[i]->reset(0);
-  }
-  //Optimize here!
-  typedef ff::rt::simo_queue<int, 8> MQ_t;
-  MQ_t buf_queue;
-  std::atomic_bool is_stopped(false);
-  auto con_size  = ff::rt::rt_concurrency();
-  //update
-  ff::paracontainer pg;
-  is_stopped = false;
-  for(int i = 0; i < con_size; ++i)
-  {
-    ff::para<> a;
-    a([&buf_queue, &is_stopped,&points, this](){
-        int t;
-        while(!is_stopped || buf_queue.size() != 0)
-        {
-        if(buf_queue.pop(t)){
-	for(int j = t*blockSize; j < (t+1) * blockSize && j < points.size(); ++j){
+	int dimension = means.at(0).dimension;
+	std::vector<accumulator<Point> * > accs;
+	std::vector<accumulator<int> * > accnums;
+	Point sum0(dimension);
+	for(int i = 0; i < means.size(); ++i)
+	{
+		accs.push_back(new accumulator<Point>(sum0, [](const Point& x, const Point& y)
+					{
+					return x + y;
+					}));
+		accnums.push_back(new accumulator<int>(0, [](const int& x, const int& y)
+					{
+					return x + y;
+					}));
+	}
+	auto mean_size = means.size();
 
-        int ci = assignment(points.at(j));
-		accnums[ci]->increase(1);
-        accs[ci]->increase(points.at(j));
-}
-        }
-        }
-        });
-    pg.add(a);
-  }
+	ff::paracontainer pc;
+	int last = start;
+	size_t threshold = (1<<16)/sizeof(uint64_t);
+	for(int i = start; i < end; i++)
+	{
+		if(i-last >= threshold || i == end - 1)
+		{
+			ff::para<> a;
 
-  for(int i = start; i < end; i+= blockSize)
-  {
-    int t = i/blockSize;
-    if(!buf_queue.push(t))
-    {
-      for(int j = t*blockSize; j <(t+1)*blockSize && j < end; ++j){
-      int ci = assignment(points.at(j));
-      accs[ci]->increase(points.at(j));}
-    }
-  }
-  is_stopped = true;
-  ff_wait(all(pg));
+			a([last, i, &accs, &accnums, this, &points, mean_size, &sum0](){
+					std::vector<int> pSums;
+					std::vector<Point> ps;
+					for(int k = 0; k < mean_size; ++k)
+					{
+					pSums.push_back(0);
+					ps.push_back(sum0);
+					}
 
-  for(int i = 0; i < means.size(); ++i)
-  {
-    means[i] = accs[i]->get()/accnums[i]->get();
-  }
+					for(int k = last; k < i; ++k)
+					{
+					int ci = assignment(points.at(k));
+					pSums[ci] += 1;
+					ps[ci] += points.at(k);
+					}
+
+					for(int k=0; k < mean_size; ++k)
+					{
+					accnums[k]->increase(pSums[k]);
+					accs[k]->increase(ps[k]);
+					}
+			});
+			pc.add(a);
+			last = i;
+		}
+	}
+	ff_wait(all(pc));
+
+	for(int i = 0; i < means.size(); ++i)
+	{
+		means[i] = accs[i]->get()/accnums[i]->get();
+		delete accs[i];
+		delete accnums[i];
+	}
 }

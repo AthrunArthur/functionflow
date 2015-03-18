@@ -73,11 +73,9 @@ void WriteOutput(Point mean, Points cluster_points, string path) {
 
 
 
-extern void init_global(int s, int d);
-extern void destory_global(int s);
 int main(int argc, char *argv[])
 {
-  RRecord rr("time.json", "kmeans");
+  RRecord rr("time.json", "scluster");
   ParamParser pp;
   pp.parse(argc, argv);
   int thrd_num = pp.get<int>("thrd-num");
@@ -96,7 +94,6 @@ int main(int argc, char *argv[])
 
   int dimension = oLloyd.getMeans().at(0).dimension; 
   start_record_cache_access();
-  init_global(K, dimension);
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
@@ -105,8 +102,6 @@ int main(int argc, char *argv[])
     oLloyd.update(points, 0, points.size());
   }
   end = chrono::system_clock::now();
-  destory_global(K);
-std::cout<<"step is "<<step<<std::endl;
   auto time = chrono::duration_cast<chrono::microseconds>(end-start).count();
   rr.put("elapsed-time", time);
 

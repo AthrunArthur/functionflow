@@ -2,6 +2,7 @@
 #include <wx/image.h>
 #include <sstream>
 #include <fstream>
+#include <string>
 // #include <iostream>
 
 
@@ -12,18 +13,43 @@
 using namespace std;
 RRecord gRR("time.json", "canny");
 
+struct jpg_file{};
+struct bmp_file{};
+
+template <typename tag> struct InFileSpecific{};
+
+template<> struct InFileSpecific<jpg_file>{
+	typedef wxJPEGHandler wxHandler;
+	const static wxBitmapType wxType = wxBITMAP_TYPE_JPEG;
+	static std::string gen_out_fp(const std::string & name)
+	{
+	return name + std::string(".jpg");
+	}
+};
+template<> struct InFileSpecific<bmp_file>{
+	typedef wxBMPHandler wxHandler;
+	const static wxBitmapType wxType = wxBITMAP_TYPE_BMP;
+	static std::string gen_out_fp(const std::string & name)
+	{
+	return name + std::string(".bmp");
+	}
+};
+
 int main(int argc, char *argv[])
 {
-
   wxImage image;
-  wxImageHandler * bmpLoader = new wxBMPHandler();
-  wxImage::AddHandler(bmpLoader);
-  //    wxImageHandler * jpegLoader = new wxJPEGHandler();
-  //    wxImage::AddHandler(jpegLoader);
-  wxString inFileName(_T("../../canny/ff/pic/bmp/lena512.bmp"));
-  wxString outFileName = _T("out.bmp");
-  //    wxString inFileName(_T("../canny/ff/pic/jpg/child.jpg"));
-  //    wxString outFileName = _T("out.jpg");
+
+  std::string fileName = "../../canny/ff/pic/bmp/lena512.bmp";
+  typedef InFileSpecific<bmp_file> IFS_t;
+
+  //std::string fileName ="../../canny/ff/pic/jpg/child.jpg";
+  //typedef InFileSpecific<jpg_file> IFS_t;
+
+  wxImageHandler * loader = new IFS_t::wxHandler();
+  wxImage::AddHandler(loader);
+  std::string outfp = IFS_t::gen_out_fp("out");
+  wxString inFileName(fileName.c_str());
+  wxString outFileName = outfp.c_str();
 
   ParamParser pp;
   pp.add_option("input-file", "input bmp file");
@@ -44,8 +70,7 @@ int main(int argc, char *argv[])
   ofstream out_time_file;
 
 
-  //     cout << "Input File Name " << inFileName.mb_str() << endl;
-  if (!image.LoadFile(inFileName,wxBITMAP_TYPE_BMP)) {
+  if (!image.LoadFile(inFileName,IFS_t::wxType)) {
     cout << "Cannot open "<< inFileName.mb_str() << "!" << endl;
     return -1;
   }
@@ -59,8 +84,7 @@ int main(int argc, char *argv[])
   // The processed data will be stored in both the image.GetData() and the return data pointer.
 
   cout << "Elapsed time: " << canny->GetHysteresisTime() << "us" << endl;
-  image.SaveFile(outFileName, wxBITMAP_TYPE_BMP);
-  //    image.SaveFile(outFileName, wxBITMAP_TYPE_JPEG);
+  image.SaveFile(outFileName, IFS_t::wxType);
 
   return 0;
 }
