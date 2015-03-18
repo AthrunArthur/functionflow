@@ -1,0 +1,13 @@
+TSUIT:=ff
+export TSUIT
+
+UNAME_S := $(shell uname -s)
+
+ifeq ($(UNAME_S),Darwin)
+ff: fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff quad_ff treesum_ff
+endif
+ifeq ($(UNAME_S),Linux)
+ff: canny_ff fib_ff kmeans_ff lu_ff nqueen_ff qsort_ff quad_ff treesum_ff
+endif
+
+include Makefile.base

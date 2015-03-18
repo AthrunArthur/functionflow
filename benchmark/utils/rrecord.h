@@ -17,7 +17,7 @@ class RRecord{
     ~RRecord();
 
     template <class Func_t, typename... Args_t>
-      void run(const std::string & prefix, Func_t && f, Args_t&...   args)
+      void run(const std::string & prefix, Func_t && f, Args_t&&...   args)
       {
         std::chrono::time_point<std::chrono::system_clock> start, end;
         start = std::chrono::system_clock::now();

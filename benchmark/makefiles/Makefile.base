@@ -1,0 +1,32 @@
+canny_${TSUIT}:
+	cd canny && ./canny_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+fib_${TSUIT}:
+	cd fibonacci && ./fib_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+kmeans_${TSUIT}:
+	cd kmeans && ./kmeans_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+lu_${TSUIT}:
+	cd LU && ./lu_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+nqueen_${TSUIT}:
+	cd n_queen && ./nqueen_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+qsort_${TSUIT}:
+	cd quick_sort &&./qsort_makedata && ./qsort_${TSUIT} --thrd-num ${THRD_NUM} --div 256 && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+scluster_${TSUIT}:
+	cd scluster && ./scluster_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+scluster_${TSUIT}:
+	cd scluster && ./scluster_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+treesum_${TSUIT}:
+	cd TreeSum && ./treesum_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+quad_${TSUIT}:
+	cd quad && ./quad_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
+
+ptd_${TSUIT}:
+	cd ptd_overhead && ./ptd_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
