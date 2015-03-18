@@ -18,7 +18,7 @@ if(wxWidgets_FOUND)
   target_link_libraries(canny_ff_reuse ${wxWidgets_LIBRARIES} ${FF_LIBS} ${COMMON_LIBS})
   
   add_executable(canny_ff_normal ${FF_NORMAL_LIST})
-  target_link_libraries(canny_ff_normal ${wxWidgets_LIBRARIES} ${FF_LIBS})
+  target_link_libraries(canny_ff_normal ${wxWidgets_LIBRARIES} ${FF_LIBS} ${COMMON_LIBS})
 
   add_executable(canny_tbb ${TBB_CANNY_LIST})
   target_link_libraries(canny_tbb ${wxWidgets_LIBRARIES} ${TBB_LIBS} ${COMMON_LIBS})

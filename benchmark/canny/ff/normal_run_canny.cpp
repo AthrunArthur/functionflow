@@ -67,7 +67,7 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
             }
         }
     }
-    ff_wait(all(pg);
+    ff_wait(all(pg));
 }
 
 
