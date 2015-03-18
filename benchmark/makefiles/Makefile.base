@@ -19,7 +19,6 @@ qsort_${TSUIT}:
 scluster_${TSUIT}:
 	cd scluster && ./scluster_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
 
-scluster_${TSUIT}:
 	cd scluster && ./scluster_${TSUIT} --thrd-num ${THRD_NUM} && cat time.json >> ../${TSUIT}_time.json && cd ../
 
 treesum_${TSUIT}:
