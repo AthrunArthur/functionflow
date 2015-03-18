@@ -1,12 +1,10 @@
 #!/bin/bash
 
 cd build && cmake ../ && make
+rm -rf *.json
 cp ../makefiles/* ./
-if ! type "$foobar_command_name" > /dev/null; then
-  CPU_NUM=8
-else
-  CPU_NUM=$( nproc )
-fi
+
+CPU_NUM=8
 
 ITER_NUM=2
 
@@ -14,7 +12,7 @@ for i in $(seq ${ITER_NUM})
 do
   echo $i sequential iteration
   export THRD_NUM=0
-  make -f makefile.tbb
+  make -f Makefile.tbb
 done
 mv tbb_time.json ../sequential_time.json
 
@@ -23,8 +21,8 @@ for i in $(seq ${ITER_NUM})
 do
   echo $i performance iteration
   export THRD_NUM=${CPU_NUM}
-  make -f makefile.ff 
-  make -f makefile.tbb
+  make -f Makefile.ff 
+  make -f Makefile.tbb
 done
 mv ff_time.json ../performance_ff_time.json
 mv tbb_time.json ../performance_tbb_time.json
@@ -36,7 +34,7 @@ do
   do
     export THRD_NUM=$j
     echo thrd_num is ${THRD_NUM}
-    make -f makefile.ff 
+    make -f Makefile.ff 
   done
 done
 mv ff_time.json ../scalibility_ff_time.json
@@ -47,9 +45,9 @@ do
   echo $i overhead iteration
   export THRD_NUM=${CPU_NUM}
   export TSUIT=base
-  make -f Makefile.run ptd_base
+  make -f Makefile.base ptd_base
   export TSUIT=cmp
-  make -f Makefile.run ptd_cmp
+  make -f Makefile.base ptd_cmp
 done
 mv base_time.json ../overhead_base.json
 mv cmp_time.json ../overhead_cmp.json
@@ -62,9 +60,9 @@ do
   echo $i optimizer iteration
   export THRD_NUM=${CPU_NUM}
   export TSUIT=ff_normal
-  make -f Makefile.run canny_ff_normal scluster_ff_normal
+  make -f Makefile.base canny_ff_normal scluster_ff_normal
   export TSUIT=ff_reuse
-  make -f Makefile.run canny_ff_reuse scluster_ff_reuse
+  make -f Makefile.base canny_ff_reuse scluster_ff_reuse
 done
 mv ff_normal_time.json ../ff_normal_time.json
 mv ff_reuse_time.json ../ff_resue_time.json
