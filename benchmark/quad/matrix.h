@@ -331,7 +331,7 @@ void initMatrixForLU(M1 & matrix)
     mul(l, u, matrix);
 }
 
-typedef matrix_impl<double, block, 32> Matrix;
+typedef matrix_impl<double, block, 64> Matrix;
 //typedef matrix_impl<double, block, 2> Matrix;
 typedef matrix_impl<double, row_major> GeneralMatrix;
 #endif
