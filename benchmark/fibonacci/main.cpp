@@ -27,8 +27,9 @@ THE SOFTWARE.
 #include "utils.h"
 
 
-#define FIBNUM 40
-#define MINPARA 25//3
+#define FIBNUM 42
+//#define MINPARA 25//3
+#define MINPARA 18
 using namespace std;
 
 int64_t sfib(int64_t n )
@@ -48,14 +49,21 @@ int main(int argc, char *argv[])
   pp.parse(argc, argv);
   int thrd_num = pp.get<int>("thrd-num");
   rr.put("thrd-num", thrd_num);
+  bool bIsPara = (thrd_num > 0);
   if(thrd_num > 0)
     initial_para_env(thrd_num);
 
     
   start_record_cache_access();
     int64_t num = FIBNUM,fib_res;
+  if(!bIsPara)
+  {
+    rr.run("elapsed-time", sfib, num);
+  }
+  else
+  {
     rr.run("elapsed-time", fib, num);
-
+  }
   end_record_cache_access(rr);
     /*Stop papi trace*/
     return 0;
