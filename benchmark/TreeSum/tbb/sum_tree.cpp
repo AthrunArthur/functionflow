@@ -7,7 +7,7 @@ class SimpleSumTask: public tbb::task {
 public:
     SimpleSumTask( TreeNode* root_, Value* sum_ ) : root(root_), sum(sum_) {}
     task* execute() {
-        if( root->node_count<1000 ) {
+        if( root->node_count<threshold) {
             *sum = SerialSumTree(root);
         } else {
             Value x, y;
