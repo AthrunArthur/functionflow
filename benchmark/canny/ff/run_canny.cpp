@@ -65,7 +65,8 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
         }
         
         //if(ff::is_idle() ||(tx==height -1))
-        if(ts.size() >= 1000 ||(tx==height -1))
+        if(ts.size() >= 5000 ||(tx==height -1))
+//        if(ts.size() >= 1000 ||(tx==height -1))
         {
             ff::para<void> p;
 	    p([this, ts, lowThreshold, highThreshold]() {

@@ -1,7 +1,7 @@
 SET(CANNY_LIST main.cpp
   canny_edge_detector.cpp)
 
-SET(FF_CANNY_LIST ${CANNY_LIST} ff/opt_run_canny.cpp)
+SET(FF_CANNY_LIST ${CANNY_LIST} ff/run_canny.cpp)
 SET(FF_NORMAL_LIST ${CANNY_LIST} ff/normal_run_canny.cpp)
 set(FF_REUSE_LIST ${CANNY_LIST} ff/opt_run_canny.cpp)
 SET(TBB_CANNY_LIST ${CANNY_LIST} tbb/run_canny.cpp)
