@@ -6,7 +6,7 @@ cp ../makefiles/* ./
 
 CPU_NUM=8
 
-ITER_NUM=2
+ITER_NUM=15
 
 for i in $(seq ${ITER_NUM})
 do
@@ -30,7 +30,7 @@ mv tbb_time.json ../performance_tbb_time.json
 for i in $(seq ${ITER_NUM})
 do
   echo $i scalibility iteration
-  for j in $(seq 2) #$(seq ${CPU_NUM})
+  for j in $(seq ${CPU_NUM})
   do
     export THRD_NUM=$j
     echo thrd_num is ${THRD_NUM}
@@ -64,6 +64,7 @@ do
   export TSUIT=ff_reuse
   make -f Makefile.base canny_ff_reuse scluster_ff_reuse
 done
+
 mv ff_normal_time.json ../ff_normal_time.json
 mv ff_reuse_time.json ../ff_resue_time.json
 
