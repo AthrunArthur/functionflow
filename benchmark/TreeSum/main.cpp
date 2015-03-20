@@ -12,7 +12,7 @@ using namespace std;
 
 TreeNode * TreeMaker::nodes = nullptr;
 
-int threshold = 3500;
+int threshold = 4096;
 
 int main( int argc, char *argv[] ) {
 

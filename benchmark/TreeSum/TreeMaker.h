@@ -51,7 +51,7 @@ public:
       TreeNode & root = nodes[pos];
       pos ++;
       root.node_count = number_of_nodes;
-      root->value = Value(Pi*number_of_nodes);
+      root.value = Value(Pi*number_of_nodes);
       --number_of_nodes;
       root.left = create(number_of_nodes/2, pos);
       root.right= create(number_of_nodes - number_of_nodes/2, pos);
