@@ -28,6 +28,7 @@ public:
             *sum = root->value;
             if( root->left ) *sum += x;
             if( root->right ) *sum += y;
+            *sum = sqrt(sqrt(*sum/count)*10) * 10;
         }
         return NULL;
     }

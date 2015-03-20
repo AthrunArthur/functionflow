@@ -12,11 +12,17 @@ Value ParaSumTree(TreeNode * root){
     Value result = root->value;
     ff::para<> l, r;
     Value x = 0, y = 0;
-    //if(root->left)
+    int c = 1;
+    if(root->left){
       l([&x, root](){ x = ParaSumTree(root->left);});
-    //if(root->right)
+      c++;
+    }
+    if(root->right){
       r([&y, root](){ y = ParaSumTree(root->right);});
+      c++;
+    }
 
-    return result + (l&&r).then([&x, &y]()->Value{return x+y;});
+    result = result + (l&&r).then([&x, &y]()->Value{return x+y;});
+    return sqrt(sqrt(result/c)*10)*10;
   }
 }

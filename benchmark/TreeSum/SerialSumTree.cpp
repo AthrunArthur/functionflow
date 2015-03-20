@@ -22,9 +22,15 @@
 
 Value SerialSumTree( TreeNode* root ) {
     Value result = root->value;
-    if( root->left )
+    int c = 1;
+    if( root->left ){
         result += SerialSumTree(root->left);
-    if( root->right )
+	c++;
+    }
+    if( root->right ){
+	c++;
         result += SerialSumTree(root->right);
+    }
+    result = sqrt(sqrt(result/c) * 10) * 10;
     return result;
 }

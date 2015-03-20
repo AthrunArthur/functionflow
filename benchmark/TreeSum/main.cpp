@@ -12,7 +12,7 @@ using namespace std;
 
 TreeNode * TreeMaker::nodes = nullptr;
 
-int threshold = 4096;
+int threshold = 2048;
 
 int main( int argc, char *argv[] ) {
 
@@ -26,7 +26,7 @@ int main( int argc, char *argv[] ) {
     initial_para_env(thrd_num);
 
 //  long number_of_nodes = 100000000;
-  long number_of_nodes = 100000000;
+  long number_of_nodes = 50000000;
 
 
   TreeNode* root = TreeMaker::create(number_of_nodes);
