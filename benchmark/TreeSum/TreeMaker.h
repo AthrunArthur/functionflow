@@ -38,13 +38,31 @@ public:
             n->node_count = number_of_nodes;
             n->value = Value(Pi*number_of_nodes);
             --number_of_nodes;
-            n->left  = do_in_one_thread( number_of_nodes/2 ); 
+            n->left  = do_in_one_thread( number_of_nodes/2 );
             n->right = do_in_one_thread( number_of_nodes - number_of_nodes/2 );
             return n;
         }
     }
+    static TreeNode * nodes;
+    static TreeNode * create(long number_of_nodes, long & pos)
+    {
+      if(number_of_nodes == 0)
+        return NULL;
+      TreeNode & root = nodes[pos];
+      pos ++;
+      root.node_count = number_of_nodes;
+      root->value = Value(Pi*number_of_nodes);
+      --number_of_nodes;
+      root.left = create(number_of_nodes/2, pos);
+      root.right= create(number_of_nodes - number_of_nodes/2, pos);
+      return & root;
+    }
 
     static TreeNode* create( long number_of_nodes) {
+      nodes = new TreeNode[number_of_nodes];
+      long pos = 0;
+      return create(number_of_nodes, pos);
+      /*
         TreeNode* root = allocate_node();
         root->node_count = number_of_nodes;
         root->value = Value(Pi*number_of_nodes);
@@ -55,6 +73,7 @@ public:
         root->right = do_in_one_thread( number_of_nodes - number_of_nodes/2 );
 
         return root;
+        */
     }
 };
 
