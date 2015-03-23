@@ -2,6 +2,7 @@ set(src SerialSumTree.cpp
   main.cpp)
 
 set(ff_src ${src} ff/ff_sum_tree.cpp)
+#set(tbb_src ${src} tbb/opt_sum_tree.cpp)
 set(tbb_src ${src} tbb/sum_tree.cpp)
 
 add_executable(treesum_ff ${ff_src})

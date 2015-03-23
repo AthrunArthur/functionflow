@@ -10,6 +10,9 @@
 
 using namespace std;
 
+TreeNode * TreeMaker::nodes = nullptr;
+
+int threshold = 2048;
 
 int main( int argc, char *argv[] ) {
 
@@ -28,7 +31,7 @@ int main( int argc, char *argv[] ) {
   TreeNode* root = TreeMaker::create(number_of_nodes);
 
   // Warm up caches
-  SerialSumTree(root);
+  //SerialSumTree(root);
   if(!bIsPara)
   {
     rr.run("elapsed-time", SerialSumTree, root);

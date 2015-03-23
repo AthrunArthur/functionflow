@@ -1,4 +1,4 @@
-
+#include <cmath>
 typedef float Value;
 
 struct TreeNode {
@@ -14,4 +14,6 @@ struct TreeNode {
 
 Value SerialSumTree( TreeNode* root );
 Value ParaSumTree(TreeNode * root);
+
+extern int threshold;
 
