@@ -28,6 +28,7 @@ void parallel_lu(Matrix & m)
         iu([&lut, &uinv, k]() {
             invU(lut, uinv);
         });
+        //std::cout<<"1"<<std::endl;
 
         ff_wait(il && iu);
 
@@ -48,6 +49,7 @@ void parallel_lu(Matrix & m)
             //});
             //ff_wait(p1&&p2);
         });
+        //std::cout<<"2"<<std::endl;
         ff::ff_wait(all(ir));
         vector<tuple< int, int > > pos_vec;
         for(int i=k+1; i<blocks; i++) {
@@ -68,7 +70,9 @@ void parallel_lu(Matrix & m)
             sub(tt, rmul, tt);
 
         });
+        //std::cout<<"3"<<std::endl;
         ff::ff_wait(all(im));
+        //std::cout<<"3-end"<<std::endl;
     }
 //     check_LU_res(m,seq_m);
 }

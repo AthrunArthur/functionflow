@@ -97,6 +97,10 @@ add_executable(test_simo_queue test_simo_queue.cpp)
 target_link_libraries(test_simo_queue ${LIBS_LINK_LIBS})
 add_test(test_simo_queue test_simo_queue)
 
+add_executable(test_gtwsq test_gtwsq.cpp)
+target_link_libraries(test_gtwsq pthread)
+add_test(test_gtwsq test_gtwsq)
+
 #add_executable(test_simo_vec_queue test_simo_vec_queue.cpp)
 #target_link_libraries(test_simo_vec_queue ${LIBS_LINK_LIBS})
 #add_test(test_simo_vec_queue test_simo_vec_queue)

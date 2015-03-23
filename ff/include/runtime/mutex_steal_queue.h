@@ -41,10 +41,11 @@ public:
     mutex_stealing_queue<T> operator =(const mutex_stealing_queue<T> &) = delete;
     mutex_stealing_queue() { }
 
-    void push_back(const T & val)
+    bool push_back(const T & val)
     {
         std::unique_lock<std::mutex> ul(m_oMutex);
         m_oContainer.push_back(std::move(val));
+        return true;
     }
 
     bool pop(T & val)

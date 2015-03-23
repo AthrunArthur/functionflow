@@ -28,6 +28,7 @@ endif(Release)
 #add_definitions(-DUSING_MIMO_QUEUE)
 #add_definitions(-DUSING_MUTEX_QUEUE)
 add_definitions(-DUSING_WORK_STEALING_QUEUE)
+#add_definitions(-DUSING_FLEXIBLE_QUEUE)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 

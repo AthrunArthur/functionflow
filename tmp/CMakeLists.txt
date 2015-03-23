@@ -8,8 +8,9 @@ enable_testing()
 #add_definitions(-DUSING_LOCK_FREE_QUEUE)
 #add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
 #add_definitions(-DUSING_MIMO_QUEUE)
+#add_definitions(-DUSING_MUTEX_QUEUE)
 add_definitions(-DUSING_WORK_STEALING_QUEUE)
-
+#add_definitions(-DUSING_FLEXIBLE_QUEUE)
 
 if(Release)
 	message(STATUS "This is a Release version!")

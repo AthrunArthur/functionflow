@@ -49,6 +49,7 @@ public:
       , head(0)
       , tail(0)
       , cap(1<<N)
+      , mask((1<<N)- 1)
       , array(new T[1<<N])
         {
         if(array == nullptr)
@@ -70,66 +71,50 @@ public:
 
     bool push_back(const T & val)
     {
-      auto t = tail;
       auto h = head;
-      if(t - h == cap - 1)
-      {
-        return false;
-      }
-      auto mask = cap - 1;
-      array[t&mask] = val;
-      tail = t + 1;
+      if(h - tail == mask) return false;
+      array[h & mask] = val;
+      head = h + 1;
       return true;
     }
 
     bool pop(T & val)
     {
-      int64_t t = tail;
-      t = t - 1;
-      tail = t;
-      int64_t h = head;
-      int s = t-h;
-      if (s < 0)
+      if(head <= tail) {head = tail; return false;}
+
+
+      head --;
+      __sync_synchronize(); //This two lines are the magic
+      auto t = tail;
+      if(head<t)
       {
-        tail = h;
+        head= tail;
         return false;
       }
-      auto mask = cap - 1;
-      val = array[t&mask];
-      if(s > 0)
-      {
-        return true;
-      }
-      bool res = true; 
-      if(!__sync_bool_compare_and_swap(&head, h, h+1))
-      {
-        res = false;
-      }
-      tail = h + 1;
+      val = array[head&mask];
+      if(head > t) return true;
+      bool res = true;
+      if(!__sync_bool_compare_and_swap(&tail, head, head+1)) res = false;
+      head = tail;
       return res;
     }
 
     bool steal(T & val)
     {
-      int64_t h = head;
       int64_t t = tail;
-
-      int s = t - h;
+      int s = head - t;
       if ( s <= 0){
         return false;
       }
-      auto mask = cap - 1;
-      val = array[h&mask];
-      if(__sync_bool_compare_and_swap(&head, h, h+1))
-      {
-        return true;
-      }
-      return false;
+      val = array[t&mask];
+      if(!__sync_bool_compare_and_swap(&tail, t, t+1)) return false;
+      return true;
     }
 
-    uint64_t size()
+
+    int64_t size()
     {
-      return static_cast<uint64_t>(tail - head);
+      return (head- tail);
     }
     int64_t  get_head() const {return head;}
     int64_t  get_tail() const {return tail;}
@@ -138,12 +123,9 @@ protected:
     int64_t head;
     int64_t tail;
     int64_t   cap;
+    int64_t mask;
     T *       array;
 };//end class classical_work_stealing_queue
-#undef MEM_SEQ_CST
-#undef MEM_ACQUIRE
-#undef MEM_RELAXED
-#undef MEM_RELEASE
 
 }//end namespace rt
 }//end namespace ff
