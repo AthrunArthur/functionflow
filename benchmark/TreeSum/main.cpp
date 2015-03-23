@@ -22,7 +22,7 @@ int main( int argc, char *argv[] ) {
   if(thrd_num > 0)
     initial_para_env(thrd_num);
 
-  long number_of_nodes = 100000000;
+  long number_of_nodes = 1000000;
 
 
   TreeNode* root = TreeMaker::create(number_of_nodes);
