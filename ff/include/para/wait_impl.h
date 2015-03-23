@@ -32,6 +32,10 @@ THE SOFTWARE.
 #include "utilities/timer.h"
 #endif
 
+#ifdef FUNC_INVOKE_COUNTER
+#include "utilities/func_invoke_counter.h"
+#endif
+
 namespace ff {
 template<class RT>
 class para;
@@ -121,7 +125,7 @@ public:
     template<class FT>
     auto then(FT && f) ->
         typename std::enable_if<
-            !utils::function_args_traits<FT>::is_no_args && 
+            !utils::function_args_traits<FT>::is_no_args &&
             !is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and,
             typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type > :: type
     {
@@ -141,6 +145,7 @@ public:
     }
     bool	check_if_over()
     {
+      FIC(wait_and_check_if)
         if(m_iES == exe_state::exe_over)
             return true;
         m_iES = exe_state_and( m_1.get_state(),  m_2.get_state());
@@ -192,7 +197,7 @@ public:
     auto  then(FT && f ) ->
     typename std::enable_if<
     !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-    is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args, 
+    is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args,
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
     >::type
     {
@@ -242,7 +247,7 @@ public:
     template<class FT>
     auto then(FT && f) ->
         typename std::enable_if<
-            !utils::is_no_args_function<FT>::value && 
+            !utils::is_no_args_function<FT>::value &&
             !is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or,
             typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type > :: type
     {
@@ -262,6 +267,7 @@ public:
     }
     bool	check_if_over()
     {
+        FIC(wait_or_check_if)
         if(m_iES == exe_state::exe_over)
             return true;
         m_iES = exe_state_or( m_1.get_state(), m_2.get_state() );

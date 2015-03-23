@@ -34,9 +34,9 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 include_directories(${PROJECT_SOURCE_DIR}/ff/include)
 #link_directories(${PROJECT_SOURCE_DIR}/ff/bin)
 
-SET(ff_src ff/runtime/env.cpp 
-  ff/runtime/runtime.cpp 
-  ff/para/para.cpp 
+SET(ff_src ff/runtime/env.cpp
+  ff/runtime/runtime.cpp
+  ff/para/para.cpp
   ff/common/common.cpp)
 
 if(COUNT_TIME)
@@ -44,10 +44,15 @@ if(COUNT_TIME)
   set(ff_src ${ff_src} ff/runtime/single_timer.cpp ff/runtime/timer.cpp)
 endif(COUNT_TIME)
 
+if(COUNT_FUNC)
+  add_definitions(-DFUNC_INVOKE_COUNTER)
+  set(ff_src ${ff_src} ff/runtime/func_invoke_counter.cpp)
+endif(COUNT_FUNC)
+
 ADD_LIBRARY(ff SHARED ${ff_src})
 ADD_LIBRARY(ff_s STATIC ${ff_src})
 target_link_libraries(ff pthread)
 target_link_libraries(ff_s pthread)
 
 SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
- 
+

@@ -26,6 +26,10 @@ THE SOFTWARE.
 #include "common/log.h"
 #include "para/wait_impl.h"
 
+#ifdef FUNC_INVOKE_COUNTER
+#include "utilities/func_invoke_counter.h"
+#endif
+
 namespace ff{
 namespace internal{
 
@@ -54,6 +58,7 @@ exe_state wait_all::get_state()
 
 bool wait_all::check_if_over()
 {
+  FIC(wait_all_check_if)
 	if(m_iES == exe_state::exe_over)
 		return true;
 	get_state();
@@ -71,7 +76,7 @@ exe_state wait_any::get_state()
 {
     if(!all_ps)
         m_iES = exe_state::exe_over;
-	
+
     if(m_iES != exe_state::exe_over)
     {
         m_iES = exe_state::exe_over;
@@ -85,6 +90,7 @@ exe_state wait_any::get_state()
 
 bool wait_any::check_if_over()
 {
+    FIC(wait_any_check_if)
     if(m_iES == exe_state::exe_over)
         return true;
     get_state();

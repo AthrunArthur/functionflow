@@ -32,6 +32,10 @@ THE SOFTWARE.
 #include "utilities/timer.h"
 #endif
 
+#ifdef FUNC_INVOKE_COUNTER
+#include "utilities/func_invoke_counter.h"
+#endif
+
 namespace ff {
 namespace rt
 {
@@ -60,21 +64,21 @@ public:
 
         bool		steal_one_task(task_base_ptr & p);
 	    void			run_task(task_base_ptr & p);
-    
+
 	bool		is_idle();
-	
+
 	thrd_id_t	get_idle();
     std::tuple<uint64_t, uint64_t> current_task_counter();
 
 protected:
     //each thread run
-  
+
 
     void			thread_run();
 
 
 
-    
+
     static void			init();
 
 protected:
@@ -82,14 +86,14 @@ protected:
     std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
     std::vector<uint64_t> m_oExeOverTasks;
     std::vector<uint64_t> m_oScheduleTasks;
-    
+
 //    thread_local static work_stealing_queue *				m_pLQueue;
     std::atomic< bool>  				m_bAllThreadsQuit;
 
     hp_owner<void>				m_oHPMutex;
     static runtime_ptr s_pInstance;
     static std::once_flag			s_oOnce;
-    
+
 };//end class runtime
 
 
@@ -126,8 +130,10 @@ void 	yield_and_ret_until(Func && f)
     runtime_ptr r = runtime::instance();
     bool b = f();
     task_base_ptr pTask;
+    FIC(g_yield_and_ret_until)
     while(!b)
     {
+        FIC(g_yield_and_ret_until_loop)
         CTE(timer::dep_timer);
         if(r->take_one_task(pTask))
         {

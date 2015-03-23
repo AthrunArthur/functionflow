@@ -31,6 +31,10 @@ THE SOFTWARE.
 #include "utilities/timer.h"
 #endif
 
+#ifdef FUNC_INVOKE_COUNTER
+#include "utilities/func_invoke_counter.h"
+#endif
+
 #ifdef FUNCTION_FLOW_DEBUG
 #include <signal.h>
 void sighandler(int signum)
@@ -86,12 +90,16 @@ runtime::~runtime()
 #ifdef FUNCTION_FLOW_DEBUG
     std::cout<<"~runtime(), all threads quit!"<<std::endl;
 #endif
+#ifdef FUNC_INVOKE_COUNTER
+    std::cout<<"*****func invocation counter:\n";
+    std::cout<<::ff::func_invoke_counter::status()<<std::endl;
+#endif
 }
 
 runtime_ptr 	runtime::instance()
 {
     if(!s_pInstance)
-#ifdef  CLANG_LLVM 
+#ifdef  CLANG_LLVM
         init();
 #else
         std::call_once(s_oOnce, runtime::init);
@@ -121,6 +129,10 @@ void			runtime::init()
 
     sigaction(SIGINT,&act_h,&old_act);
     sigaction(SIGSEGV, &act_h, &old_act);
+#endif
+
+#ifdef FUNC_INVOKE_COUNTER
+    ::ff::func_invoke_counter::init();
 #endif
     _DEBUG(LOG_INFO(rt)<<"init thread num:"<<thrd_num)
     set_local_thrd_id(0);
@@ -172,6 +184,7 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
 {
     bool b = false;
     CT(timer::schedule_timer);
+    FIC(runtime_take_one_task)
 
     thread_local static int i = get_thrd_id();
     b = m_oQueues[i]->pop(pTask);
@@ -188,7 +201,7 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
                 assert(pTask !=nullptr && "Steal invalid task!");
         })
     }
-    
+
     else{
 #ifdef FUNCTION_FLOW_DEBUG
       if(pTask==nullptr)
@@ -205,6 +218,7 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
 
 void 			runtime::run_task(task_base_ptr & pTask)
 {
+  FIC(runtime_run_task)
 #ifdef COUNT_TIME
   auto s = single_timer::st_clock_t::now();
 #endif
