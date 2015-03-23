@@ -23,7 +23,10 @@ std::string func_invoke_counter::status()
   auto ts = func_invoke_counter::tags();
   for(auto it = ts.begin(); it != ts.end(); ++it)
   {
-    ss<<it->second<<":"<<m_oCounters[it->first]<<"\n";
+    for(size_t i = 0; i < m_oCounters.size(); ++i)
+    {
+      ss<<i<<" : "<<it->second<<":"<<m_oCounters[it->first].get()<<"\n";
+    }
   }
   return ss.str();
 }
