@@ -34,6 +34,7 @@ namespace ff{
     //N, 2^N
     //! This queue is for single-thread's push, and multiple-threads' pop.
     //! This queue is capability-fixed
+    //!TODO(athrun arthur), some bugs here, but since this code is useless, we just leave them there!
     template<class T, size_t N, size_t VEC_SIZE = 256>
       class simo_vec_queue{
         const static int64_t MASK = (1<<N) - 1;

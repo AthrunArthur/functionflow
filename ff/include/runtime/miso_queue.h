@@ -44,7 +44,7 @@ namespace ff{
       class miso_queue{
         const static int64_t MASK = (1<<N) - 1;
         public:
-          miso_queue() : array(nullptr), cap(0), head(0), tail(0), counter(0){
+          miso_queue() : array(nullptr), cap(0), head(0), whead(0), tail(0){
             array = new T[1<<N];
             cap = 1<<N;
           }
@@ -53,10 +53,10 @@ namespace ff{
           bool push(const T & val)
           {
             auto h = head;
-            while(h - tail < MASK && !__sync_bool_compare_and_swap(&counter, h, h+1)){ h = head;}
+            while(h - tail < MASK && !__sync_bool_compare_and_swap(&whead, h, h+1)){ h = whead;}
             if(h - tail >= MASK) return false;
             array[h&MASK] = val;
-            head ++;
+            while(!__sync_bool_compare_and_swap(&head, h, h+1))yield();
             return true;
           }
 
@@ -76,13 +76,9 @@ namespace ff{
           T * array;
           int64_t cap;
           int64_t head;
-          int64_t counter;
+          int64_t whead;
           int64_t tail;
       };//end class mimo_queue
-#undef MEM_SEQ_CST
-#undef MEM_ACQUIRE
-#undef MEM_RELAXED
-#undef MEM_RELEASE
 
   }//end namespace rt
 }//end namespace ff

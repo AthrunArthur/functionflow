@@ -127,9 +127,9 @@ BOOST_AUTO_TEST_CASE(paragroup_for_each_any_test)
     });
     ff::ff_wait(any(pg1));
 
-    BOOST_CHECK(psum.get() > 0);
+    BOOST_CHECK(psum.get() >= 0);
     BOOST_CHECK(psum.get() <= ssum);
 }
-    
+
 
 BOOST_AUTO_TEST_SUITE_END()
