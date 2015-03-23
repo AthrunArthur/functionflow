@@ -79,5 +79,11 @@ const thrd_id_t invalid_thrd_id = -1;
 #define CTE(a)
 #endif
 
+#ifdef FUNC_INVOKE_COUNTER
+#define FIC(tag) ::ff::func_invoke_counter::call(tag);
+#else
+#define FIC(tag)
+#endif
+
 
 #endif
