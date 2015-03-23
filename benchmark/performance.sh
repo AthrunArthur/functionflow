@@ -12,7 +12,7 @@ for i in $(seq ${ITER_NUM})
 do
   echo $i sequential iteration
   export THRD_NUM=0
-  make -f Makefile.tbb treesum_tbb
+  make -f Makefile.tbb
 done
 mv tbb_time.json ../sequential_time.json
 
@@ -21,10 +21,10 @@ for i in $(seq ${ITER_NUM})
 do
   echo $i performance iteration
   export THRD_NUM=${CPU_NUM}
-  make -f Makefile.ff treesum_ff
-  make -f Makefile.tbb treesum_tbb
-  #make -f Makefile.ff 
-  #make -f Makefile.tbb
+  #make -f Makefile.ff kmeans_ff
+  #make -f Makefile.tbb kmeans_tbb
+  make -f Makefile.ff 
+  make -f Makefile.tbb
 done
 mv ff_time.json ../performance_ff_time.json
 mv tbb_time.json ../performance_tbb_time.json
