@@ -9,6 +9,7 @@ namespace ff{
   class thread_local_var
   {
     public:
+      thread_local_var(){}
       thread_local_var(int thrd_num)
       {
         for(int i = 0; i < thrd_num; ++i)

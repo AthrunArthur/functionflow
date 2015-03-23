@@ -23,6 +23,7 @@ THE SOFTWARE.
 *************************************************/
 #ifndef FF_RUNTIME_RUNTIME_H_
 #define FF_RUNTIME_RUNTIME_H_
+#include "common/common.h"
 #include "runtime/task_queue.h"
 #include "runtime/threadpool.h"
 #include "runtime/env.h"

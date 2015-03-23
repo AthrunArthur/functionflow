@@ -2,6 +2,7 @@
 #define FF_UTILITIES_FUNC_INVOKE_COUNTER_H_
 #include "common/common.h"
 #include <vector>
+#include <map>
 #include "utilities/thread_local_var.h"
 
 namespace ff
@@ -13,11 +14,11 @@ namespace ff
 #define FUNC_TAG(a) a,
 #include "utilities/func_tags.h"
 #undef FUNC_TAG
-      }
+      };
 
     static void call(int tag);
     static bool is_normal();
-    static void init();
+    static void init(int thrd_num);
     static std::string status();
     static std::map<int, std::string> tags();
     protected:

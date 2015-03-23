@@ -80,7 +80,7 @@ const thrd_id_t invalid_thrd_id = -1;
 #endif
 
 #ifdef FUNC_INVOKE_COUNTER
-#define FIC(tag) ::ff::func_invoke_counter::call(tag);
+#define FIC(tag) ::ff::func_invoke_counter::call(::ff::func_invoke_counter::tag);
 #else
 #define FIC(tag)
 #endif

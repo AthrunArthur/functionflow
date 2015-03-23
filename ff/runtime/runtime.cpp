@@ -90,10 +90,6 @@ runtime::~runtime()
 #ifdef FUNCTION_FLOW_DEBUG
     std::cout<<"~runtime(), all threads quit!"<<std::endl;
 #endif
-#ifdef FUNC_INVOKE_COUNTER
-    std::cout<<"*****func invocation counter:\n";
-    std::cout<<::ff::func_invoke_counter::status()<<std::endl;
-#endif
 }
 
 runtime_ptr 	runtime::instance()
@@ -132,7 +128,7 @@ void			runtime::init()
 #endif
 
 #ifdef FUNC_INVOKE_COUNTER
-    ::ff::func_invoke_counter::init();
+    ::ff::func_invoke_counter::init(thrd_num + 1);
 #endif
     _DEBUG(LOG_INFO(rt)<<"init thread num:"<<thrd_num)
     set_local_thrd_id(0);
@@ -185,6 +181,15 @@ bool		runtime::take_one_task(task_base_ptr & pTask)
     bool b = false;
     CT(timer::schedule_timer);
     FIC(runtime_take_one_task)
+
+#ifdef FUNC_INVOKE_COUNTER
+    thread_local static uint64_t tc_counter = 0;
+    tc_counter ++;
+    if(tc_counter % (1<<31) == 0){
+        std::cout<<"\n\n*****func invocation counter:\n";
+        std::cout<<::ff::func_invoke_counter::status()<<std::endl;
+    }
+#endif
 
     thread_local static int i = get_thrd_id();
     b = m_oQueues[i]->pop(pTask);
