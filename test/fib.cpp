@@ -59,6 +59,5 @@ BOOST_AUTO_TEST_CASE(fib_t1)
     int64_t p_res = sfib(nums[i]);
     BOOST_CHECK(f_res == p_res);
   }
-
 }
 BOOST_AUTO_TEST_SUITE_END()
