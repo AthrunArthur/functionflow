@@ -21,44 +21,43 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-#include "ff.h"
-#include "common/log.h"
-#include <iostream>
-#include <boost/test/included/unit_test.hpp>
+#ifndef FF_UTILITIES_SINGLE_ASSIGN_H_
+#define FF_UTILITIES_SINGLE_ASSIGN_H_
+#include "common/common.h"
+#include "runtime/rtcmn.h"
+#include <mutex>
 #include <vector>
 
-int64_t fib(int n)
+namespace ff
 {
-	if(n <=2)
-		return 1;
-	_DEBUG(LOG_INFO(main)<<"fib "<<n;)
-	ff::para<int64_t> a, b;
-	a([&n]()->int64_t{return fib(n - 1);});
-	b([&n]()->int64_t{return fib(n - 2);});
-	return (a && b).then([](int64_t x, int64_t y){return x + y;});
-}
-int64_t sfib(int n )
+template< class T>
+class single_assign
 {
- if(n <= 2)
-   return 1;
- return sfib(n -1 ) + sfib(n-2);
-}
+    single_assign(const single_assign<T> & ) = delete;
+    single_assign<T> & operator =(const single_assign<T> &) = delete;
+public:
+    single_assign()
+        : m_oValue()
+        , m_bIsAssigned(false) {}
+    single_assign(const T & v)
+        : m_oValue(v)
+        , m_bIsAssigned(true) {}
 
-BOOST_AUTO_TEST_SUITE(fib_test)
-BOOST_AUTO_TEST_CASE(fib_t1)
-{
-  std::vector<int> nums;
-  nums.push_back(0);
-  nums.push_back(1);
-  nums.push_back(2);
-  nums.push_back(10);
-  for(int i = 0; i < nums.size(); i++)
-  {
-    int64_t f_res = fib(nums[i]);
-    int64_t p_res = sfib(nums[i]);
-    BOOST_CHECK(f_res == p_res);
-  }
+    single_assign<T> & operator =(const T & v)
+    {
+        if(m_bIsAssigned)
+            return *this;
+        m_bIsAssigned = true;
+        m_oValue = v;
+        return *this;
+    }
 
-}
-BOOST_AUTO_TEST_SUITE_END()
+    T & get() {
+        return m_oValue;
+    }
+protected:
+    T m_oValue;
+    std::atomic<bool> m_bIsAssigned;
+};//end class single_assign
+}//end namespace ff;
+#endif

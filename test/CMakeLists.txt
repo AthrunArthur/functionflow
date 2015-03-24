@@ -41,7 +41,7 @@ ADD_EXECUTABLE(test_interface test_interface.cpp)
 TARGET_LINK_LIBRARIES(test_interface ${LIBS_LINK_LIBS})
 add_test(test_interface test_interface)
 
-ADD_EXECUTABLE(test_fib fib.cpp)
+ADD_EXECUTABLE(test_fib test_fib.cpp)
 TARGET_LINK_LIBRARIES(test_fib ${LIBS_LINK_LIBS})
 add_test(test_fib test_fib)
 

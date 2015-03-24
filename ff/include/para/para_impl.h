@@ -27,10 +27,6 @@ THE SOFTWARE.
 #include "common/common.h"
 #include "runtime/taskbase.h"
 #include "runtime/rtcmn.h"
-#include "common/log.h"
-#ifdef COUNT_TIME
-#include "utilities/timer.h"
-#endif
 
 namespace ff {
 namespace internal
@@ -67,7 +63,7 @@ class para_impl_base : public ff::rt::task_base
 public:
     template <class F>
     para_impl_base(F && f)
-        : ff::rt::task_base(TKind::user_t)
+        : ff::rt::task_base()
         , m_oFunc(std::move(f))
         , m_iES(exe_state::exe_init){}
 
@@ -100,16 +96,7 @@ public:
     virtual void	run()
     {
         m_iES.store(exe_state::exe_run);
-#ifdef COUNT_TIME
-        auto s = single_timer::st_clock_t::now();
-#endif
-
         m_oRet.set(para_impl_base<RT>::m_oFunc());
-
-#ifdef COUNT_TIME
-  auto e = single_timer::st_clock_t::now();
-  timer_instance().append<timer::user_timer>(e-s);
-#endif
         m_iES.store(exe_state::exe_over);
     }
     RT & get() {
@@ -133,47 +120,14 @@ public:
     virtual void	run()
     {
         m_iES.store(exe_state::exe_run);
-#ifdef COUNT_TIME
-        auto s = single_timer::st_clock_t::now();
-#endif
-
         para_impl_base<void>::m_oFunc();
-
-#ifdef COUNT_TIME
-  auto e = single_timer::st_clock_t::now();
-  timer_instance().append<timer::user_timer>(e-s);
-#endif
         m_iES.store(exe_state::exe_over);
     }
 protected:
     using para_impl_base<void>::m_iES;
 };//end class para_impl
 
-#if 0
-template<class RT>
-using para_impl_ptr = para_impl<RT> *;
 
-template<class ret_type, class F>
-auto make_para_impl(F && f)
--> typename std::enable_if<
-std::is_void<ret_type>::value,
-    internal::para_impl_ptr<ret_type>
-    >::type
-{
-    return new para_impl<ret_type>(std::forward<F>(f));
-}
-template<class ret_type, class F>
-auto make_para_impl(F&& f)
--> typename std::enable_if<
-!std::is_void<ret_type>::value,
-internal::para_impl_ptr<ret_type>
->::type
-{
-    return new para_impl<ret_type>(std::forward<F>(f));
-}
-#endif
-
-#if 1
 template<class RT>
 using para_impl_ptr = std::shared_ptr<para_impl<RT>>;
 
@@ -186,7 +140,6 @@ std::is_void<ret_type>::value,
     >::type
 {
     auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
-    _DEBUG(LOG_INFO(para)<<"generate a para task: 1 "<<p.get())
     return p;
 }
 template <class ret_type, class F>
@@ -197,10 +150,8 @@ internal::para_impl_ptr<ret_type>
 >::type
 {
     auto p = std::make_shared<internal::para_impl<ret_type> >(std::forward<F>(f));
-    _DEBUG(LOG_INFO(para)<<"generate a para task: 2 "<<p.get())
     return p;
 }
-#endif
 
 template<class WT>
 class para_impl_wait : public ff::rt::task_base
@@ -208,7 +159,7 @@ class para_impl_wait : public ff::rt::task_base
 public:
     template<class RT>
     para_impl_wait(WT &  w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base(TKind::user_t)
+        : ff::rt::task_base()
         , m_iES(exe_state::exe_init)
         , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
         //, m_pFunc(p)
@@ -216,7 +167,7 @@ public:
 
     template<class RT>
     para_impl_wait(WT && w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base(TKind::user_t)
+        : ff::rt::task_base()
         , m_pFunc(p)
         , m_oWaitingPT(w) {}
 
@@ -232,16 +183,7 @@ public:
                 return m_oWaitingPT.check_if_over();
             });
         }
-#ifdef COUNT_TIME
-        auto s = single_timer::st_clock_t::now();
-#endif
-
         m_pFunc->run();
-
-#ifdef COUNT_TIME
-  auto e = single_timer::st_clock_t::now();
-  timer_instance().append<timer::user_timer>(e-s);
-#endif
         m_iES.store(exe_state::exe_over);
     }
 
@@ -261,37 +203,18 @@ protected:
     WT  	m_oWaitingPT;
 };//end class para_impl_wait;
 template<class WT>
-//using para_impl_wait_ptr = para_impl_wait<WT> *;
 using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
 
 template<class RT>
 void	schedule(para_impl_ptr<RT>  p)
 {
-    _DEBUG(LOG_INFO(rt)<<"schedule start ")
     ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
-//    ::ff::rt::schedule(p);
-    _DEBUG(LOG_INFO(rt)<<"schedule end ")
 }
 template<class WT>
 void	schedule(para_impl_wait_ptr<WT>  p)
 {
     ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
-//  ::ff::rt::schedule(p);
 }
-#ifdef USING_MIMO_QUEUE
-template<class RT>
-void	schedule(para_impl_ptr<RT>  p, int32_t thrd_id)
-{
-    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p), thrd_id);
-//    ::ff::rt::schedule(p);
-}
-template<class WT>
-void	schedule(para_impl_wait_ptr<WT>  p, int32_t thrd_id)
-{
-    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p), thrd_id);
-//  ::ff::rt::schedule(p);
-}
-#endif
 }//end namespace internal
 }//end namespace ff
 #endif

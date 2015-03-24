@@ -21,35 +21,42 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef COMMON_LOG_H_
-#define COMMON_LOG_H_
+#define BOOST_TEST_MODULE test_ff
+#include "ff.h"
+#include <iostream>
+#include <boost/test/included/unit_test.hpp>
+#include <vector>
 
-#ifdef FUNCTION_FLOW_DEBUG
-#define SYNC_WRITING_LOG
-#include "ff/fflog.h"
-#endif
+int64_t fib(int n)
+{
+	if(n <=2)
+		return 1;
+	ff::para<int64_t> a, b;
+	a([&n]()->int64_t{return fib(n - 1);});
+	b([&n]()->int64_t{return fib(n - 2);});
+	return (a && b).then([](int64_t x, int64_t y){return x + y;});
+}
+int64_t sfib(int n )
+{
+ if(n <= 2)
+   return 1;
+ return sfib(n -1 ) + sfib(n-2);
+}
 
+BOOST_AUTO_TEST_SUITE(fib_test)
+BOOST_AUTO_TEST_CASE(fib_t1)
+{
+  std::vector<int> nums;
+  nums.push_back(0);
+  nums.push_back(1);
+  nums.push_back(2);
+  nums.push_back(10);
+  for(int i = 0; i < nums.size(); i++)
+  {
+    int64_t f_res = fib(nums[i]);
+    int64_t p_res = sfib(nums[i]);
+    BOOST_CHECK(f_res == p_res);
+  }
 
-
-#ifdef USING_FF_LOG
-#define _DEBUG(stmt) stmt;
-#else
-#define _DEBUG(stmt)
-#define DEF_LOG_MODULE(m) 
-#define ENABLE_LOG_MODULE(m)
-#endif
-
-DEF_LOG_MODULE(main)
-DEF_LOG_MODULE(para)
-DEF_LOG_MODULE(rt)
-DEF_LOG_MODULE(queue)
-
-ENABLE_LOG_MODULE(main)
-
-ENABLE_LOG_MODULE(para)
-
-ENABLE_LOG_MODULE(rt)
-
-ENABLE_LOG_MODULE(queue)
-
-#endif
+}
+BOOST_AUTO_TEST_SUITE_END()

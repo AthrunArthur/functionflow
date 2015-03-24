@@ -1,7 +1,7 @@
-PROJECT(FunctionFlow)
-CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-MESSAGE(STATUS "This is BINARY dir" ${PROJECT_BINARY_DIR})
-MESSAGE(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
+project(FunctionFlow)
+cmake_minimum_required(VERSION 2.6)
+message(STATUS "This is BINARY dir" ${PROJECT_BINARY_DIR})
+message(STATUS "This is SOURCE dir" ${PROJECT_SOURCE_DIR})
 add_definitions(-std=c++11)
 
 if(Release)
@@ -23,37 +23,23 @@ else(Release)
 	endif(NOT EXISTS ${PROJECT_SOURCE_DIR}/libs/ff)
 endif(Release)
 
-#add_definitions(-DUSING_LOCK_FREE_QUEUE)
-#add_definitions(-DUSING_FF_SPIN_STEAL_QUEUE)
-#add_definitions(-DUSING_MIMO_QUEUE)
-#add_definitions(-DUSING_MUTEX_QUEUE)
+#add_definitions(-DUSING_SPIN_STEAL_QUEUE)
+#add_definitions(-DUSING_MUTEX_STEAL_QUEUE)
 add_definitions(-DUSING_WORK_STEALING_QUEUE)
-#add_definitions(-DUSING_FLEXIBLE_QUEUE)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 
 include_directories(${PROJECT_SOURCE_DIR}/ff/include)
 #link_directories(${PROJECT_SOURCE_DIR}/ff/bin)
 
-SET(ff_src ff/runtime/env.cpp
-  ff/runtime/runtime.cpp
-  ff/para/para.cpp
-  ff/common/common.cpp)
+set(ff_src ff/src/common.cpp
+  ff/src/rtcmn.cpp
+  ff/src/runtime.cpp
+  ff/src/wait.cpp)
 
-if(COUNT_TIME)
-  add_definitions(-DCOUNT_TIME)
-  set(ff_src ${ff_src} ff/runtime/single_timer.cpp ff/runtime/timer.cpp)
-endif(COUNT_TIME)
-
-if(COUNT_FUNC)
-  add_definitions(-DFUNC_INVOKE_COUNTER)
-  set(ff_src ${ff_src} ff/runtime/func_invoke_counter.cpp)
-endif(COUNT_FUNC)
-
-ADD_LIBRARY(ff SHARED ${ff_src})
-ADD_LIBRARY(ff_s STATIC ${ff_src})
+add_library(ff SHARED ${ff_src})
+add_library(ff_s STATIC ${ff_src})
 target_link_libraries(ff pthread)
 target_link_libraries(ff_s pthread)
-
-SET_TARGET_PROPERTIES(ff_s PROPERTIES OUTPUT_NAME "ff")
+set_target_properties(ff_s PROPERTIES OUTPUT_NAME "ff")
 

@@ -23,7 +23,6 @@ THE SOFTWARE.
 *************************************************/
 #define BOOST_TEST_MODULE test_ff
 #include "ff.h"
-#include "common/log.h"
 #include <iostream>
 #include <boost/test/included/unit_test.hpp>
 #include <sstream>

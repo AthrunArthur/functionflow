@@ -25,59 +25,35 @@ THE SOFTWARE.
 #define FF_RUNTIME_TASK_QUEUE_H_
 
 #include "runtime/taskbase.h"
-#ifdef USING_LOCK_FREE_QUEUE
-#include "runtime/ring_buff.h"
-#endif
 
-#ifdef USING_MUTEX_QUEUE
+#ifdef USING_MUTEX_STEAL_QUEUE
 #include "runtime/mutex_steal_queue.h"
 #endif
 
-#ifdef USING_FF_SPIN_STEAL_QUEUE
+#ifdef USING_SPIN_STEAL_QUEUE
 #include "runtime/spin_steal_queue.h"
 #endif
 
-#ifdef USING_MIMO_QUEUE
-#include "runtime/mimo_queue.h"
-#endif
-
 #ifdef USING_WORK_STEALING_QUEUE
-//#include "runtime/twsq.h"
-#ifdef USING_FLEXIBLE_QUEUE
-#include "runtime/gtwsq.h"
-#else
 #include "runtime/gtwsq_fixed.h"
 #endif
-#endif
-
-#include "runtime/env.h"
 
 namespace ff {
 namespace rt {
 
-#ifdef USING_MUTEX_QUEUE
+#ifdef USING_MUTEX_STEAL_QUEUE
 typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
 #endif
 
-#ifdef USING_LOCK_FREE_QUEUE
-typedef nonblocking_stealing_queue<task_base_ptr, 6> work_stealing_queue;
-#endif
-
-#ifdef USING_FF_SPIN_STEAL_QUEUE
+#ifdef USING_SPIN_STEAL_QUEUE
 typedef spin_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
-#ifdef USING_MIMO_QUEUE
-typedef mimo_lock_free_queue<task_base_ptr, 6> work_stealing_queue;
-#endif
-
 #ifdef USING_WORK_STEALING_QUEUE
-//typedef classical_work_stealing_queue<task_base_ptr, 20> work_stealing_queue;
 typedef gcc_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
 typedef work_stealing_queue * work_stealing_queue_ptr;
-typedef std::vector<ctx_pdict_ptr> local_stack_queue;
 
 }//end namespace rt
 }//end namespace ff

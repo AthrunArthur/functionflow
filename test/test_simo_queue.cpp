@@ -25,7 +25,7 @@
 #define BOOST_TEST_MODULE test_ff
 #include <boost/test/included/unit_test.hpp>
 #include <iostream>
-#include "runtime/simo_queue.h"
+#include "utilities/simo_queue.h"
 #include <thread>
 
 using namespace ff;

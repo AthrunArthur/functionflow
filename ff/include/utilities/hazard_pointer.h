@@ -23,7 +23,7 @@ THE SOFTWARE.
 *************************************************/
 #ifndef FF_RUNTIME_HAZARD_POINTER_H_
 #define FF_RUNTIME_HAZARD_POINTER_H_
-#include "runtime/env.h"
+#include "runtime/rtcmn.h"
 #include <mutex>
 #include <atomic>
 #ifdef FUNCTION_FLOW_DEBUG
@@ -40,7 +40,7 @@ class hp_owner
 public:
     hp_owner()
     : m_oflag(){
-#ifdef CLANG_LLVM 
+#ifdef CLANG_LLVM
         m_pPointers = new std::atomic<T *>[ff::rt::rt_concurrency()];
 #else
         std::call_once(m_oflag, [this]() {
@@ -52,7 +52,7 @@ public:
     ~hp_owner(){
       delete [] m_pPointers;
     }
-    
+
     std::atomic<T *> & get_hazard_pointer() {
         return m_pPointers[ff::rt::get_thrd_id()];
     }

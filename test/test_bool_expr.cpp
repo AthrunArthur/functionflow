@@ -31,7 +31,6 @@ THE SOFTWARE.
 #include <vector>
 #include <algorithm>
 #include "ff.h"
-#include "common/log.h"
 
 using namespace ff;
 #define FF_TEST_TIME 100
@@ -73,7 +72,7 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_test_case)
 	});
 	(f3 && f4).then([](double x){
 		BOOST_CHECK(x == inc(4.5));
-	});	
+	});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

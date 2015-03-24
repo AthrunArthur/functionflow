@@ -31,7 +31,6 @@ THE SOFTWARE.
 #include <algorithm>
 #include <functional>
 #include "ff.h"
-#include "common/log.h"
 
 using namespace ff;
 #define FF_TEST_TIME 100
@@ -118,7 +117,7 @@ BOOST_AUTO_TEST_CASE(para_test_then)
 {
     int num = 10;
     para<int> a;
-    a([&num](){return inc(num);}).then([num](int n){BOOST_CHECK(n == inc(num));}); 
+    a([&num](){return inc(num);}).then([num](int n){BOOST_CHECK(n == inc(num));});
     BOOST_CHECK(a.check_if_over());
 }
 
@@ -163,7 +162,7 @@ BOOST_AUTO_TEST_CASE(para_test_empty)
   BOOST_REQUIRE_THROW(
       b[a]([&num, &a, &b_res](){b_res=inc(num + a.get());}).then([&num, &a, &b, &b_res](){
         BOOST_CHECK(b_res == inc(num + a.get()));
-      }), empty_para_exception); 
+      }), empty_para_exception);
   BOOST_REQUIRE_THROW(ff_wait(b), empty_para_exception);
   BOOST_REQUIRE_THROW(ff_wait(a), empty_para_exception);
   BOOST_CHECK(!a.check_if_over());
