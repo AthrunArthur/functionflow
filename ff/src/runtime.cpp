@@ -120,9 +120,7 @@ namespace ff {
     {
       thread_local static int cur_id = get_thrd_id();
       pTask->run();
-      if(pTask->need_to_reschedule()){
-        m_oWQueues[cur_id]->push(pTask);
-      }
+      while(pTask->need_to_reschedule() && ! m_oWQueues[cur_id]->push(pTask)) pTask->run();
     }
     void			runtime::thread_run()
     {
