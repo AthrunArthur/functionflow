@@ -179,9 +179,8 @@ public:
         m_iES=exe_state::exe_run;
         if(m_oWaitingPT.get_state() != exe_state::exe_over)
         {
-            ::ff::rt::yield_and_ret_until([this]() {
-                return m_oWaitingPT.check_if_over();
-            });
+          need_to_reschedule() = true;
+          return ;
         }
         m_pFunc->run();
         m_iES.store(exe_state::exe_over);

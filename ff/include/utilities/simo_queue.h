@@ -25,7 +25,6 @@
 #define FF_RUNTIME_SIMO_QUEUE_H_
 
 #include "common/common.h"
-#include "runtime/rtcmn.h"
 namespace ff{
   namespace rt{
     //N, 2^N

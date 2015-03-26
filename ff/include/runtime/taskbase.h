@@ -30,9 +30,12 @@ namespace rt {
 class task_base {
 public:
     virtual ~task_base(){}
-    task_base(){}
+    task_base():m_b_reschedule_flag(false){}
 
     virtual void	run() = 0;
+    bool & need_to_reschedule() {return m_b_reschedule_flag;}
+protected:
+    bool m_b_reschedule_flag;
 };//end class task_base;
 typedef std::shared_ptr<task_base>   task_base_ptr;
 

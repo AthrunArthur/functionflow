@@ -27,6 +27,7 @@
 #include "runtime/task_queue.h"
 #include "runtime/threadpool.h"
 #include "runtime/rtcmn.h"
+#include "utilities/simo_queue.h"
 #include <mutex>
 
 
@@ -68,6 +69,8 @@ namespace ff {
       protected:
         std::unique_ptr<threadpool> 		m_pTP;
         std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
+        typedef simo_queue<task_base_ptr, 8> simo_queue_t;
+        std::vector<std::unique_ptr<simo_queue_t> > m_oWQueues;
         //    thread_local static work_stealing_queue *				m_pLQueue;
         std::atomic< bool>  				m_bAllThreadsQuit;
         static runtime_ptr s_pInstance;
