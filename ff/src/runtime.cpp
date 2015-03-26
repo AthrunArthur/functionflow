@@ -151,6 +151,10 @@ namespace ff {
         {
           return true;
         }
+        else if (m_oWQueues[(cur_id + dis)%ts]->pop(pTask))
+        {
+          return true;
+        }
         dis ++;
       }
       return false;
