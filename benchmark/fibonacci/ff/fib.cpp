@@ -22,7 +22,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
 #include "ff.h"
-#include "common/log.h"
 using namespace std;
 
 #define MINPARA 25
@@ -32,7 +31,6 @@ int64_t fib(int64_t n)
 {
     if(n < MINPARA)
         return sfib(n);
-    _DEBUG(LOG_INFO(main)<<"fib "<<n;)
     ff::para<int64_t> a, b;
     a([&n]()->int64_t {return fib(n - 1);});
     b([&n]()->int64_t {return fib(n - 2);});
