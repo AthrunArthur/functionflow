@@ -77,3 +77,7 @@ Function Flow loves lambda of C++11, so we use it heavily. We won't explain ever
 Function Flow is totally opensource and distributed under MIT lisence. Anyone can checkout the source code from GitHub. Please contact me via athrunarthur@gmail.com if you are interest or have any ideas of Function Flow. Enjoy it and have fun!
 
 BTW, more details are located in docs/.
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/AthrunArthur/functionflow/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
