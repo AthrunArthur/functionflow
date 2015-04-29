@@ -23,7 +23,6 @@ THE SOFTWARE.
 *************************************************/
 #include "ff.h"
 #include <stdio.h>
-#include "common/log.h"
 
 int f3(int n, double){
   return n;

@@ -159,8 +159,9 @@ BOOST_AUTO_TEST_CASE(para_test_empty)
   double b_res;
   para<int> a;
   para<> b;
+  std::cout<<"para_test_empty"<<std::endl;
   BOOST_REQUIRE_THROW(
-      b[a]([&num, &a, &b_res](){b_res=inc(num + a.get());}).then([&num, &a, &b, &b_res](){
+      b[a]([&num, &b_res](int ret){b_res=inc(num + ret);}).then([&num, &a, &b, &b_res](){
         BOOST_CHECK(b_res == inc(num + a.get()));
       }), empty_para_exception);
   BOOST_REQUIRE_THROW(ff_wait(b), empty_para_exception);
@@ -173,26 +174,43 @@ BOOST_AUTO_TEST_CASE(para_test)
 {
     int num = 10;
     para<int> a;
+  std::cout<<"para_test"<<std::endl;
     a([&num](){return inc(num);}).then([&num](int x){
         BOOST_CHECK(x == inc(num));
     });
     ff::para<> b;
     int b_res;
-    b[a]([&num, &a, &b_res](){b_res = inc(num + a.get());}).then([&num, &a, &b, &b_res](){
+    b[a]([&num, &b_res](int ret){b_res = inc(num + ret);}).then([&num, &a, &b, &b_res](){
         BOOST_CHECK(b_res == inc(num + a.get()));
     });
 }
-BOOST_AUTO_TEST_CASE(para_dep_test)
+BOOST_AUTO_TEST_CASE(para_dep_simple_test)
 {
   int num = 10;
-  for(int i = 0; i < 1000; ++i)
+  for(int i = 0; i < 100; ++i)
   {
     para<int> a;
     a([&num](){return num;});
     para<void> b;
-    b[a]([&a, num](){BOOST_CHECK(a.get() == num);});
+    b[a]([num](int ret){BOOST_CHECK(ret == num);});
     ff_wait(b&&a);
   }
+}
+BOOST_AUTO_TEST_CASE(para_dep_and_test)
+{
+    paracontainer pc;
+    for(int i = 0; i < 1000; ++i)
+    {
+        para<int> a, b;
+        para<> c;
+        a([i](){return i;});
+        b([i](){return i*i;});
+        c[a&&b]([](int t1, int t2){
+            BOOST_CHECK(t2 == t1*t1);
+        });
+        pc.add(c);
+    }
+    ff_wait(all(pc));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

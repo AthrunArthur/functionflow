@@ -70,6 +70,7 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_test_case)
 	f4[f3]([](){return inc(4.5);}).then([](double x){
 		BOOST_CHECK(x == inc(4.5));
 	});
+	ff_wait(f4);
 	(f3 && f4).then([](double x){
 		BOOST_CHECK(x == inc(4.5));
 	});

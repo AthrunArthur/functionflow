@@ -69,6 +69,7 @@ struct is_compatible_then<F, void, void>
   const static bool is_cpt_with_or = ::ff::utils::is_callable<F>::value &&
         ::ff::utils::is_function_with_two_arg_type<F, void, void>::value;
 };
+
 }//end namespace internal
 }//end namespace ff
 

@@ -27,6 +27,7 @@ THE SOFTWARE.
 #include "common/tuple_type.h"
 #include "para/para.h"
 #include "para/bin_wait_func_deducer.h"
+#include "paracontainer.h"
 
 namespace ff {
 template<class RT>
@@ -117,6 +118,45 @@ public:
       static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<
+            std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+        deduct_t::void_func_and(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<
+            !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+    >::type
+    {
+        return deduct_t::ret_func_and(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                               utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+        f();
+    }
+
+    template <class FT>
+    auto internal_then(FT && f) ->
+            typename std::enable_if<
+                    !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                    utils::function_args_traits<FT>::is_no_args,
+                    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type >::type
+    {
+        return f();
+    }
+
+
     auto get() -> typename deduct_t::and_type
     {
         return deduct_t::wrap_ret_for_and(m_1, m_2);
@@ -138,8 +178,8 @@ public:
         return false;
     }
 protected:
-    T1_t&  m_1;
-    T2_t&  m_2;
+    T1_t  m_1;
+    T2_t  m_2;
     exe_state	m_iES;
 };//end class wait_and
 
@@ -230,6 +270,46 @@ public:
       static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<
+            std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args
+            , void>::type
+    {
+        deduct_t::void_func_or(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<
+            !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+    >::type
+    {
+        return deduct_t::ret_func_or(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                               utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+        f();
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<
+            !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            utils::function_args_traits<FT>::is_no_args,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+    >::type
+    {
+        return f();
+    }
+
     auto get() -> typename deduct_t::or_type
     {
         return deduct_t::wrap_ret_for_or(m_1, m_2);
@@ -251,8 +331,8 @@ public:
         return false;
     }
 protected:
-    T1_t &  m_1;
-    T2_t &  m_2;
+    T1_t   m_1;
+    T2_t   m_2;
     exe_state	m_iES;
 };//end class wait_or
 

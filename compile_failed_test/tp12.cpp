@@ -23,7 +23,6 @@ THE SOFTWARE.
 *************************************************/
 #include "ff.h"
 #include <stdio.h>
-#include "common/log.h"
 
 int f2(double n ){
   return static_cast<int>(n);

@@ -23,7 +23,6 @@ THE SOFTWARE.
 *************************************************/
 #include "ff.h"
 #include <stdio.h>
-#include "common/log.h"
 
 void typenomatch()
 {
