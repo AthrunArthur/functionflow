@@ -2,20 +2,20 @@ Function Flow
 ============
 Function Flow is a library which targets on "ease parallel programming", especially expressing task parallelism. When we say "ease parallel programming", we are referring a lot of things, including
 
-    1. easy used programming interfaces;
+    1. easy-to-use programming interfaces;
     2. automatically performance tuning;
     3. tool chains with static program analysis.
 
-In the part of easy used programming interfaces, we carefully desgined Function Flow to avoid any "anti-intuitive" programming statement. All things in expressing parallelism are done directly without anything like initialization, constraints of tasks, tricks of waiting expressiong and etc. 
+In the part of easy used programming interfaces, we carefully desgined Function Flow to avoid any "anti-intuitive" programming statement. All things in expressing parallelism are done directly without anything like initialization, constraints of tasks, tricks of waiting expression and etc.
 
 Besides, Function Flow also makes a huge effort to make parallel programming "safe" by leveraging compiling-time check, instead of runtime assert. This makes a successfully compiled Function Flow program satisfies some parallel constraints already. Such feature largely helps improving productivity. Also, we customize some compile errors to help users understanding why their programs are "invalid".
 
 In the part of automatically performance tuning, Function Flow tries to get hints from static analysis to balance different choices in runtime subsystem.
 
-Currently, Function Flow is still under heavy development. But we have made progresses, like easier programming than TBB and PPL, comparable performance to TBB. 
+Currently, Function Flow is still under heavy development. But we have made progresses, like easier programming than TBB and PPL, comparable performance to TBB.
 
 ###Why Function Flow?
-Function Flow is highly motivated by our painful experiences while parallel programming. An example will be better than hundreds of words to explain it. As many other parallel libs are using fibnacci as typical, we'd like to compare it fairly. The following code is from TBB's manual. As one can say, parallel programming with TBB is some "expert" thing, because it needs a lot of professional skills, or conventions. 
+Function Flow is highly motivated by our painful experiences while parallel programming. An example will be better than hundreds of words to explain it. As many other parallel libs are using Fibonacci as typical, we'd like to compare it fairly. The following code is from TBB's manual. As one can say, parallel programming with TBB is some "expert" thing, because it needs a lot of professional skills, or conventions.
 
     long ParallelFib( long n ) {
         long sum;
@@ -23,7 +23,7 @@ Function Flow is highly motivated by our painful experiences while parallel prog
         task::spawn_root_and_wait(a);
         return sum;
     }
-    
+
     class FibTask: public task {
     public:
         const long n;
