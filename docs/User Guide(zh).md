@@ -16,7 +16,7 @@ FF的理念是尽可能静态的表达并行及依赖关系，这样可以使得
 FF是免费且开源的，其实现仅依赖于完整的C++11实现，因此你需要一个支持C++11的编译器来编写FF程序，建议不低于G++4.8.1或Clang3.3,下面是一些FF使用到一些C++11特性，请确定你的编译器是否支持。
 
 1. Lambda
-2. thread, mutext，yield
+2. thread, mutex，yield
 3. 变长模板参数
 4. 右值引用
 5. atomic
@@ -58,7 +58,7 @@ ff::para的原型如下：
 	template<class RT=void>
 	class para;
 其中RT表示需要被并行的函数的返回类型，例如：
-	
+
 	ff::para<int> pf;
 	pf([]()->int{return 5;});
 注意，即使被并行的函数的返回类型即使不为void，也可以在ff::para中使用void做为模板参数，反之则是非法的。详见其后对于then的解释。
@@ -76,7 +76,7 @@ ff::para的原型如下：
 	#include "ff.h"
 	#include <stdio.h>
 	using namespace ff;
-	
+
 	int main(int argc, char *argv[])
 	{
 		para<void> a;
@@ -88,7 +88,7 @@ ff::para的原型如下：
 a(f1).then(f2)表示，f1在另一个线程中执行，同时当前线程阻塞，直至a，即f1执行结束，则当前线程恢复，并执行f2。该版本的语义与上一个版本的hello world是一致的。
 ####关于then
 then函数的参数同样是一个函数对象，需要注意的是该函数对象有一个参数，该参数的类型和ff::para的模板参数类型一致。例如
-	
+
 	ff::para<int> pf;
 	pf([]()->int{return 5;}).then([](int res){   //res的值为5;
 		printf("pf return %d", res);});
@@ -98,7 +98,7 @@ then函数的参数同样是一个函数对象，需要注意的是该函数对�
 本章通过Fibonacci介绍如何在FF中表达依赖关系及递归。
 ##3.1 Fibonacci
 Fibonacci的计算通常使用迭代，而不是递归，本处仅将其递归实现作为一个简单的示例。代码如下，省略main函数及头文件
-	
+
 	int fib(int n)
 	{
 		if(n <=2)
@@ -123,33 +123,33 @@ Fibonacci的计算通常使用迭代，而不是递归，本处仅将其递归�
 其中a，b表示依赖表达式或para对象，s表示paragroup（下文介绍）。在依赖表达式中可以使用（）改变优先级。
 ##3.3 在para对象中使用依赖表达式
 在FF中，可以在使用para对象时指定该para对象开始的条件，即依赖表达式的结束，一个简单的例子如下
-	
+
 	para<void> a;
 	a([](){printf("hello world\n");});
 	para<void> b;
 	b[a]([](){printf("goodbye world\n");});
-	
+
 类似与之前的hello world的例子，本例同样指定了两个任务的先后关系，不同的是，任务b是在另一个线程中执行，而不是当前线程。	 一个更复杂的例子如下，在下例中，我们等待任意任务的结束，并使用其返回值。
 
 	para<int> a, b;
 	a([]()->int{return 5;});
 	b([]()->int{return 6;});
 	para<int> c;
-	c[a && b]([&a, &b](){printf("a+b=%d", a.get() + b.get());});
+	c[a && b]([](int ra, int rb){printf("a+b=%d", ra + rb);});
 ##3.4 使用单独的依赖表达式
 在FF中，单独的依赖表达式可以配合then函数，在主线程中等待依赖表达式的结束，并执行then函数中的内容。需要注意的是，then函数中的函数对象的原型必须满足依赖表达式的限制。考虑形如
 
 	(expr).then(f)
-	
+
 的依赖表达式使用，则expr与f的参数列表有如下关系，其中a，b分别为依赖表达式，其返回类型分别为TA，TB，记为
 
 	a: ->TA; b: ->TB
-	
+
 则对于不同的expr与f有如下关系（*需要补充关于paragroup部分的函数原型问题*）
 
 	expr:  a && b -----> f(TA, TB )
 	expr:  a || b -----> f(int index, std::tuple<TA, TB>)
-	
+
 其中index为0则表示a结束，为1则表示b结束。特别的，若其中TA，或TB的类型为void，则f的类型自动退化，退化为非void类型参数。下面是一些表达式，及对应的f的原型。
 
 例1：
@@ -157,15 +157,15 @@ Fibonacci的计算通常使用迭代，而不是递归，本处仅将其递归�
 	a: ->int; b: -> double;
 	a && b ----> f(int, double)
 	a || b ----> f(int index, std::tuple<int, double>)
-	
+
 例2：
 
 	a: ->void; b: -> double;
 	a && b ----> f(double)
 	a || b ----> f(bool， double) //此处bool指定其后的double值是否有效。
-	
+
 例3：
- 
+
 	a: ->void; b: -> double; c: ->int; d: ->string;
 	(a&&b) || (c&&d) -----> f(int index, std::tuple<double, std::tuple<int, string> >)
 	(a&&b) && (c&&d) -----> f(double, int, string)
@@ -176,7 +176,7 @@ ff_wait的参数为依赖表达式，用于在主线程中等待依赖表达式�
 #4. 并行任务簇
 FF中的引入paragroup以表示一簇并行的para对象。paragroup有两个作用，表达数据并行及作为一簇para对象的容器。
 paragroup对象提供了用于索引任务的方法，如下：
-	
+
 	para<void> &  operator [](int index);
 	size_t 	size() const;
 
@@ -190,14 +190,14 @@ paragroup对象的for_each方法用于表达数据并行，原型如下：
 
 ##4.2任务簇
 用来组织一簇类似的并行任务，paragroup提供了一族方法，用于添加para对象。
-	
+
 	void add(const para< void >&  p);
 	void clear();
 #5. 并发数据结构
 FF提供了一些常用的并发数据结构，这些数据结构对于提高程序性能是十分必要与便捷的。
 ##5.1 ff::accumulator<T>
 accumulator典型的使用场景是对变量进行累计操作，例如求和操作，一个简单的例子如下：
-	
+
 	std::vector<int> s;
 	...
 	ff::accumulator<int> sum(0, [](const int & x, const int& y){return x + y;});
@@ -210,7 +210,7 @@ accumulator典型的使用场景是对变量进行累计操作，例如求和操
 此处对sum的初始化需要指定其初始值及累计操作，注意累计操作的参数必须为const T &类型。累计操作需要调用increase方法，最终的结果需要调用get方法得到。
 ##5.2 ff::single_assign<T>
 single_assign典型的使用场景是求存在，即single_assign只有第一次的赋值是有效的，其后的复制均被忽略。
-	
+
 	ff::paragroup pg2;
 	ff::single_assign<int> first;
 	pg2.for_each(s.begin(), s.end(), [&first](int x){first = x;});
