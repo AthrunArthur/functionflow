@@ -32,13 +32,13 @@ namespace ff {
 namespace internal
 {
 template <class RT>
-class para_impl;
+class para_impl_base;
 
 
 template <class T>
 class para_ret {
 public:
-    para_ret(para_impl<T> & p)
+    para_ret(para_impl_base<T> & p)
         : m_refP(p)
         , m_oValue() {}
 
@@ -53,7 +53,7 @@ public:
     }
 
 protected:
-    para_impl<T> &      m_refP;
+    para_impl_base<T> &      m_refP;
     T m_oValue;
 };//end class para_ret;
 
@@ -61,10 +61,9 @@ template<class RT>
 class para_impl_base : public ff::rt::task_base
 {
 public:
-    template <class F>
-    para_impl_base(F && f)
+    para_impl_base()
         : ff::rt::task_base()
-        , m_oFunc(std::move(f))
+        , m_oRet(*this)
         , m_iES(exe_state::exe_init){}
 
     virtual ~para_impl_base(){}
@@ -80,53 +79,38 @@ public:
             return true;
         return false;
     }
+    RT & get() {
+        return m_oRet.get();
+    }
 protected:
-    std::function<RT ()> m_oFunc;
+    para_ret<RT>	m_oRet;
     std::atomic<exe_state>  m_iES;
 };
+
 template<class RT>
 class para_impl : public para_impl_base<RT>
 {
 public:
     template <class F>
     para_impl(F && f)
-        : para_impl_base<RT>(std::forward<F>(f))
-        , m_oRet(*this){}
+        : para_impl_base<RT>()
+        , m_oFunc(std::move(f)){}
 
     virtual void	run()
     {
         m_iES.store(exe_state::exe_run);
-        m_oRet.set(para_impl_base<RT>::m_oFunc());
+        m_oRet.set(m_oFunc());
         m_iES.store(exe_state::exe_over);
-    }
-    RT & get() {
-        return m_oRet.get();
     }
 protected:
     using para_impl_base<RT>::m_iES;
-    para_ret<RT>	m_oRet;
+    using para_impl_base<RT>::m_oRet;
+    std::function<RT ()> m_oFunc;
 };//end class para_impl
 
-template<>
-class para_impl<void> : public para_impl_base<void>
-{
-public:
-    template< class F>
-    para_impl(F && f)
-        : para_impl_base<void>(std::forward<F>(f)){}
 
-    virtual ~para_impl(){}
-
-    virtual void	run()
-    {
-        m_iES.store(exe_state::exe_run);
-        para_impl_base<void>::m_oFunc();
-        m_iES.store(exe_state::exe_over);
-    }
-protected:
-    using para_impl_base<void>::m_iES;
-};//end class para_impl
-
+template<class RT>
+using para_impl_base_ptr = std::shared_ptr<para_impl_base<RT>>;
 
 template<class RT>
 using para_impl_ptr = std::shared_ptr<para_impl<RT>>;
@@ -153,67 +137,49 @@ internal::para_impl_ptr<ret_type>
     return p;
 }
 
-template<class WT>
-class para_impl_wait : public ff::rt::task_base
+template<class RT, class WT, class FT>
+class para_impl_wait : public para_impl_base<RT>
 {
 public:
-    template<class RT>
-    para_impl_wait(WT &  w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base()
-        , m_iES(exe_state::exe_init)
-        , m_pFunc(std::dynamic_pointer_cast<ff::rt::task_base>(p))
-        //, m_pFunc(p)
+    para_impl_wait(WT &  w, FT && f)
+      : para_impl_base<RT>()
+        , m_pFunc(f)
         , m_oWaitingPT(w) {}
-
-    template<class RT>
-    para_impl_wait(WT && w, const para_impl_ptr<RT> & p)
-        : ff::rt::task_base()
-        , m_pFunc(p)
-        , m_oWaitingPT(w) {}
-
-    virtual ~para_impl_wait()
-    {
-    }
+    virtual ~para_impl_wait(){  }
     virtual void run()
     {
         m_iES=exe_state::exe_run;
         if(m_oWaitingPT.get_state() != exe_state::exe_over)
         {
-          need_to_reschedule() = true;
+          ff::rt::task_base::need_to_reschedule() = true;
           return ;
         }
-        m_pFunc->run();
+        ff::rt::task_base::need_to_reschedule() = false;
+        m_oRet.set(m_oWaitingPT.internal_then(m_pFunc));
         m_iES.store(exe_state::exe_over);
     }
+    RT & get() {
+        return m_oRet.get();
+    }
 
-    exe_state	get_state()
-    {
-        return m_iES.load();
-    }
-    bool	check_if_over()
-    {
-        if(m_iES.load() == exe_state::exe_over)
-            return true;
-        return false;
-    }
 protected:
-    volatile std::atomic<exe_state> m_iES;
-    ff::rt::task_base_ptr 	m_pFunc;
+    typedef typename std::remove_reference<FT>::type FT_t;
+    using para_impl_base<RT>::m_iES;
+    using para_impl_base<RT>::m_oRet;
+    FT_t 	m_pFunc;
     WT  	m_oWaitingPT;
-};//end class para_impl_wait;
-template<class WT>
-using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<WT> >;
+};//end class para_impl_wait_base;
+
+
+template<class RT, class WT, class FT>
+using para_impl_wait_ptr = std::shared_ptr<para_impl_wait<RT, WT, FT> >;
 
 template<class RT>
-void	schedule(para_impl_ptr<RT>  p)
+void	schedule(para_impl_base_ptr<RT>  p)
 {
     ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
 }
-template<class WT>
-void	schedule(para_impl_wait_ptr<WT>  p)
-{
-    ::ff::rt::schedule(std::dynamic_pointer_cast<ff::rt::task_base>(p));
-}
+#include "para/para_impl_void.h"
 }//end namespace internal
 }//end namespace ff
 #endif

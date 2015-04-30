@@ -70,9 +70,96 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_test_case)
 	f4[f3]([](){return inc(4.5);}).then([](double x){
 		BOOST_CHECK(x == inc(4.5));
 	});
+	ff_wait(f4);
 	(f3 && f4).then([](double x){
 		BOOST_CHECK(x == inc(4.5));
 	});
 }
 
+BOOST_AUTO_TEST_CASE(bool_and_expr_paren_test)
+{
+  ff::para<int> f1;
+  ff::para<double> f2;
+  f1([](){return inc(1);});
+  f2([](){return inc(2.2);});
+  ff::para<> f3;
+  f3[f1 || f2]([](int index, std::tuple<int, double> res){
+      if(index == 0)
+        BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
+      else if(index == 1)
+        BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
+      });
+  ff::para<double> f4;
+  f4[f1 || f2]([](int index, std::tuple<int, double> res)->double{
+      if(index == 0)
+        BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
+      else if(index == 1)
+        BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
+      return inc(2.2);
+      });
+  ff_wait(f3 && f4);
+  ff_wait(f1 && f2);
+}
+
+BOOST_AUTO_TEST_CASE(bool_and_expr_paren_first_void_test)
+{
+  ff::para<int> f1;
+  ff::para<void> f2;
+  f1([](){return inc(1);});
+  f2([](){inc(2.2);});
+
+  ff::para<> f3;
+  f3[f1 || f2]([](bool valid_flag, int r){
+      if(valid_flag)
+        BOOST_CHECK(r == inc(1));
+      });
+  ff::para<double> f4;
+  f4[f1 || f2]([](bool valid_flag, int r){
+      if(valid_flag)
+        BOOST_CHECK(r == inc(1));
+      return inc(2.2);
+      });
+  ff::para<> f5;
+  f5[f1 || f2]([](){
+      //we do nothing here, just make sure it compiles and run!
+      });
+
+  ff::para<> f6;
+  f6[f1 || f2]([](){
+      //we do nothing here, just make sure it compiles and run!
+      });
+  ff_wait(f3 && f4);
+  ff_wait(f1 && f2 && f5 && f6);
+}
+
+BOOST_AUTO_TEST_CASE(bool_and_expr_paren_second_void_test)
+{
+  ff::para<int> f2;
+  ff::para<void> f1;
+  f2([](){return inc(1);});
+  f1([](){inc(2.2);});
+
+  ff::para<> f3;
+  f3[f1 || f2]([](bool valid_flag, int r){
+      if(valid_flag)
+        BOOST_CHECK(r == inc(1));
+      });
+  ff::para<double> f4;
+  f4[f1 || f2]([](bool valid_flag, int r){
+      if(valid_flag)
+        BOOST_CHECK(r == inc(1));
+      return inc(2.2);
+      });
+  ff::para<> f5;
+  f5[f1 || f2]([](){
+      //we do nothing here, just make sure it compiles and run!
+      });
+
+  ff::para<> f6;
+  f6[f1 || f2]([](){
+      //we do nothing here, just make sure it compiles and run!
+      });
+  ff_wait(f3 && f4);
+  ff_wait(f1 && f2 && f5 && f6);
+}
 BOOST_AUTO_TEST_SUITE_END()

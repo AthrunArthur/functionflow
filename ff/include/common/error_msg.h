@@ -48,6 +48,12 @@ struct Please_Check_The_Assert_Msg
 
 #define FF_EM_CALL_PAREN_AFTER_PAREN "\033[31m\033[1mYou cannot call operator() after operator()\033[0m"
 
+#define FF_EM_CALL_PAREN_WITH_NO_FUNC "\033[31m\033[1mYou should call operator() with a callable object, like a function pointer, a functor, or a lambda\033[0m"
+
+#define FF_EM_CALL_PAREN_WITH_WRONG_PARAM "\033[31m\033[1mYou pass operator() a function with wrong parameter types\033[0m"
+
+#define FF_EM_CALL_PAREN_WITH_WRONG_RET "\033[31m\033[1mYou pass operator() a function with wrong return type\033[0m"
+
 #define FF_EM_COMBINE_PARA_AND_OTHER "\033[31m\033[1mCannot combine para<...> object and other object as dependency expression\033[0m"
 
 #define FF_EM_USE_PARACONTAINER_INSTEAD_OF_GROUP "\033[31m\033[1mparagroup is only for data parallelism (for_each), use paracontainer to hold multiple para<...> objects!\033[0m"

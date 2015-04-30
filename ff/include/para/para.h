@@ -30,6 +30,8 @@
 #include "para/para_impl.h"
 #include "runtime/rtcmn.h"
 #include "para/para_wait_traits.h"
+#include "para/bin_wait_func_deducer.h"
+#include "para/is_wait_compatible_with_then.h"
 
 
 namespace ff {
@@ -66,7 +68,8 @@ namespace ff {
             {
               if(m_pImpl)
                 throw used_para_exception();
-              m_pImpl = make_para_impl<ret_type>(std::forward<F>(f));
+              auto pp = make_para_impl<ret_type>(std::forward<F>(f));
+              m_pImpl = std::dynamic_pointer_cast<para_impl_base<ret_type> >(pp);
               schedule(m_pImpl);
               return para_accepted_call<DT, ret_type>(*(static_cast<DT *>(this)));
             }
@@ -96,7 +99,7 @@ namespace ff {
             return false;
           }
 
-          internal::para_impl_ptr<ret_type> get_internal_impl() {
+          internal::para_impl_base_ptr<ret_type> get_internal_impl() {
             return m_pImpl;
           }
 
@@ -105,8 +108,9 @@ namespace ff {
             {
               static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
             }
+
         protected:
-          internal::para_impl_ptr<ret_type> m_pImpl;
+          internal::para_impl_base_ptr<ret_type> m_pImpl;
       };//end class para_common
 
   }//end namespace internal
@@ -114,14 +118,53 @@ namespace ff {
   template<typename RT = void>
     class para : public internal::para_common<para<RT>, RT > {
       public:
+        typedef RT ret_type;
         auto get() -> typename std::enable_if< !std::is_void<RT>::value,RT>::type &
         {
           return internal::para_common<para<RT>,RT >::m_pImpl->get();
         }
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<
+        std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+        is_function_with_arg_type<FT, ret_type>::value,
+       void>::type
+    {
+        f(m_pImpl->get());
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<is_function_with_arg_type<FT, RT>::value,
+                typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&>::type
+    {
+        return std::move(f(m_pImpl->get()));
+    }
+      protected:
+    using internal::para_common<para<RT>, RT>::m_pImpl;
     };//end class para;
 
   template<>
     class para<void> : public internal::para_common<para<void>, void > {
+      public:
+        typedef void ret_type;
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                               is_function_with_arg_type<FT, void>::value, void>::type
+    {
+        f();
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<is_function_with_arg_type<FT, void>::value &&
+         !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+            >::type
+    {
+        return f();
+    }
     };//end class para;
 
   template<class T>
