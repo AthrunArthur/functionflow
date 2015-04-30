@@ -21,10 +21,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_PARA_DATA_WRAPPER_H_
-#define FF_PARA_DATA_WRAPPER_H_
+#ifndef FF_UTILITIES_ACCUMULATOR_H_
+#define FF_UTILITIES_ACCUMULATOR_H_
 #include "common/common.h"
-#include "runtime/env.h"
+#include "runtime/rtcmn.h"
 #include <mutex>
 #include <vector>
 
@@ -92,36 +92,5 @@ protected:
     std::vector<T *>	m_pAllValues;
     std::mutex			m_oMutex;
 };//end class accumulator
-
-
-template< class T>
-class single_assign
-{
-    single_assign(const single_assign<T> & ) = delete;
-    single_assign<T> & operator =(const single_assign<T> &) = delete;
-public:
-    single_assign()
-        : m_oValue()
-        , m_bIsAssigned(false) {}
-    single_assign(const T & v)
-        : m_oValue(v)
-        , m_bIsAssigned(true) {}
-
-    single_assign<T> & operator =(const T & v)
-    {
-        if(m_bIsAssigned)
-            return *this;
-        m_bIsAssigned = true;
-        m_oValue = v;
-        return *this;
-    }
-
-    T & get() {
-        return m_oValue;
-    }
-protected:
-    T m_oValue;
-    std::atomic<bool> m_bIsAssigned;
-};//end class single_assign
-}//end namespace ff;
+}//end namespace ff
 #endif

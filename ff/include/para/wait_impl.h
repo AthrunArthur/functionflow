@@ -27,14 +27,7 @@ THE SOFTWARE.
 #include "common/tuple_type.h"
 #include "para/para.h"
 #include "para/bin_wait_func_deducer.h"
-#include "common/log.h"
-#ifdef COUNT_TIME
-#include "utilities/timer.h"
-#endif
-
-#ifdef FUNC_INVOKE_COUNTER
-#include "utilities/func_invoke_counter.h"
-#endif
+#include "paracontainer.h"
 
 namespace ff {
 template<class RT>
@@ -63,14 +56,11 @@ public:
     std::is_void<typename function_res_traits<FT>::ret_type>::value &&
     is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args, void>::type
     {
-      CT(timer::dep_timer);
         if(!check_if_over()){
-          CTE(timer::dep_timer);
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
         });
-        }else{CTE(timer::dep_timer);}
-
+        }
         deduct_t::void_func_and(std::forward<FT>(f), m_1, m_2);
     }
 
@@ -94,9 +84,7 @@ public:
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
     utils::function_args_traits<FT>::is_no_args, void>::type
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -112,9 +100,7 @@ public:
           typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           >::type
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -132,6 +118,45 @@ public:
       static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<
+            std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+        deduct_t::void_func_and(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<
+            !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_and && !utils::function_args_traits<FT>::is_no_args,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+    >::type
+    {
+        return deduct_t::ret_func_and(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                               utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+        f();
+    }
+
+    template <class FT>
+    auto internal_then(FT && f) ->
+            typename std::enable_if<
+                    !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                    utils::function_args_traits<FT>::is_no_args,
+                    typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type >::type
+    {
+        return f();
+    }
+
+
     auto get() -> typename deduct_t::and_type
     {
         return deduct_t::wrap_ret_for_and(m_1, m_2);
@@ -145,7 +170,6 @@ public:
     }
     bool	check_if_over()
     {
-      FIC(wait_and_check_if)
         if(m_iES == exe_state::exe_over)
             return true;
         m_iES = exe_state_and( m_1.get_state(),  m_2.get_state());
@@ -154,8 +178,8 @@ public:
         return false;
     }
 protected:
-    T1_t&  m_1;
-    T2_t&  m_2;
+    T1_t  m_1;
+    T2_t  m_2;
     exe_state	m_iES;
 };//end class wait_and
 
@@ -183,9 +207,7 @@ public:
     is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args
     , void>::type
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -201,9 +223,7 @@ public:
     typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
     >::type
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -216,9 +236,7 @@ public:
     -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
     utils::function_args_traits<FT>::is_no_args, void>::type
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -234,9 +252,7 @@ public:
           typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           >::type
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -254,6 +270,46 @@ public:
       static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_FUNC_TYPE_MISMATCH);
     }
 
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<
+            std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args
+            , void>::type
+    {
+        deduct_t::void_func_or(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<
+            !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            is_compatible_then<FT, RT1_t, RT2_t>::is_cpt_with_or && !utils::function_args_traits<FT>::is_no_args,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+    >::type
+    {
+        return deduct_t::ret_func_or(std::forward<FT>(f), m_1, m_2);
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f)
+    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+                               utils::function_args_traits<FT>::is_no_args, void>::type
+    {
+        f();
+    }
+
+    template<class FT>
+    auto  internal_then(FT && f ) ->
+    typename std::enable_if<
+            !std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+            utils::function_args_traits<FT>::is_no_args,
+            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
+    >::type
+    {
+        return f();
+    }
+
     auto get() -> typename deduct_t::or_type
     {
         return deduct_t::wrap_ret_for_or(m_1, m_2);
@@ -267,7 +323,6 @@ public:
     }
     bool	check_if_over()
     {
-        FIC(wait_or_check_if)
         if(m_iES == exe_state::exe_over)
             return true;
         m_iES = exe_state_or( m_1.get_state(), m_2.get_state() );
@@ -276,8 +331,8 @@ public:
         return false;
     }
 protected:
-    T1_t &  m_1;
-    T2_t &  m_2;
+    T1_t   m_1;
+    T2_t   m_2;
     exe_state	m_iES;
 };//end class wait_or
 
@@ -292,9 +347,7 @@ public:
     template<class FT>
     auto  then(FT && f ) -> void
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();
@@ -321,9 +374,7 @@ public:
     template<class FT>
     auto  then(FT && f ) -> void
     {
-      CT(timer::dep_timer);
       bool b = check_if_over();
-      CTE(timer::dep_timer);
         if(!b)
             ::ff::rt::yield_and_ret_until([this]() {
             return check_if_over();

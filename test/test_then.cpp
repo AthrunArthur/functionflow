@@ -31,7 +31,6 @@ THE SOFTWARE.
 #include <algorithm>
 #include <functional>
 #include "ff.h"
-#include "common/log.h"
 
 using namespace ff;
 
@@ -111,14 +110,14 @@ int main(int argc, char *argv[])
 	(i1 || d1 || s1).then([](int index, std::tuple<std::tuple<int, std::tuple<int, double> >, std::string> res){});
 	(i1 || (d1 || s1)).then([](int index, std::tuple<int, std::tuple<int, std::tuple<double, std::string> > > res){});
 	(v1 || d1 || s1).then([](int index, std::tuple<std::tuple<bool,double> , std::string> res){});
-	
+
 	(v1 && d1 || s1).then([](int index, std::tuple<double, std::string> res){});
 	(i1 && d1 || s1).then([](int index, std::tuple<std::tuple<int, double>, std::string >res){});
-	
+
 	(v1 && d1 && s1).then([](double r1, std::string r2){});
 	(i1 && d1 && s1).then([](std::tuple<int, double> r1, std::string r2){});
 	(i1 && v1 && s1).then([](int r1, std::string r2){});
-	
+
     ((i1 && d1) || (d2 && s2)).then([](int index, std::tuple<std::tuple<int, double>, std::tuple<double, std::string> > res) {});
     ((i1 && d1) && (d2 && s2)).then([](std::tuple<int, double> r1, std::tuple<double, std::string> r2) {});
     ((i1 || d1) && (d2 || s2)).then([](std::tuple<int, std::tuple<int, double> > r1, std::tuple<int, std::tuple<double, std::string> > r2) {});

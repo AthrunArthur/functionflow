@@ -21,52 +21,38 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
  *************************************************/
-#ifndef FF_RUNTIME_SIMO_QUEUE_H_
-#define FF_RUNTIME_SIMO_QUEUE_H_
-
-#include "common/common.h"
 #include "runtime/rtcmn.h"
-namespace ff{
-  namespace rt{
-    //N, 2^N
-    //! This queue is for single-thread's push, and multiple-threads' pop.
-    //! This queue is capability-fixed
-    template<class T, size_t N>
-      class simo_queue{
-        const static int64_t MASK = (1<<N) - 1;
-        public:
-        simo_queue():array(nullptr),cap(0), head(0), tail(0){
-          array=new T[1<<N];
-          cap = 1<<N;
-        }
+#include "runtime/runtime.h"
+#include <functional>
+#include <thread>
+#include <iostream>
 
-        bool push(const T & val)
-        {
-          if(head - tail >= MASK)
-            return false;
-          array[head&MASK] = val;
-          head ++;
-          return true;
-        }
-        bool pop(T & val){
-          auto t = tail;
-          if(t == head) return false;
-          val = array[t&MASK];
-          while(!__sync_bool_compare_and_swap(&tail, t, t+1))
-          {
-            t = tail;
-            if(t == head) return false;
-            val = array[t&MASK];
-          }
-          return true;
-        }
-        size_t size() const {return head - tail;}
-        protected:
-        T * array;
-        int64_t cap;
-        int64_t head;
-        int64_t tail;
-      };//end class simo_queue;
-  }
+namespace ff {
+  namespace rt {
+    thread_local static thrd_id_t s_id;
+    static size_t max_concurrency = std::thread::hardware_concurrency();//added by sherry
+
+    void  set_hardware_concurrency(size_t t){//added by sherry
+      //if(t <= 0 || t > max_concurrency)
+      //{
+      //    t = max_concurrency;
+      //}
+      static size_t concurrency = t;//can be changed only once
+      max_concurrency = concurrency;
+    }
+
+    size_t  get_hardware_concurrency(){//added by sherry
+      return max_concurrency;
+    }
+
+    thrd_id_t get_thrd_id()
+    {
+      return s_id;
+    }
+
+    void set_local_thrd_id(thrd_id_t i)
+    {
+      s_id = i;
+    }
+  }//end namespace rt
 }//end namespace ff
-#endif

@@ -26,9 +26,8 @@
 #define FF_RUNTIME_MISO_QUEUE_H_
 #include "common/common.h"
 #include "runtime/rtcmn.h"
-#include "common/log.h"
-#include "common/scope_guard.h"
-#include "common/spin_lock.h"
+#include "utilities/scope_guard.h"
+#include "utilities/spin_lock.h"
 
 #ifdef FUNCTION_FLOW_DEBUG
 #include "runtime/record.h"

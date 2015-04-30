@@ -26,14 +26,7 @@ THE SOFTWARE.
 #define FF_RUNTIME_GTWSQ_FIXED_H_
 #include "common/common.h"
 #include "runtime/rtcmn.h"
-#include "common/log.h"
-#include "common/scope_guard.h"
-#include "common/spin_lock.h"
-#include "common/thread_local_storage.h"
 
-#ifdef FUNCTION_FLOW_DEBUG
-#include "runtime/record.h"
-#endif
 
 namespace ff{
 namespace rt{

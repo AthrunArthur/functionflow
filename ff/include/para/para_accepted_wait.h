@@ -32,57 +32,65 @@ class para_accepted_wait
 
   para_accepted_wait(const para_accepted_wait<PT, WT> &) = default;
   para_accepted_wait(PT & p, const WT & w)
-    : m_refP(p)	
+    : m_refP(p)
       , m_oWaiting(w){}
 
-    template<class F>
-    auto		operator ()(F && f) -> 
-    typename std::enable_if<utils::function_args_traits<F>::is_no_args, internal::para_accepted_call<PT, ret_type> >::type
+    template<class F> //for f with valid parameter
+    auto		operator ()(F && f) -> typename std::enable_if<
+      is_wait_compatible_with_func<WT_t, F>::value &&
+      !utils::function_args_traits<F>::is_no_args &&
+      std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value,
+      internal::para_accepted_call<PT, ret_type> >::type
     {
-      internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
-      m_refP.m_pImpl = pImpl;
-      //internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
-      internal::para_impl_wait_ptr<WT_t> pTask = std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
-      _DEBUG(LOG_INFO(para)<<"generate a task with wait cond: "<<pTask.get())
+      auto pp = std::make_shared<internal::para_impl_wait<ret_type, WT_t, F> >(m_oWaiting, std::forward<F>(f));
+      internal::para_impl_base_ptr<ret_type> pTask = std::dynamic_pointer_cast<internal::para_impl_base<ret_type> >(pp);
+      m_refP.m_pImpl = pTask;
       internal::schedule(pTask);
       return internal::para_accepted_call<PT, ret_type>(m_refP);
     }
-    template<class F>
-    auto       operator()(F && f) ->
-    typename std::enable_if<!std::is_same<wret_type, void>::value &&
-                  utils::is_function_with_arg_type<F, wret_type>::value,
-    internal::para_accepted_call<PT, ret_type> >::type
-    {
-      internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>([this, &f](){
-          auto t = m_oWaiting.get();//!TODO here could be segment fault!
-          f(t);
-          });
-      m_refP.m_pImpl = pImpl;
-      //internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
-      internal::para_impl_wait_ptr<WT_t> pTask = std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
-      _DEBUG(LOG_INFO(para)<<"generate a task with wait cond: "<<pTask.get())
-      internal::schedule(pTask);
-      return internal::para_accepted_call<PT, ret_type>(m_refP);
-    }
+
+  template <class F>//for f with void parameter
+  auto operator() (F && f) -> typename std::enable_if<
+          utils::function_args_traits<F>::is_no_args &&
+          std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value,
+  internal::para_accepted_call<PT, ret_type> >::type
+  {
+    auto pp = std::make_shared<internal::para_impl_wait<ret_type, WT_t, F> >(m_oWaiting, std::forward<F>(f));
+    internal::para_impl_base_ptr<ret_type> pTask = std::dynamic_pointer_cast<internal::para_impl_base<ret_type> >(pp);
+    m_refP.m_pImpl = pTask;
+    internal::schedule(pTask);
+    return internal::para_accepted_call<PT, ret_type>(m_refP);
+  }
+
+  template<class F> //for f is not a function
+  auto operator() (F && f) -> typename std::enable_if<
+    !utils::is_callable<F>::value,
+  internal::para_accepted_call<PT, ret_type> >::type{
+    static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_PAREN_WITH_NO_FUNC);
+  }
+
+  template<class F> //for f with invalid params
+  auto operator()(F && f) -> typename std::enable_if<
+    utils::is_callable<F>::value &&
+    !utils::function_args_traits<F>::is_no_args &&
+    std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value &&
+    !is_wait_compatible_with_func<WT_t, F>::value,
+  internal::para_accepted_call<PT, ret_type> >::type{
+    static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_PAREN_WITH_WRONG_PARAM);
+  }
+
+  template<class F> //for f with invalid ret
+  auto operator()(F && f) -> typename std::enable_if<
+          utils::is_callable<F>::value &&
+          !std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value,
+          internal::para_accepted_call<PT, ret_type> >::type{
+    static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_PAREN_WITH_WRONG_RET);
+  }
+
   template<class F>
     void        then(F && f) {
       static_assert(Please_Check_The_Assert_Msg<F>::value, FF_EM_CALL_THEN_WITHOUT_CALL_PAREN);
     }
-#ifdef USING_MIMO_QUEUE
-  template<class F>
-    auto		operator ()(F && f, int32_t thrd) -> internal::para_accepted_call<PT, ret_type>
-    {
-      typedef typename std::remove_reference<WT>::type WT_t;
-      internal::para_impl_ptr<ret_type> pImpl = internal::make_para_impl<ret_type>(f);
-      m_refP.m_pImpl = pImpl;
-      //internal::para_impl_wait_ptr<WT_t> pTask = new internal::para_impl_wait<WT_t>(m_oWaiting, m_refP.m_pImpl);
-      internal::para_impl_wait_ptr<WT_t> pTask = std::make_shared<internal::para_impl_wait<WT_t> >(m_oWaiting, m_refP.m_pImpl);
-      _DEBUG(LOG_INFO(para)<<"generate a task with wait cond: "<<pTask.get())
-        internal::schedule(pTask, thrd);
-      return internal::para_accepted_call<PT, ret_type>(m_refP);
-    }
-
-#endif
   protected:
   PT & m_refP;
   WT	m_oWaiting;

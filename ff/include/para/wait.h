@@ -29,7 +29,6 @@ THE SOFTWARE.
 #include "para/paragroup.h"
 #include "para/paracontainer.h"
 #include "para/bin_wait_func_deducer.h"
-#include "common/log.h"
 #include "para/wait_impl.h"
 #include "para/para_wait_traits.h"
 
@@ -56,7 +55,7 @@ is_para_or_wait<typename std::remove_reference<T2>::type>::value,
 template<class T1, class T2>
 auto operator &&(T1 && t1, T2 && t2)
 ->typename std::enable_if< (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) || 
+                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) ||
                            (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
                             !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
                 internal::wait_and<para<void>, para<void>>>::type
@@ -67,7 +66,7 @@ auto operator &&(T1 && t1, T2 && t2)
 template<class T1, class T2>
 auto operator ||(T1 && t1, T2 && t2)
 ->typename std::enable_if< (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) || 
+                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) ||
                            (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
                             !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
                 internal::wait_or<para<void>, para<void>>>::type

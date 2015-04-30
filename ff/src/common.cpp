@@ -21,49 +21,27 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
  *************************************************/
-#ifndef FF_COMMON_ANY_H_
-#define FF_COMMON_ANY_H_
-
 #include "common/common.h"
-
+#include "para/exception.h"
 
 namespace ff{
-  namespace internal{
-    class any_base{};
 
-    template <class T>
-      class any_impl : public any_base{
-        public:
-          any_impl(const T & t)
-            : m_val(t){};
-          T &  get(){return m_val;}
-          const T & get() const {return m_val;}
-
-        protected:
-          T   m_val;
-      };
-  }//end namespace internal
-  class any_value
+  exe_state exe_state_and(exe_state e1, exe_state e2)
   {
-    public:
-      template <class T> any_value(const T & t)
-        : m_pVal(nullptr)
-      {m_pVal = std::shared_ptr<internal::any_base>(new internal::any_impl<T>(t));};
+    if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
+      throw empty_para_exception();
+    if(e1 == e2)
+      return e1;
+    return exe_state::exe_wait;
+  }
 
-      template <class T>
-        T & get(){
-          internal::any_impl<T> * p = static_cast<internal::any_impl<T> *>(m_pVal.get());
-          return p->get();
-        };
-
-      template <class T>
-        const T & get() const {
-          const internal::any_impl<T> * p = static_cast<const internal::any_impl<T> * >(m_pVal.get());
-          return p->get();
-        };
-    protected:
-      std::shared_ptr<internal::any_base>  m_pVal;
-  };
+  exe_state exe_state_or(exe_state e1, exe_state e2)
+  {
+    if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
+      throw empty_para_exception();
+    if(e1 == exe_state::exe_over ||
+        e2 == exe_state::exe_over)
+      return exe_state::exe_over;
+    return exe_state::exe_wait;
+  }
 }//end namespace ff
-
-#endif

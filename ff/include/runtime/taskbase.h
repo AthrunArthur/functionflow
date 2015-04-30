@@ -29,28 +29,13 @@ namespace ff {
 namespace rt {
 class task_base {
 public:
-    enum TKind {
-        user_t,
-        context_t,
-        end_t
-    };
-public:
     virtual ~task_base(){}
-    task_base(TKind tk)
-    : m_iTKind(tk)
-    , m_hold_mutex(invalid_mutex_id){};
+    task_base():m_b_reschedule_flag(false){}
 
     virtual void	run() = 0;
-
-    inline TKind		getTK() {
-        return m_iTKind;
-    }
-    inline mutex_id_t 		getHoldMutex() const {return m_hold_mutex;}
-    inline void			setHoldMutex(mutex_id_t id){m_hold_mutex = id;}
-      
+    bool & need_to_reschedule() {return m_b_reschedule_flag;}
 protected:
-    TKind 	m_iTKind;
-    mutex_id_t	m_hold_mutex;
+    bool m_b_reschedule_flag;
 };//end class task_base;
 typedef std::shared_ptr<task_base>   task_base_ptr;
 

@@ -70,20 +70,13 @@ static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Enti
 
         para<void> p;
         p([t, tmp, f]() {
-            _DEBUG(LOG_INFO(para) <<"for_each generated task start running...")
             Iterator_t lt = t;
             while(lt != tmp)
             {
-                _DEBUG(LOG_INFO(para) <<"for_each generated task run step f("<< ")")
                 f(lt);
                 lt ++;
             }
-            _DEBUG(LOG_INFO(para) <<"for_each generated task run over!")
-        }
-#ifdef USING_MIMO_QUEUE
-                  , thrd_id
-#endif
-        );
+        });
         es->lock.lock();
         es->entities.push_back(p);
         es->lock.unlock();
@@ -93,5 +86,4 @@ static void for_each_impl(Iterator_t begin, Iterator_t end, Functor_t && f, Enti
         f(t);
         t++;
     }
-    _DEBUG(LOG_INFO(para)<<"for_each generates "<<es->entities.size()<<" para<> tasks")
 }

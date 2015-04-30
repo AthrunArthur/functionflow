@@ -25,18 +25,18 @@ THE SOFTWARE.
 #define FF_H_
 
 #include "common/common.h"
-#include "para/data_wrapper.h"
 #include "para/para.h"
 #include "para/paragroup.h"
 #include "para/paracontainer.h"
 #include "para/wait.h"
-#include "common/scope_guard.h"
-#include "utilities/mutex.h"
-#include "runtime/miso_queue.h"
-#include "runtime/simo_queue.h"
-#include "runtime/simo_vec_queue.h"
+#include "utilities/accumulator.h"
+#include "utilities/hazard_pointer.h"
+#include "utilities/miso_queue.h"
+#include "utilities/scope_guard.h"
+#include "utilities/simo_queue.h"
+#include "utilities/single_assign.h"
+#include "utilities/spin_lock.h"
 
-//#include "pipeline/filter.h"
 
 namespace ff{
 

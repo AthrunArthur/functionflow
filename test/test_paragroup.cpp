@@ -26,7 +26,6 @@ THE SOFTWARE.
 
 //#include <boost/test/unit_test.hpp>
 #include "ff.h"
-#include "common/log.h"
 #include <iostream>
 
 

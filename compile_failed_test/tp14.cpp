@@ -21,53 +21,20 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#include "runtime/env.h"
-#include "runtime/rtcmn.h"
-#include "runtime/runtime.h"
-//#include "common/log.h"
-#include <functional>
-#include <thread>
-#include <iostream>
-#include "common/thread_local_storage.h"
 
-namespace ff {
-namespace rt {
-#ifdef CLANG_LLVM
-static ::ff::thread_local_storage<thrd_id_t> s_id;
-#else
-thread_local static thrd_id_t s_id;
-#endif
-static size_t max_concurrency = std::thread::hardware_concurrency();//added by sherry
+#include "ff.h"
+#include <stdio.h>
 
-void  set_hardware_concurrency(size_t t){//added by sherry
-    //if(t <= 0 || t > max_concurrency)
-    //{
-    //    t = max_concurrency;
-    //}
-    static size_t concurrency = t;//can be changed only once
-    max_concurrency = concurrency;
-}
+using namespace ff;
 
-size_t  get_hardware_concurrency(){//added by sherry
-    return max_concurrency;
-}
-
-thrd_id_t get_thrd_id()
+int main(int argc, char *argv[])
 {
-#ifdef CLANG_LLVM 
-    return s_id.get();
-#else
-    return s_id;
-#endif
+    ff::para<int> a;
+    ff::para<double> b;
+    ff::para<> c;
+    c[a&&b]([](int t1, int t2){;});
+    ff::para<int> d;
+    d[a]([]()->double{return 1.0;});
+    ff::para<int> e;
+    return 0;
 }
-
-void set_local_thrd_id(thrd_id_t i)
-{
-#ifdef CLANG_LLVM
-    s_id.set(i);
-#else
-    s_id = i;
-#endif
-}
-}//end namespace rt
-}//end namespace ff

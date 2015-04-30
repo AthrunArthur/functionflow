@@ -21,49 +21,51 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
  *************************************************/
-#ifndef FF_COMMON_ANY_H_
-#define FF_COMMON_ANY_H_
+#ifndef FF_RUNTIME_SIMO_QUEUE_H_
+#define FF_RUNTIME_SIMO_QUEUE_H_
 
 #include "common/common.h"
-
-
 namespace ff{
-  namespace internal{
-    class any_base{};
-
-    template <class T>
-      class any_impl : public any_base{
+  namespace rt{
+    //N, 2^N
+    //! This queue is for single-thread's push, and multiple-threads' pop.
+    //! This queue is capability-fixed
+    template<class T, size_t N>
+      class simo_queue{
+        const static int64_t MASK = (1<<N) - 1;
         public:
-          any_impl(const T & t)
-            : m_val(t){};
-          T &  get(){return m_val;}
-          const T & get() const {return m_val;}
+        simo_queue():array(nullptr),cap(0), head(0), tail(0){
+          array=new T[1<<N];
+          cap = 1<<N;
+        }
 
+        bool push(const T & val)
+        {
+          if(head - tail >= MASK)
+            return false;
+          array[head&MASK] = val;
+          head ++;
+          return true;
+        }
+        bool pop(T & val){
+          auto t = tail;
+          if(t == head) return false;
+          val = array[t&MASK];
+          while(!__sync_bool_compare_and_swap(&tail, t, t+1))
+          {
+            t = tail;
+            if(t == head) return false;
+            val = array[t&MASK];
+          }
+          return true;
+        }
+        size_t size() const {return head - tail;}
         protected:
-          T   m_val;
-      };
-  }//end namespace internal
-  class any_value
-  {
-    public:
-      template <class T> any_value(const T & t)
-        : m_pVal(nullptr)
-      {m_pVal = std::shared_ptr<internal::any_base>(new internal::any_impl<T>(t));};
-
-      template <class T>
-        T & get(){
-          internal::any_impl<T> * p = static_cast<internal::any_impl<T> *>(m_pVal.get());
-          return p->get();
-        };
-
-      template <class T>
-        const T & get() const {
-          const internal::any_impl<T> * p = static_cast<const internal::any_impl<T> * >(m_pVal.get());
-          return p->get();
-        };
-    protected:
-      std::shared_ptr<internal::any_base>  m_pVal;
-  };
+        T * array;
+        int64_t cap;
+        int64_t head;
+        int64_t tail;
+      };//end class simo_queue;
+  }
 }//end namespace ff
-
 #endif
