@@ -72,6 +72,7 @@ class para_accepted_wait
   template<class F> //for f with invalid params
   auto operator()(F && f) -> typename std::enable_if<
     utils::is_callable<F>::value &&
+    !utils::function_args_traits<F>::is_no_args &&
     std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value &&
     !is_wait_compatible_with_func<WT_t, F>::value,
   internal::para_accepted_call<PT, ret_type> >::type{
