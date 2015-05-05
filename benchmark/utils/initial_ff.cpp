@@ -15,7 +15,7 @@ void initial_para_env(int thrd_num)
       return num;
       }).then([](int x) {});
   ff::para<> b;
-  b[a]([&num, &a]() {
-      num + a.get();
+  b[a]([&num](int ra) {
+      num + ra;
       }).then([]() {});
 }
