@@ -1,5 +1,4 @@
 #include "ff.h"
-#include "common/log.h"
 #include "../canny_edge_detector.h"
 using namespace ff;
 #include "utils.h"
