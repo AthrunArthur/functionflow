@@ -1,5 +1,4 @@
 #include "ff.h"
-#include "common/log.h"
 #include "../canny_edge_detector.h"
 using namespace ff;
 #include "utils.h"
@@ -85,7 +84,6 @@ void CannyEdgeDetector::ParaHysteresis(uint8_t lowThreshold, uint8_t highThresho
         }
     }
 //    std::cout<<"all done!"<<std::endl;
-    _DEBUG(LOG_INFO(main)<<"add all para entities");
     ff_wait(all(pg));
 //	std::cout << "all done2!" << std::endl;
 }

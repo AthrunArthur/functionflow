@@ -3,6 +3,7 @@
 #include "../point.h"
 #include "tbb/parallel_for.h"
 #include "tbb/mutex.h"
+#include <memory>
 
 using namespace tbb;
 typedef tbb::mutex TMutex;
