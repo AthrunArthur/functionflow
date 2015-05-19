@@ -28,7 +28,7 @@ namespace ff {
     size_t s_hardware_concurrency = std::thread::hardware_concurrency();
     size_t s_current_concurrency = 0;
 
-    thread_local static thrd_id_t s_id;
+    thread_local static thrd_id_t s_id = -1;
     static size_t max_concurrency = std::thread::hardware_concurrency();
 
     thrd_id_t get_thrd_id()
@@ -38,7 +38,7 @@ namespace ff {
 
     void set_local_thrd_id(thrd_id_t i)
     {
-      s_id = i;
+      if(s_id == -1) s_id = i;
     }
   }//end namespace rt
 }//end namespace ff
