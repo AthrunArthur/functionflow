@@ -41,7 +41,7 @@ public:
     accumulator(const T & value, FT && functor)
         : m_oValue(std::move(value))
         , Functor(std::move(functor)) {
-        for(int i = 0; i < ::ff::rt::rt_concurrency(); ++i)
+        for(int i = 0; i < ::ff::rt::concurrency(); ++i)
         {
             m_pAllValues.push_back(new T(value));
         }
@@ -51,7 +51,7 @@ public:
     accumulator(FT && functor)
         : m_oValue()
         , Functor(std::move(functor)) {
-        for(int i = 0; i < ::ff::rt::rt_concurrency(); ++i)
+        for(int i = 0; i < ::ff::rt::concurrency(); ++i)
         {
             m_pAllValues.push_back(new T());
         }
@@ -64,7 +64,7 @@ public:
 
     void reset(const T & value)
     {
-      for(int i = 0; i < ::ff::rt::rt_concurrency();++i)
+      for(int i = 0; i < ::ff::rt::concurrency();++i)
       {
         *(m_pAllValues[i]) = value;
       }

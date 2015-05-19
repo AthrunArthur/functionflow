@@ -5,7 +5,7 @@
 
 void initial_para_env(int thrd_num)
 {
-  ff::rt::set_hardware_concurrency(thrd_num);//Set concurrency
+  ff::rt::set_concurrency(thrd_num);//Set concurrency
 #ifdef COUNT_TIME
   ff::init_timer();
 #endif
@@ -15,7 +15,7 @@ void initial_para_env(int thrd_num)
       return num;
       }).then([](int x) {});
   ff::para<> b;
-  b[a]([&num, &a]() {
-      num + a.get();
+  b[a]([&num](int ares) {
+      num + ares;
       }).then([]() {});
 }

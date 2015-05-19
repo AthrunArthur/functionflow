@@ -43,6 +43,7 @@ namespace ff{
           T   m_val;
       };
   }//end namespace internal
+
   class any_value
   {
     public:

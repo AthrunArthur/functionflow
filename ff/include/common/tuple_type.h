@@ -23,7 +23,6 @@ THE SOFTWARE.
 *************************************************/
 #ifndef FF_COMMON_TUPLE_TYPE_H_
 #define FF_COMMON_TUPLE_TYPE_H_
-#include "function_traits.h"
 
 namespace ff {
 namespace utils {

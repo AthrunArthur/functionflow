@@ -20,7 +20,7 @@ void kmeans(Points & points, bool)
   typedef ff::rt::simo_queue<int, 8> MQ_t;
   MQ_t buf_queue;
   std::atomic_bool is_stopped(false);
-  auto con_size  = ff::rt::rt_concurrency();
+  auto con_size  = ff::rt::concurrency();
   //update
   for(int step = 0; step < MAXSTEP; step++) {
     ff::paracontainer pg;

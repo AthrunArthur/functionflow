@@ -120,12 +120,12 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_paren_first_void_test)
       return inc(2.2);
       });
   ff::para<> f5;
-  f5[f1 || f2]([](){
+  f5[f1 || f2]([](bool f, int r1){
       //we do nothing here, just make sure it compiles and run!
       });
 
   ff::para<> f6;
-  f6[f1 || f2]([](){
+  f6[f1 || f2]([](bool f, int r1){
       //we do nothing here, just make sure it compiles and run!
       });
   ff_wait(f3 && f4);
@@ -151,12 +151,12 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_paren_second_void_test)
       return inc(2.2);
       });
   ff::para<> f5;
-  f5[f1 || f2]([](){
+  f5[f1 || f2]([](bool vf, int r){
       //we do nothing here, just make sure it compiles and run!
       });
 
   ff::para<> f6;
-  f6[f1 || f2]([](){
+  f6[f1 || f2]([](bool vf, int r){
       //we do nothing here, just make sure it compiles and run!
       });
   ff_wait(f3 && f4);

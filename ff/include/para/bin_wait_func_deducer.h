@@ -58,7 +58,7 @@ namespace ff {
 
         template<class FT, class T1, class T2>
           static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {
             int i = 0;
             if(t1.get_state() == exe_state::exe_over) i = 0;
@@ -93,7 +93,7 @@ namespace ff {
           }
         template<class FT, class T1, class T2>
           static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {return f(t2.get());}
 
         template<class FT, class T1, class T2>
@@ -104,7 +104,7 @@ namespace ff {
           }
         template<class FT, class T1, class T2>
           static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {
             int i = 0;
             if(t2.get_state() == exe_state::exe_over) i = 1;
@@ -138,7 +138,7 @@ namespace ff {
           }
         template<class FT, class T1, class T2>
           static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {return f(t1.get());}
 
         template<class FT, class T1, class T2>
@@ -149,7 +149,7 @@ namespace ff {
           }
         template<class FT, class T1, class T2>
           static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {
             int i = 0;
             if(t1.get_state() == exe_state::exe_over) i = 1;
@@ -182,7 +182,7 @@ namespace ff {
           }
         template<class FT, class T1, class T2>
           static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {return f();}
 
         template<class FT, class T1, class T2>
@@ -191,7 +191,7 @@ namespace ff {
           }
         template<class FT, class T1, class T2>
           static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&
+          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
           {return f();}
 
         template <class T1, class T2>

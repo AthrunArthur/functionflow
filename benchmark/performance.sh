@@ -23,7 +23,7 @@ do
   export THRD_NUM=${CPU_NUM}
   #make -f Makefile.ff kmeans_ff
   #make -f Makefile.tbb kmeans_tbb
-  make -f Makefile.ff 
+  make -f Makefile.ff
   make -f Makefile.tbb
 done
 mv ff_time.json ../performance_ff_time.json

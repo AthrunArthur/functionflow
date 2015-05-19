@@ -62,8 +62,8 @@ namespace ff {
     {
       s_pInstance = new runtime();
       runtime_deletor::s_pInstance = std::make_shared<runtime_deletor>(s_pInstance);
-      auto thrd_num = hardware_concurrency();
-      for(int i = 0; i<rt_concurrency(); ++i)
+      auto thrd_num = concurrency();
+      for(int i = 0; i<thrd_num; ++i)
       {
         s_pInstance->m_oQueues.push_back(std::unique_ptr<work_stealing_queue>(new work_stealing_queue()));
         s_pInstance->m_oWQueues.push_back(std::unique_ptr<simo_queue_t>(new simo_queue_t()));
@@ -71,7 +71,7 @@ namespace ff {
 
       set_local_thrd_id(0);
 
-      for(int i = 1; i< thrd_num + 1; ++i)
+      for(int i = 1; i< thrd_num; ++i)
       {
         s_pInstance->m_pTP->run([i]() {
             auto r = runtime::instance();

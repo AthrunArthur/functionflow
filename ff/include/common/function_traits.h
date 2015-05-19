@@ -26,7 +26,7 @@ THE SOFTWARE.
 #include <functional>
 #include <type_traits>
 #include "common/is_callable.h"
-#include "func_type_checker.h"
+#include "common/func_type_checker.h"
 
 namespace ff {
 namespace utils
@@ -41,18 +41,18 @@ struct deduce_function<Ret (C::*)(Args...) const>
     typedef Ret ret_type;
 };
 
-template<class Ret, class C, class... Args> 
-struct deduce_function<Ret (C::*)(Args...)> 
-{ 
-   typedef std::function<Ret(Args...)> type; 
+template<class Ret, class C, class... Args>
+struct deduce_function<Ret (C::*)(Args...)>
+{
+   typedef std::function<Ret(Args...)> type;
    typedef Ret		ret_type;
 };
 
 
-template<class Ret, class... Args> 
-struct deduce_function<Ret (Args...)> 
-{ 
-   typedef std::function<Ret(Args...)> type; 
+template<class Ret, class... Args>
+struct deduce_function<Ret (Args...)>
+{
+   typedef std::function<Ret(Args...)> type;
    typedef Ret		ret_type;
 };
 
@@ -168,8 +168,8 @@ struct function_args_traits
 {
   typedef typename std::remove_reference<F>::type FT;
   const static bool s_is_class = std::is_class<FT>::value;
-  
-  const static bool is_no_args = 
+
+  const static bool is_no_args =
         functor_args_traits<FT, s_is_class>::is_no_args ||
         function_args_traits_impl<FT, !s_is_class> ::is_no_args;
 };

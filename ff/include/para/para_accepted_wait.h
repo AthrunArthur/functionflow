@@ -35,25 +35,12 @@ class para_accepted_wait
     : m_refP(p)
       , m_oWaiting(w){}
 
-    template<class F> //for f with valid parameter
-    auto		operator ()(F && f) -> typename std::enable_if<
-      is_wait_compatible_with_func<WT_t, F>::value &&
-      !utils::function_args_traits<F>::is_no_args &&
-      std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value,
-      internal::para_accepted_call<PT, ret_type> >::type
-    {
-      auto pp = std::make_shared<internal::para_impl_wait<ret_type, WT_t, F> >(m_oWaiting, std::forward<F>(f));
-      internal::para_impl_base_ptr<ret_type> pTask = std::dynamic_pointer_cast<internal::para_impl_base<ret_type> >(pp);
-      m_refP.m_pImpl = pTask;
-      internal::schedule(pTask);
-      return internal::para_accepted_call<PT, ret_type>(m_refP);
-    }
-
-  template <class F>//for f with void parameter
-  auto operator() (F && f) -> typename std::enable_if<
-          utils::function_args_traits<F>::is_no_args &&
-          std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value,
-  internal::para_accepted_call<PT, ret_type> >::type
+  template<class F> //for f with valid parameter
+  auto		operator ()(F && f) -> typename std::enable_if<
+    is_wait_compatible_with_func<WT_t, F>::value &&
+    //!utils::function_args_traits<F>::is_no_args &&
+    std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value,
+    internal::para_accepted_call<PT, ret_type> >::type
   {
     auto pp = std::make_shared<internal::para_impl_wait<ret_type, WT_t, F> >(m_oWaiting, std::forward<F>(f));
     internal::para_impl_base_ptr<ret_type> pTask = std::dynamic_pointer_cast<internal::para_impl_base<ret_type> >(pp);
@@ -72,7 +59,6 @@ class para_accepted_wait
   template<class F> //for f with invalid params
   auto operator()(F && f) -> typename std::enable_if<
     utils::is_callable<F>::value &&
-    !utils::function_args_traits<F>::is_no_args &&
     std::is_same<ret_type, typename utils::function_res_traits<F>::ret_type>::value &&
     !is_wait_compatible_with_func<WT_t, F>::value,
   internal::para_accepted_call<PT, ret_type> >::type{
