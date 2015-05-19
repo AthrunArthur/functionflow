@@ -65,4 +65,8 @@ struct Please_Check_The_Assert_Msg
 #define FF_EM_CALL_FOR_EACH_WITHOUT_FUNCTION "\033[31m\033[1mThe 3rd parameter's type should be callable, maybe a function, or a functor.\033[0m"
 #define FF_EM_CALL_FOR_EACH_WRONG_FUNCTION "\033[31m\033[1mThe callback function of the 3rd parameter has wrong input type.\033[0m"
 
+//!for utilities
+#define FF_EM_CALL_FOR_EACH_WITH_NO_FUNC "\033[31m\033[1mYou should call for_each with a callable function/functor\033[0m"
+#define FF_EM_CALL_FOR_EACH_WITH_WRONG_PARAM "\033[31m\033[1mThe callback function for for_each should have T (from thread_local_var<T>) as parameter.\033[0m"
+
 #endif

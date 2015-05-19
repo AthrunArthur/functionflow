@@ -89,4 +89,8 @@ add_executable(test_gtwsq test_gtwsq.cpp)
 target_link_libraries(test_gtwsq pthread)
 add_test(test_gtwsq test_gtwsq)
 
+add_executable(test_thread_local_var test_thread_local_var.cpp)
+target_link_libraries(test_thread_local_var ${LIBS_LINK_LIBS})
+add_test(test_thread_local_var test_thread_local_var)
+
 

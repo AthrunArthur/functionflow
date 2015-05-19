@@ -21,36 +21,29 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_H_
-#define FF_H_
+#define BOOST_TEST_MODULE test_ff
 
-#include "common/common.h"
-#include "para/para.h"
-#include "para/paragroup.h"
-#include "para/paracontainer.h"
-#include "para/wait.h"
-#include "utilities/accumulator.h"
-#include "utilities/hazard_pointer.h"
-#include "utilities/miso_queue.h"
-#include "utilities/scope_guard.h"
-#include "utilities/simo_queue.h"
-#include "utilities/single_assign.h"
-#include "utilities/spin_lock.h"
-#include "utilities/thread_local_var.h"
+#include <boost/test/included/unit_test.hpp>
 
+#include "ff.h"
+using namespace ff;
 
-namespace ff{
-
-template<class W>
-void ff_wait(W && wexpr)
-{
-	(wexpr).then([](){});
-}//end wait
-template<class RT>
-void ff_wait(para<RT> & sexpr)
-{
-	ff_wait(sexpr && sexpr);
+BOOST_AUTO_TEST_SUITE(minimal_test)
+BOOST_AUTO_TEST_CASE(thread_local_var_basic){
+  int64_t s = 0;
+  ff::thread_local_var<int64_t> ts;
+  ff::paracontainer pc;
+  for(int i = 0; i < 0xffff; i++)
+  {
+    s+= i;
+    para<> p;
+    p([&ts, i](){ts.current() += i;});
+    pc.add(p);
+  }
+  ff_wait(all(pc));
+  int rs = 0;
+  ts.for_each([&rs](int64_t i){rs += i;});
+  BOOST_CHECK(rs == s);
 }
-}//end namespace ff
 
-#endif
+BOOST_AUTO_TEST_SUITE_END()

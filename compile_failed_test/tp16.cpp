@@ -21,36 +21,17 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#ifndef FF_H_
-#define FF_H_
 
-#include "common/common.h"
-#include "para/para.h"
-#include "para/paragroup.h"
-#include "para/paracontainer.h"
-#include "para/wait.h"
-#include "utilities/accumulator.h"
-#include "utilities/hazard_pointer.h"
-#include "utilities/miso_queue.h"
-#include "utilities/scope_guard.h"
-#include "utilities/simo_queue.h"
-#include "utilities/single_assign.h"
-#include "utilities/spin_lock.h"
-#include "utilities/thread_local_var.h"
+#include "ff.h"
+#include <stdio.h>
 
+using namespace ff;
+int main(int argc, char *argv[]){
+  ff::rt::set_concurrency(8);
 
-namespace ff{
+  thread_local_var<int> a;
 
-template<class W>
-void ff_wait(W && wexpr)
-{
-	(wexpr).then([](){});
-}//end wait
-template<class RT>
-void ff_wait(para<RT> & sexpr)
-{
-	ff_wait(sexpr && sexpr);
+  a.for_each(10);
+  a.for_each([](){;});
+  return 0;
 }
-}//end namespace ff
-
-#endif
