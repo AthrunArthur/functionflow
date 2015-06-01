@@ -25,6 +25,13 @@
 #include "runtime/runtime.h"
 
 namespace ff {
+  extern bool g_initialized_flag;
+  void initialize(size_t concurrency)
+  {
+    rt::set_concurrency(concurrency);
+    rt::runtime::instance();
+  }
+
   namespace rt {
     std::shared_ptr<runtime_deletor> runtime_deletor::s_pInstance(nullptr);
     runtime_ptr runtime::s_pInstance(nullptr);
@@ -79,6 +86,7 @@ namespace ff {
             r->thread_run();
             });
       }
+      g_initialized_flag = true;
     }
 
     void	runtime::schedule(task_base_ptr p)

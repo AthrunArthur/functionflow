@@ -24,17 +24,13 @@
 #include "runtime/rtcmn.h"
 
 namespace ff {
+  bool g_initialized_flag = false;
   namespace rt {
     size_t s_hardware_concurrency = std::thread::hardware_concurrency();
     size_t s_current_concurrency = 0;
 
-    thread_local static thrd_id_t s_id = -1;
-    static size_t max_concurrency = std::thread::hardware_concurrency();
-
-    thrd_id_t get_thrd_id()
-    {
-      return s_id;
-    }
+    thread_local thrd_id_t s_id = -1;
+    size_t max_concurrency = std::thread::hardware_concurrency();
 
     bool set_local_thrd_id(thrd_id_t i)
     {

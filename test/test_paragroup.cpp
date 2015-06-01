@@ -57,6 +57,7 @@ BOOST_AUTO_TEST_CASE(paragroup_empty_test)
 
 BOOST_AUTO_TEST_CASE(paragroup_for_each_test)
 {
+  ff::initialize();
     std::vector<int> s;
     s.push_back(10);
     s.push_back(11);

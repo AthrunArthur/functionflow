@@ -32,6 +32,10 @@
 
 
 namespace ff {
+
+  void initialize(size_t concurrency = 0);
+
+
   namespace rt
   {
 

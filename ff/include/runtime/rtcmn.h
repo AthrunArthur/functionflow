@@ -25,6 +25,8 @@
 #define FF_RUNTIME_RTCMN_H_
 #include "common/common.h"
 namespace ff {
+    extern bool g_initialized_flag;
+    inline bool is_initialized(){ return g_initialized_flag;}
   namespace rt {
 
     extern size_t s_hardware_concurrency;
@@ -34,9 +36,14 @@ namespace ff {
       return s_hardware_concurrency;
     }
 
-    inline bool set_concurrency(size_t c){
+    extern size_t max_concurrency;
+
+    inline bool set_concurrency(size_t c = 0){
       if(s_current_concurrency == 0){
-        if (c == 0) return false;
+        if (c == 0) {
+          s_current_concurrency = max_concurrency;
+          return true;
+        }
         s_current_concurrency = c;
         return true;
       }else{return false;}
@@ -49,7 +56,10 @@ namespace ff {
         return s_hardware_concurrency;
     }
 
-    thrd_id_t get_thrd_id();
+    extern thread_local thrd_id_t s_id;
+    inline thrd_id_t get_thrd_id(){
+    return s_id;
+    }
 
     bool set_local_thrd_id(thrd_id_t i);
 
