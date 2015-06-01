@@ -36,6 +36,7 @@ namespace ff {
 
     inline bool set_concurrency(size_t c){
       if(s_current_concurrency == 0){
+        if (c == 0) return false;
         s_current_concurrency = c;
         return true;
       }else{return false;}
@@ -50,7 +51,7 @@ namespace ff {
 
     thrd_id_t get_thrd_id();
 
-    void set_local_thrd_id(thrd_id_t i);
+    bool set_local_thrd_id(thrd_id_t i);
 
     //Give other tasks opportunities to run!
     void yield();

@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE(paragroup_empty_test)
         sum += x;
     });
     ff::ff_wait(all(pg1));
-    BOOST_CHECK(sum == 0);
+    BOOST_CHECK_MESSAGE(sum == 0, "sum is " <<sum<<", should be "<<0);
 }
 
 BOOST_AUTO_TEST_CASE(paragroup_for_each_test)

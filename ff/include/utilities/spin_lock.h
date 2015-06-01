@@ -32,14 +32,14 @@ namespace ff{
   public:
     spinlock()
     : flag(ATOMIC_FLAG_INIT){}
-    
+
     spinlock(const spinlock & ) = delete;
     spinlock & operator=(const spinlock &) = delete;
-    
+
     inline void lock(){
-      while(flag.test_and_set(std::memory_order_acquire)) ff::rt::yield();
+      while(!flag.test_and_set(std::memory_order_acquire)) std::this_thread::yield();
     }
-    
+
     inline bool try_lock(){
       return !flag.test_and_set(std::memory_order_acquire);
     }

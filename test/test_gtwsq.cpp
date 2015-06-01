@@ -24,13 +24,15 @@ THE SOFTWARE.
 #define BOOST_TEST_MODULE test_ff
 #include <boost/test/included/unit_test.hpp>
 
-#include "runtime/gtwsq_fixed.h"
+//#include "runtime/gtwsq_fixed.h"
+#include "runtime/work_stealing_queue.h"
 #include <cstdlib>
 #include <thread>
 
 using namespace ff;
 using namespace ff::rt;
-typedef gcc_work_stealing_queue<int64_t, 8> MQ_t;
+//typedef gcc_work_stealing_queue<int64_t, 8> MQ_t;
+typedef work_stealing_queue<int64_t, 8> MQ_t;
 const static int NUM = (1<<8) - 1;
 
 BOOST_AUTO_TEST_SUITE(ff_any_value)

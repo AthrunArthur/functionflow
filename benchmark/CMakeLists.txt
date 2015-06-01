@@ -35,7 +35,7 @@ else(Debug)
   set(TBB_LIBS ${TBB_LIBS} tbb)
 endif(Debug)
 
-include_directories(${PROJECT_SOURCE_DIR}/../ff/include)		
+include_directories(${PROJECT_SOURCE_DIR}/../ff/include)
 include_directories(${PROJECT_SOURCE_DIR}/utils)
 set(LIBS_LINK_DIRS ${PROJECT_SOURCE_DIR}/../bin)
 link_directories(${LIBS_LINK_DIRS})

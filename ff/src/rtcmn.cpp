@@ -36,9 +36,13 @@ namespace ff {
       return s_id;
     }
 
-    void set_local_thrd_id(thrd_id_t i)
+    bool set_local_thrd_id(thrd_id_t i)
     {
-      if(s_id == -1) s_id = i;
+      if(s_id == -1){
+        s_id = i;
+        return true;
+      }
+      return false;
     }
   }//end namespace rt
 }//end namespace ff

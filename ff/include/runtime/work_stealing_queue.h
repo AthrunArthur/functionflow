@@ -33,12 +33,12 @@ namespace rt{
 
 //N, 2^N.
 template <class T, size_t N>
-class gcc_work_stealing_queue
+class work_stealing_queue
 {
     const static int64_t INITIAL_SIZE=1<<N;
-    const static int64_t mask = (1<<N) - 1;
+    const static int64_t MASK = (1<<N) - 1;
 public:
-    gcc_work_stealing_queue()
+    work_stealing_queue()
       : head(0)
       , tail(0)
       , array(new T[1<<N])
@@ -50,9 +50,8 @@ public:
         }
       }
 
-    ~gcc_work_stealing_queue()
+    ~work_stealing_queue()
     {
-      //std::cout<<p1<<", "<<p2<<", "<<p3<<", "<<p4<<std::endl;
       if(array != nullptr)
       {
         delete[] array;
@@ -63,55 +62,56 @@ public:
     bool push_back(const T & val)
     {
       auto h = head;
-      if(h - tail == mask) return false;
-      array[h & mask] = val;
+      if(h - tail.load(std::memory_order_relaxed) == MASK) return false;
+      array[h & MASK] = val;
       head = h + 1;
       return true;
     }
-
     bool pop(T & val)
     {
-      if(head <= tail) {head = tail; return false;}
+      auto h = head;
+      if(h <= tail.load(std::memory_order_relaxed)) {head = tail.load(std::memory_order_relaxed); return false;}
 
-      head --;
-      //if(head -tail < 100)
-        __sync_synchronize(); //This two lines are the magic
-      auto t = tail;
-      if(head<t)
+      head = h -1;
+      h = head;
+      std::atomic_thread_fence(std::memory_order_seq_cst);
+      //;__sync_synchronize(); //This two lines are the magic
+      auto t = tail.load(std::memory_order_relaxed);
+
+      if(h<t)
       {
-        head= tail;
+        head = tail.load(std::memory_order_relaxed);
         return false;
       }
-      val = array[head&mask];
-      if(head > t) return true;
+      val = array[h&MASK];
+      if(h > t) return true;
       bool res = true;
-      if(!__sync_bool_compare_and_swap(&tail, head, head+1)) res = false;
-      head = tail;
+      if(!std::atomic_compare_exchange_strong_explicit(&tail, &h, h+1, std::memory_order_relaxed, std::memory_order_relaxed)) res = false;
+      head = tail.load(std::memory_order_relaxed);
       return res;
     }
 
     bool steal(T & val)
     {
-      int64_t t = tail;
+      int64_t t = tail.load(std::memory_order_relaxed);
       int s = head - t;
       if ( s <= 0){
         return false;
       }
-      val = array[t&mask];
-      if(!__sync_bool_compare_and_swap(&tail, t, t+1)) return false;
+      val = array[t&MASK];
+      if(!std::atomic_compare_exchange_strong_explicit(&tail, &t, t+1, std::memory_order_relaxed, std::memory_order_relaxed)) return false;
       return true;
     }
 
-
-    int64_t size()
+    inline int64_t size()
     {
-      return (head- tail);
+      return (head - tail.load(std::memory_order_relaxed));
     }
-    int64_t  get_head() const {return head;}
-    int64_t  get_tail() const {return tail;}
+    inline int64_t  get_head() const {return head;}
+    inline int64_t  get_tail() const {return tail.load(std::memory_order_relaxed);}
 protected:
     int64_t head;
-    int64_t tail;
+    std::atomic<int64_t> tail;
     T *       array;
 };//end class classical_work_stealing_queue
 

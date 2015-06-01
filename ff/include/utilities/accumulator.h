@@ -73,6 +73,7 @@ public:
     template<class TT>
     accumulator<T>& increase(const TT & value) {
         thread_local static thrd_id_t id = ff::rt::get_thrd_id();
+        std::cout<<"thrd id: "<<id<<std::endl;
         T * plocal = m_pAllValues[id];
         *plocal = std::move(Functor(*plocal, value));
         return *this;
