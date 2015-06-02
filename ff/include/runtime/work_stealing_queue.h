@@ -33,12 +33,12 @@ namespace rt{
 
 //N, 2^N.
 template <class T, size_t N>
-class work_stealing_queue
+class cpp_work_stealing_queue
 {
     const static int64_t INITIAL_SIZE=1<<N;
     const static int64_t MASK = (1<<N) - 1;
 public:
-    work_stealing_queue()
+    cpp_work_stealing_queue()
       : head(0)
       , tail(0)
       , array(new T[1<<N])
@@ -50,7 +50,7 @@ public:
         }
       }
 
-    ~work_stealing_queue()
+    ~cpp_work_stealing_queue()
     {
       if(array != nullptr)
       {

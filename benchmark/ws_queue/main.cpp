@@ -5,7 +5,7 @@
 
 #ifdef USE_CPP11_ATOMIC
 #include "runtime/work_stealing_queue.h"
-typedef ff::rt::work_stealing_queue<int64_t, 8> WSQ_t;
+typedef ff::rt::cpp_work_stealing_queue<int64_t, 8> WSQ_t;
 #endif
 
 #ifdef USE_GCC_ATOMIC

@@ -34,8 +34,13 @@ THE SOFTWARE.
 #include "runtime/spin_steal_queue.h"
 #endif
 
-#ifdef USING_WORK_STEALING_QUEUE
+#ifdef USING_GCC_WORK_STEALING_QUEUE
 #include "runtime/gtwsq_fixed.h"
+#endif
+
+
+#ifdef USING_WORK_STEALING_QUEUE
+#include "runtime/work_stealing_queue.h"
 #endif
 
 namespace ff {
@@ -49,8 +54,13 @@ typedef mutex_stealing_queue<task_base_ptr> work_stealing_queue;
 typedef spin_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
-#ifdef USING_WORK_STEALING_QUEUE
+#ifdef USING_GCC_WORK_STEALING_QUEUE
 typedef gcc_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
+#endif
+
+
+#ifdef USING_WORK_STEALING_QUEUE
+typedef cpp_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
 typedef work_stealing_queue * work_stealing_queue_ptr;

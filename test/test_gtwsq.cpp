@@ -32,7 +32,7 @@ THE SOFTWARE.
 using namespace ff;
 using namespace ff::rt;
 //typedef gcc_work_stealing_queue<int64_t, 8> MQ_t;
-typedef work_stealing_queue<int64_t, 8> MQ_t;
+typedef cpp_work_stealing_queue<int64_t, 8> MQ_t;
 const static int NUM = (1<<8) - 1;
 
 BOOST_AUTO_TEST_SUITE(ff_any_value)
