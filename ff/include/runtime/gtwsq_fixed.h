@@ -24,8 +24,7 @@ THE SOFTWARE.
 
 #ifndef FF_RUNTIME_GTWSQ_FIXED_H_
 #define FF_RUNTIME_GTWSQ_FIXED_H_
-#include "common/common.h"
-#include "runtime/rtcmn.h"
+#include <cassert>
 
 
 namespace ff{
