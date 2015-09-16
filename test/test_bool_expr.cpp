@@ -21,12 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-
-#include <boost/test/included/unit_test.hpp>
-//#include <boost/test/unit_test.hpp>
-//#include <boost/test/unit_test.hpp>
-
+#include <gtest/gtest.h>
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -36,88 +31,86 @@ using namespace ff;
 #define FF_TEST_TIME 100
 
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
 
-
-int inc(int t)
+int inc_b(int t)
 {
 	return t + 1;
 }
-double inc(double t)
+double inc_b(double t)
 {
 	return t + 1;
 }
 
-BOOST_AUTO_TEST_CASE(bool_or_expr_test_case)
+TEST(TestBoolExpr,BoolOrExpr)
 {
 	ff::para<int> f1;
 	ff::para<double> f2;
-	f1([](){return inc(1);});
-	f2([](){return inc(2.2);});
+	f1([](){return inc_b(1);});
+	f2([](){return inc_b(2.2);});
 	(f1 || f2).then([](int index, std::tuple<int, double> res){
 		if(index == 0)
-			BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
+			EXPECT_TRUE(std::get<0>(res) == inc_b(1))<< "res:"<<std::get<0>(res)<<", should be "<<inc_b(1);
 		else if(index == 1)
-			BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
+			EXPECT_TRUE(std::get<1>(res) == inc_b(2.2))<< "res:"<<std::get<1>(res)<<", should be "<<inc_b(2.2);
 	});
 }
 
-BOOST_AUTO_TEST_CASE(bool_and_expr_test_case)
+TEST(TestBoolExpr,BoolAndExpr)
 {
 	ff::para<> f3;
-	f3([](){inc(3);});
+	f3([](){inc_b(3);});
 	ff::para<double> f4;
-	f4[f3]([](){return inc(4.5);}).then([](double x){
-		BOOST_CHECK(x == inc(4.5));
+	f4[f3]([](){return inc_b(4.5);}).then([](double x){
+		EXPECT_TRUE(x == inc_b(4.5));
 	});
 	ff_wait(f4);
 	(f3 && f4).then([](double x){
-		BOOST_CHECK(x == inc(4.5));
+		EXPECT_TRUE(x == inc_b(4.5));
 	});
 }
 
-BOOST_AUTO_TEST_CASE(bool_and_expr_paren_test)
+TEST(TestBoolExpr, BoolAndExprParen)
 {
   ff::para<int> f1;
   ff::para<double> f2;
-  f1([](){return inc(1);});
-  f2([](){return inc(2.2);});
+  f1([](){return inc_b(1);});
+  f2([](){return inc_b(2.2);});
   ff::para<> f3;
   f3[f1 || f2]([](int index, std::tuple<int, double> res){
       if(index == 0)
-        BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
+        EXPECT_TRUE(std::get<0>(res) == inc_b(1))<< "res:"<<std::get<0>(res)<<", should be "<<inc_b(1);
       else if(index == 1)
-        BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
+        EXPECT_TRUE(std::get<1>(res) == inc_b(2.2))<< "res:"<<std::get<1>(res)<<", should be "<<inc_b(2.2);
       });
   ff::para<double> f4;
   f4[f1 || f2]([](int index, std::tuple<int, double> res)->double{
       if(index == 0)
-        BOOST_CHECK_MESSAGE(std::get<0>(res) == inc(1), "res:"<<std::get<0>(res)<<", should be "<<inc(1));
+        EXPECT_TRUE(std::get<0>(res) == inc_b(1))<< "res:"<<std::get<0>(res)<<", should be "<<inc_b(1);
       else if(index == 1)
-        BOOST_CHECK_MESSAGE(std::get<1>(res) == inc(2.2), "res:"<<std::get<1>(res)<<", should be "<<inc(2.2));
-      return inc(2.2);
+        EXPECT_TRUE(std::get<1>(res) == inc_b(2.2))<< "res:"<<std::get<1>(res)<<", should be "<<inc_b(2.2);
+      return inc_b(2.2);
       });
   ff_wait(f3 && f4);
   ff_wait(f1 && f2);
 }
 
-BOOST_AUTO_TEST_CASE(bool_and_expr_paren_first_void_test)
+TEST(TestBoolExpr, BoolAndExprParenFirstVoid)
 {
   ff::para<int> f1;
   ff::para<void> f2;
-  f1([](){return inc(1);});
-  f2([](){inc(2.2);});
+  f1([](){return inc_b(1);});
+  f2([](){inc_b(2.2);});
 
   ff::para<> f3;
   f3[f1 || f2]([](bool valid_flag, int r){
       if(valid_flag)
-        BOOST_CHECK(r == inc(1));
+        EXPECT_TRUE(r == inc_b(1));
       });
   ff::para<double> f4;
   f4[f1 || f2]([](bool valid_flag, int r){
       if(valid_flag)
-        BOOST_CHECK(r == inc(1));
-      return inc(2.2);
+        EXPECT_TRUE(r == inc_b(1));
+      return inc_b(2.2);
       });
   ff::para<> f5;
   f5[f1 || f2]([](bool f, int r1){
@@ -132,23 +125,23 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_paren_first_void_test)
   ff_wait(f1 && f2 && f5 && f6);
 }
 
-BOOST_AUTO_TEST_CASE(bool_and_expr_paren_second_void_test)
+TEST(TestBoolExpr, BoolAndExprParenSecondVoid)
 {
   ff::para<int> f2;
   ff::para<void> f1;
-  f2([](){return inc(1);});
-  f1([](){inc(2.2);});
+  f2([](){return inc_b(1);});
+  f1([](){inc_b(2.2);});
 
   ff::para<> f3;
   f3[f1 || f2]([](bool valid_flag, int r){
       if(valid_flag)
-        BOOST_CHECK(r == inc(1));
+        EXPECT_TRUE(r == inc_b(1));
       });
   ff::para<double> f4;
   f4[f1 || f2]([](bool valid_flag, int r){
       if(valid_flag)
-        BOOST_CHECK(r == inc(1));
-      return inc(2.2);
+        EXPECT_TRUE(r == inc_b(1));
+      return inc_b(2.2);
       });
   ff::para<> f5;
   f5[f1 || f2]([](bool vf, int r){
@@ -162,4 +155,3 @@ BOOST_AUTO_TEST_CASE(bool_and_expr_paren_second_void_test)
   ff_wait(f3 && f4);
   ff_wait(f1 && f2 && f5 && f6);
 }
-BOOST_AUTO_TEST_SUITE_END()

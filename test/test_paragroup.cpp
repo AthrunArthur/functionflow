@@ -21,29 +21,24 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-#include <boost/test/included/unit_test.hpp>
-
-//#include <boost/test/unit_test.hpp>
+#include <gtest/gtest.h>
 #include "ff.h"
 #include <iostream>
 
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
-
-BOOST_AUTO_TEST_CASE(paragroup_test_all_null)
+TEST(Paragroup, AllNull)
 {
     ff::paragroup pg1;
     ff::ff_wait(all(pg1));
 }
 
-BOOST_AUTO_TEST_CASE(paragroup_test_any_null)
+TEST(Paragroup, AnyNull)
 {
     ff::paragroup pg1;
     ff::ff_wait(any(pg1));
 }
 
-BOOST_AUTO_TEST_CASE(paragroup_empty_test)
+TEST(Paragroup, Empty)
 {
     std::vector<int> s;
     int sum = 0;
@@ -52,10 +47,10 @@ BOOST_AUTO_TEST_CASE(paragroup_empty_test)
         sum += x;
     });
     ff::ff_wait(all(pg1));
-    BOOST_CHECK_MESSAGE(sum == 0, "sum is " <<sum<<", should be "<<0);
+    EXPECT_TRUE(sum == 0)<< "sum is " <<sum<<", should be "<<0;
 }
 
-BOOST_AUTO_TEST_CASE(paragroup_for_each_test)
+TEST(Paragroup, Foreach)
 {
   ff::initialize();
     std::vector<int> s;
@@ -74,10 +69,10 @@ BOOST_AUTO_TEST_CASE(paragroup_for_each_test)
     });
     ff::ff_wait(all(pg1));
 
-    BOOST_CHECK(ssum == sum.get());
+    EXPECT_TRUE(ssum == sum.get());
 }
 
-BOOST_AUTO_TEST_CASE(paragroup_for_each_large_test)
+TEST(Paragroup, ForeachLarge)
 {
     std::vector<int> s;
     for(int i = 0; i < 10000; i ++)
@@ -93,10 +88,10 @@ BOOST_AUTO_TEST_CASE(paragroup_for_each_large_test)
     });
     ff::ff_wait(all(pg1));
 
-    BOOST_CHECK_MESSAGE(ssum == sum.get(), "sum is " <<sum.get()<<", should be "<<ssum);
+    EXPECT_TRUE(ssum == sum.get()) <<"sum is " <<sum.get()<<", should be "<<ssum;
 }
 
-BOOST_AUTO_TEST_CASE(paragroup_for_each_search_test)
+TEST(Paragroup, ForeachSearch)
 {
     std::vector<int> s;
     for(int i = 0; i < 10000; i ++)
@@ -108,10 +103,10 @@ BOOST_AUTO_TEST_CASE(paragroup_for_each_search_test)
     pg1.for_each(s.begin(), s.end(), [&pos, to_search](int x){
                 pos = to_search;});
     ff::ff_wait(all(pg1));
-    BOOST_CHECK(pos.get() == to_search);
+    EXPECT_TRUE(pos.get() == to_search);
 }
 
-BOOST_AUTO_TEST_CASE(paragroup_for_each_any_test)
+TEST(Paragroup, ForeachAny)
 {
     std::vector<int> s;
     for(int i = 0; i < 10000; i ++)
@@ -127,9 +122,6 @@ BOOST_AUTO_TEST_CASE(paragroup_for_each_any_test)
     });
     ff::ff_wait(any(pg1));
 
-    BOOST_CHECK(psum.get() >= 0);
-    BOOST_CHECK(psum.get() <= ssum);
+    EXPECT_TRUE(psum.get() >= 0);
+    EXPECT_TRUE(psum.get() <= ssum);
 }
-
-
-BOOST_AUTO_TEST_SUITE_END()

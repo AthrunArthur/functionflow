@@ -21,14 +21,12 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
 #include "ff.h"
 
 #include "common/any.h"
-#include <boost/test/included/unit_test.hpp>
+#include <gtest/gtest.h>
 
-BOOST_AUTO_TEST_SUITE(ff_any_value)
-BOOST_AUTO_TEST_CASE(any_value)
+TEST(any_value, simple)
 {
     int v1 = 10;
     double v2 = 20.56;
@@ -36,8 +34,7 @@ BOOST_AUTO_TEST_CASE(any_value)
     vs.push_back(ff::any_value(v1));
     vs.push_back(ff::any_value(v2));
 
-    BOOST_CHECK(vs[0].get<int>() == v1);
-    BOOST_CHECK(vs[1].get<double>() == v2);
+    EXPECT_TRUE(vs[0].get<int>() == v1);
+    EXPECT_TRUE(vs[1].get<double>() == v2);
 }
-BOOST_AUTO_TEST_SUITE_END()
 

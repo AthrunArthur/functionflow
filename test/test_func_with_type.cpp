@@ -21,9 +21,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-#include <boost/test/included/unit_test.hpp>
 #include "ff.h"
+#include <gtest/gtest.h>
 
 void func1(){}
 
@@ -43,56 +42,55 @@ struct MF3{
   void ff(){}
 };
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
 
-BOOST_AUTO_TEST_CASE(normal_func_test_case)
+TEST(FuncWithType,NormalFunc)
 {
   bool b;
   b = ff::utils::is_function_with_arg_type<decltype(func1), void>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
   b = ff::utils::is_function_with_arg_type<decltype(func2), int>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
 }
 
-BOOST_AUTO_TEST_CASE(cpp11_func_test_case)
+TEST(FuncWithType, CPP11Func)
 {
   bool b;
   b = ff::utils::is_function_with_arg_type<decltype(l1), void>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
   b = ff::utils::is_function_with_arg_type<decltype(l2), int>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
 }
-BOOST_AUTO_TEST_CASE(functor_test_case)
+TEST(FuncWithType, Functor)
 {
   bool b;
   b = ff::utils::is_function_with_arg_type<MF1, void>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
   b = ff::utils::is_function_with_arg_type<MF2, int>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
   b = ff::utils::is_function_with_arg_type<MF3, void>::value;
-  BOOST_CHECK(b == false);
+  EXPECT_TRUE(b == false);
 }
 
 template <class T, class F>
 void checker(F && f, bool req)
 {
   bool b = ff::utils::is_function_with_arg_type<F, T>::value;
-  BOOST_CHECK(b == req);
+  EXPECT_TRUE(b == req);
 }
 
-BOOST_AUTO_TEST_CASE(param_pass1_test_case)
+TEST(FuncWithType, ParamPass1)
 {
   checker<void>(func1, true);
   checker<int>(func2, true);
 }
 
-BOOST_AUTO_TEST_CASE(param_pass2_test_case)
+TEST(FuncWithType, ParamPass2)
 {
   checker<void>([](){}, true);
   checker<void>(l1, true);
   checker<int>(l2, true);
 }
-BOOST_AUTO_TEST_CASE(param_pass3_test_case)
+TEST(FuncWithType, ParamPass3)
 {
   MF1 a;
   checker<void>(a, true);
@@ -100,4 +98,3 @@ BOOST_AUTO_TEST_CASE(param_pass3_test_case)
   checker<int>(b, true);
 }
 
-BOOST_AUTO_TEST_SUITE_END()

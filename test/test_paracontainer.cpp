@@ -21,39 +21,46 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-#include <boost/test/included/unit_test.hpp>
 
-//#include <boost/test/unit_test.hpp>
 #include "ff.h"
-#include <iostream>
+#include <gtest/gtest.h>
 
 using namespace ff;
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
-BOOST_AUTO_TEST_CASE(paracontainer_test_all_null)
+TEST(ParaContainer, AllNull)
 {
   ff::paracontainer pc;
   ff::ff_wait(all(pc));
 }
 
-BOOST_AUTO_TEST_CASE(paracontainer_test_any_null)
+TEST(ParaContainer, AnyNull)
 {
   ff::paracontainer pc;
   ff::ff_wait(any(pc));
 }
-BOOST_AUTO_TEST_CASE(paracontainer_test_empty)
+TEST(ParaContainer, Empty)
 {
   ff::paracontainer pc;
   ff::paracontainer pc2;
   ff::para<> a;
+  int cached_exceptions = 0;
   pc.add(a);
   pc2.add(a);
-  BOOST_REQUIRE_THROW(ff::ff_wait(all(pc)), empty_para_exception);
-  BOOST_REQUIRE_THROW(ff::ff_wait(any(pc2)), empty_para_exception);
+  try{
+    ff::ff_wait(all(pc));
+  }
+  catch(empty_para_exception & e){
+    cached_exceptions ++;
+  }
+  try{
+    ff::ff_wait(all(pc2));
+  }
+  catch(empty_para_exception & e){
+    cached_exceptions ++;
+  }
 }
 
-BOOST_AUTO_TEST_CASE(paracontainer_test_sum)
+TEST(ParaContainer, TestSum)
 {
   ff::paracontainer pc;
 
@@ -68,6 +75,5 @@ BOOST_AUTO_TEST_CASE(paracontainer_test_sum)
     pc.add(a);
   }
   ff::ff_wait(all(pc));
-  BOOST_CHECK(para_sum.load() == require_sum);
+  EXPECT_TRUE(para_sum.load() == require_sum);
 }
-BOOST_AUTO_TEST_SUITE_END()

@@ -21,22 +21,18 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-
-#include <boost/test/included/unit_test.hpp>
-//#include <boost/test/unit_test.hpp>
 
 #include <iostream>
 #include <vector>
 #include <algorithm>
 #include <functional>
 #include "ff.h"
+#include <gtest/gtest.h>
 
 using namespace ff;
 #define FF_TEST_TIME 100
 
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
 
 
 int inc(int t)
@@ -49,7 +45,7 @@ double inc(double t)
 }
 
 
-BOOST_AUTO_TEST_CASE(para_test_simple)
+TEST(Interface, Simple)
 {
     para<> a;
     para<int> b;
@@ -57,9 +53,9 @@ BOOST_AUTO_TEST_CASE(para_test_simple)
     b([](){return 10;});
     ff_wait(a);
     ff_wait(b);
-    BOOST_CHECK(b.get() == 10);
-    BOOST_CHECK(a.check_if_over());
-    BOOST_CHECK(b.check_if_over());
+    EXPECT_TRUE(b.get() == 10);
+    EXPECT_TRUE(a.check_if_over());
+    EXPECT_TRUE(b.check_if_over());
 }
 
 int intinc(int t)
@@ -84,107 +80,124 @@ protected:
   int & m_i;
 };//end class IncOne
 
-BOOST_AUTO_TEST_CASE(para_test_simple_function)
+TEST(Interface, FunctionSimple)
 {
   para<int> b;
   b(incone);
   ff_wait(b);
-  BOOST_CHECK(b.get() == 10);
-  BOOST_CHECK(b.check_if_over());
+  EXPECT_TRUE(b.get() == 10);
+  EXPECT_TRUE(b.check_if_over());
 }
 
-BOOST_AUTO_TEST_CASE(para_test_simple_stdbind)
+TEST(Interface, FunctionBind)
 {
   para<int> b;
   int a = 9;
   b(std::bind(intinc, a));
   ff_wait(b);
-  BOOST_CHECK(b.get() == 10);
-  BOOST_CHECK(b.check_if_over());
+  EXPECT_TRUE(b.get() == 10);
+  EXPECT_TRUE(b.check_if_over());
 }
 
-BOOST_AUTO_TEST_CASE(para_test_simple_functor)
+TEST(Interface, Functor)
 {
   para<int> b;
   int t = 9;
   IncOne v(t);
   b(v);
   ff_wait(b);
-  BOOST_CHECK(b.get() == 10);
-  BOOST_CHECK(b.check_if_over());
+  EXPECT_TRUE(b.get() == 10);
+  EXPECT_TRUE(b.check_if_over());
 }
-BOOST_AUTO_TEST_CASE(para_test_then)
+TEST(Interface, Then)
 {
     int num = 10;
     para<int> a;
-    a([&num](){return inc(num);}).then([num](int n){BOOST_CHECK(n == inc(num));});
-    BOOST_CHECK(a.check_if_over());
+    a([&num](){return inc(num);}).then([num](int n){EXPECT_TRUE(n == inc(num));});
+    EXPECT_TRUE(a.check_if_over());
 }
 
-BOOST_AUTO_TEST_CASE(para_test_thensimple_function)
+TEST(Interface, ThenSimple)
 {
     int num = 10;
     para<int> a;
     int t = a([&num](){return inc(num);}).then(intinc);
-    BOOST_CHECK(t == intinc(inc(num)));
+    EXPECT_TRUE(t == intinc(inc(num)));
 }
 struct IntFunctor
 {
   int operator()(int n){return n + 1;}
 };//end class IntFunctor
-BOOST_AUTO_TEST_CASE(para_test_then_functor)
+TEST(Interface, ThenFunctor)
 {
   int num = 10;
   para<int> a;
   IntFunctor ftr;
   int t = a([&num](){return inc(num);}).then(ftr);
-  BOOST_CHECK(t == inc(num) + 1);
+  EXPECT_TRUE(t == inc(num) + 1);
 }
 
 int add(int a, int b)
 {
   return a + b;
 }
-BOOST_AUTO_TEST_CASE(para_test_then_stdbind)
+TEST(Interface, ThenBind)
 {
   int num = 10;
   para<int> a;
   int t = a([&num](){return inc(num);}).then(std::bind(add, std::placeholders::_1, 10));
-  BOOST_CHECK(t == add(10, inc(num)));
+  EXPECT_TRUE(t == add(10, inc(num)));
 }
 
-BOOST_AUTO_TEST_CASE(para_test_empty)
+TEST(Interface, Empty)
 {
   int num = 10;
   double b_res;
   para<int> a;
   para<> b;
-  std::cout<<"para_test_empty"<<std::endl;
-  BOOST_REQUIRE_THROW(
+  int cached_exceptions = 0;
+
+  try{
       b[a]([&num, &b_res](int ret){b_res=inc(num + ret);}).then([&num, &a, &b, &b_res](){
-        BOOST_CHECK(b_res == inc(num + a.get()));
-      }), empty_para_exception);
-  BOOST_REQUIRE_THROW(ff_wait(b), empty_para_exception);
-  BOOST_REQUIRE_THROW(ff_wait(a), empty_para_exception);
-  BOOST_CHECK(!a.check_if_over());
-  BOOST_CHECK(!b.check_if_over());
+        EXPECT_TRUE(b_res == inc(num + a.get()));
+      });}
+  catch(empty_para_exception & e){
+     cached_exceptions ++;
+  }
+  EXPECT_EQ(cached_exceptions, 1);
+  try{
+    ff_wait(b);
+  }
+  catch(empty_para_exception & e){
+     cached_exceptions ++;
+  }
+  EXPECT_EQ(cached_exceptions, 2);
+
+  try{
+    ff_wait(a);
+  }
+  catch(empty_para_exception & e){
+     cached_exceptions ++;
+  }
+  EXPECT_EQ(cached_exceptions, 3);
+  EXPECT_TRUE(!a.check_if_over());
+  EXPECT_TRUE(!b.check_if_over());
 }
 
-BOOST_AUTO_TEST_CASE(para_test)
+TEST(Interface, Para)
 {
     int num = 10;
     para<int> a;
-  std::cout<<"para_test"<<std::endl;
     a([&num](){return inc(num);}).then([&num](int x){
-        BOOST_CHECK(x == inc(num));
+        EXPECT_TRUE(x == inc(num));
     });
     ff::para<> b;
     int b_res;
     b[a]([&num, &b_res](int ret){b_res = inc(num + ret);}).then([&num, &a, &b, &b_res](){
-        BOOST_CHECK(b_res == inc(num + a.get()));
+        EXPECT_TRUE(b_res == inc(num + a.get()));
     });
 }
-BOOST_AUTO_TEST_CASE(para_dep_simple_test)
+TEST(Interface, ParaDep)
 {
   int num = 10;
   for(int i = 0; i < 100; ++i)
@@ -192,11 +205,11 @@ BOOST_AUTO_TEST_CASE(para_dep_simple_test)
     para<int> a;
     a([&num](){return num;});
     para<void> b;
-    b[a]([num](int ret){BOOST_CHECK(ret == num);});
+    b[a]([num](int ret){EXPECT_TRUE(ret == num);});
     ff_wait(b&&a);
   }
 }
-BOOST_AUTO_TEST_CASE(para_dep_and_test)
+TEST(Interface, ParaDepAnd)
 {
     paracontainer pc;
     for(int i = 0; i < 1000; ++i)
@@ -206,11 +219,10 @@ BOOST_AUTO_TEST_CASE(para_dep_and_test)
         a([i](){return i;});
         b([i](){return i*i;});
         c[a&&b]([](int t1, int t2){
-            BOOST_CHECK(t2 == t1*t1);
+            EXPECT_TRUE(t2 == t1*t1);
         });
         pc.add(c);
     }
     ff_wait(all(pc));
 }
 
-BOOST_AUTO_TEST_SUITE_END()

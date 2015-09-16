@@ -21,16 +21,15 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-#include <boost/test/included/unit_test.hpp>
 #include "ff.h"
+#include <gtest/gtest.h>
 
-void func1(){}
+void c_func1(){}
 
-void func2(int a){}
+void c_func2(int a){}
 
-auto l1 = [](){return 1;};
-auto l2 = std::function<void(int)>(func2);
+auto cl1 = [](){return 1;};
+auto cl2 = std::function<void(int)>(c_func2);
 
 struct MF1{
   void operator ()(){}
@@ -43,62 +42,61 @@ struct MF3{
   void ff(){}
 };
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
 
-BOOST_AUTO_TEST_CASE(normal_func_test_case)
+TEST(TestCallable, NormalCase)
 {
-  bool b = ff::utils::is_callable<decltype(func1)>::value;
-  BOOST_CHECK(b == true);
-  b = ff::utils::is_callable<decltype(func2)>::value;
-  BOOST_CHECK(b == true);
+  bool b = ff::utils::is_callable<decltype(c_func1)>::value;
+  EXPECT_TRUE(b == true);
+  b = ff::utils::is_callable<decltype(c_func2)>::value;
+  EXPECT_TRUE(b == true);
   int c;
   b = ff::utils::is_callable<decltype(c)>::value;
-  BOOST_CHECK(b == false);
+  EXPECT_TRUE(b == false);
 }
 
-BOOST_AUTO_TEST_CASE(cpp11_test_case)
+TEST(TestCallable, CPP11Case)
 {
   bool b;
-  b = ff::utils::is_callable<decltype(l1)>::value;
-  BOOST_CHECK(b == true);
-  
-  b = ff::utils::is_callable<decltype(l2)>::value;
-  BOOST_CHECK(b == true);
+  b = ff::utils::is_callable<decltype(cl1)>::value;
+  EXPECT_TRUE(b == true);
+
+  b = ff::utils::is_callable<decltype(cl2)>::value;
+  EXPECT_TRUE(b == true);
 }
 
-BOOST_AUTO_TEST_CASE(functor_test_case)
+TEST(TestCallable, FunctorCase)
 {
   bool b;
   b = ff::utils::is_callable<MF1>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
 
   b = ff::utils::is_callable<MF2>::value;
-  BOOST_CHECK(b == true);
+  EXPECT_TRUE(b == true);
 
   b = ff::utils::is_callable<MF3>::value;
-  BOOST_CHECK(b == false);
+  EXPECT_TRUE(b == false);
 }
 
 template<class F>
 void checker(F && f, bool req)
 {
     bool b = ff::utils::is_callable<F>::value;
-    BOOST_CHECK(b == req);
+    EXPECT_TRUE(b == req);
 }
-BOOST_AUTO_TEST_CASE(param_pass1_test_case)
+TEST(TestCallable, FuncPassCase)
 {
-  checker(func1, true);
-  checker(func2, true);
+  checker(c_func1, true);
+  checker(c_func2, true);
 }
 
-BOOST_AUTO_TEST_CASE(param_pass2_test_case)
+TEST(TestCallable, CPP11Pass)
 {
   checker([](){}, true);
-  checker(l1, true);
-  checker(l2, true);
+  checker(cl1, true);
+  checker(cl2, true);
 }
 
-BOOST_AUTO_TEST_CASE(param_pass3_test_case)
+TEST(TestCallable, ObjPass)
 {
   MF1 a;
   checker(a, true);
@@ -106,4 +104,3 @@ BOOST_AUTO_TEST_CASE(param_pass3_test_case)
   checker(b, false);
 }
 
-BOOST_AUTO_TEST_SUITE_END()

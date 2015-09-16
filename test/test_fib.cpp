@@ -23,9 +23,7 @@ THE SOFTWARE.
 *************************************************/
 #define BOOST_TEST_MODULE test_ff
 #include "ff.h"
-#include <iostream>
-#include <boost/test/included/unit_test.hpp>
-#include <vector>
+#include <gtest/gtest.h>
 
 int64_t fib(int n)
 {
@@ -43,8 +41,7 @@ int64_t sfib(int n )
  return sfib(n -1 ) + sfib(n-2);
 }
 
-BOOST_AUTO_TEST_SUITE(fib_test)
-BOOST_AUTO_TEST_CASE(fib_t1)
+TEST(FibTest, simple)
 {
   std::vector<int> nums;
   nums.push_back(0);
@@ -55,8 +52,7 @@ BOOST_AUTO_TEST_CASE(fib_t1)
   {
     int64_t f_res = fib(nums[i]);
     int64_t p_res = sfib(nums[i]);
-    BOOST_CHECK(f_res == p_res);
+    EXPECT_TRUE(f_res == p_res);
   }
 }
 
-BOOST_AUTO_TEST_SUITE_END()

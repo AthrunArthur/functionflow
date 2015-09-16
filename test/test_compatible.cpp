@@ -21,41 +21,37 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 *************************************************/
-#define BOOST_TEST_MODULE test_ff
-#include <boost/test/included/unit_test.hpp>
 #include "ff.h"
+#include <gtest/gtest.h>
 
 template<class T1, class T2, class F>
 void check_and(F &&f, bool req)
 {
   bool b = ff::internal::is_compatible_then<F, T1, T2>::is_cpt_with_and;
-  BOOST_CHECK(b == req);
+  EXPECT_TRUE(b == req);
 }
 template<class T1, class T2, class F>
 void check_or(F &&f, bool req)
 {
   bool b = ff::internal::is_compatible_then<F, T1, T2>::is_cpt_with_or;
-  BOOST_CHECK(b == req);
+  EXPECT_TRUE(b == req);
 }
 
 
-BOOST_AUTO_TEST_SUITE(minimal_test)
-
-BOOST_AUTO_TEST_CASE(simple_test_case)
+TEST(TestCompatible,Simple)
 {
     check_and<int, int>([](int a, int b){}, true);
     check_or<int, int>([](int, std::tuple<int, int>){}, true);
 }
 
-BOOST_AUTO_TEST_CASE(void_test_case)
+TEST(TestCompatible, VoidCase)
 {
   check_and<void, int>([](int){}, true);
   check_or<void, int>([](bool, int){}, true);
 }
 
-BOOST_AUTO_TEST_CASE(void2_test_case)
+TEST(TestCompatible, VoidsCase)
 {
   check_and<void, void>([](){}, true);
   check_or<void, void>([](){}, true);
 }
-BOOST_AUTO_TEST_SUITE_END()
