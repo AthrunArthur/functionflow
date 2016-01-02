@@ -28,36 +28,28 @@ THE SOFTWARE.
 #include <mutex>
 #include <vector>
 
-namespace ff
-{
-template< class T>
-class single_assign
-{
-    single_assign(const single_assign<T> & ) = delete;
-    single_assign<T> & operator =(const single_assign<T> &) = delete;
-public:
-    single_assign()
-        : m_oValue()
-        , m_bIsAssigned(false) {}
-    single_assign(const T & v)
-        : m_oValue(v)
-        , m_bIsAssigned(true) {}
+namespace ff {
+template <class T>
+class single_assign {
+  single_assign(const single_assign<T> &) = delete;
+  single_assign<T> &operator=(const single_assign<T> &) = delete;
 
-    single_assign<T> & operator =(const T & v)
-    {
-        if(m_bIsAssigned)
-            return *this;
-        m_bIsAssigned = true;
-        m_oValue = v;
-        return *this;
-    }
+ public:
+  single_assign() : m_oValue(), m_bIsAssigned(false) {}
+  single_assign(const T &v) : m_oValue(v), m_bIsAssigned(true) {}
 
-    T & get() {
-        return m_oValue;
-    }
-protected:
-    T m_oValue;
-    std::atomic<bool> m_bIsAssigned;
-};//end class single_assign
-}//end namespace ff;
+  single_assign<T> &operator=(const T &v) {
+    if (m_bIsAssigned) return *this;
+    m_bIsAssigned = true;
+    m_oValue = v;
+    return *this;
+  }
+
+  T &get() { return m_oValue; }
+
+ protected:
+  T m_oValue;
+  std::atomic<bool> m_bIsAssigned;
+};  // end class single_assign
+}  // end namespace ff;
 #endif

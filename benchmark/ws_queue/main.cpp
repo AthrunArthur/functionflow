@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <mutex>
+#include <atomic>
 
 #ifdef USE_CPP11_ATOMIC
 #include "runtime/work_stealing_queue.h"

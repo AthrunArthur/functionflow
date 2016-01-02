@@ -29,15 +29,13 @@
 #include "para/para.h"
 #include "utilities/spin_lock.h"
 
-namespace ff
-{
-  namespace internal
-  {
-    class paras_with_lock{
-      public:
-        std::vector<para<void> >  entities;
-        ff::spinlock	lock;
-    };
-  }
+namespace ff {
+namespace internal {
+class paras_with_lock {
+ public:
+  std::vector<para<void> > entities;
+  ff::spinlock lock;
+};
+}
 }
 #endif

@@ -28,101 +28,95 @@
 #include "runtime/threadpool.h"
 #include "runtime/rtcmn.h"
 #include "utilities/simo_queue.h"
-#include <mutex>
-
 
 namespace ff {
 
-  void initialize(size_t concurrency = 0);
+void initialize(size_t concurrency = 0);
 
+namespace rt {
 
-  namespace rt
-  {
+class threadpool;
+class runtime;
+typedef runtime *runtime_ptr;
 
-    class threadpool;
-    class runtime;
-    typedef runtime * runtime_ptr;
+class runtime {
+ protected:
+  runtime();
+  runtime(const runtime &) = delete;
 
+ public:
+  virtual ~runtime();
+  static runtime_ptr instance();
 
-    class runtime
-    {
-      protected:
-        runtime();
-        runtime(const runtime &) = delete;
+  void schedule(task_base_ptr p);
+  bool take_one_task(task_base_ptr &p);
 
-      public:
+  bool steal_one_task(task_base_ptr &p);
+  void run_task(task_base_ptr &p);
+  void active();
+  void pause();
 
-        virtual ~runtime();
-        static runtime_ptr 	instance();
+  bool is_idle();
 
-        void	schedule(task_base_ptr p);
-        bool		take_one_task(task_base_ptr & p);
+  thrd_id_t get_idle();
+  std::tuple<uint64_t, uint64_t> current_task_counter();
 
-        bool		steal_one_task(task_base_ptr & p);
-        void			run_task(task_base_ptr & p);
+ protected:
+  void thread_run();
+  static void init();
 
-        bool		is_idle();
+ protected:
+  std::unique_ptr<threadpool> m_pTP;
+  std::vector<std::unique_ptr<work_stealing_queue> > m_oQueues;
+  typedef simo_queue<task_base_ptr, 8> simo_queue_t;
+  std::vector<std::unique_ptr<simo_queue_t> > m_oWQueues;
+  //    thread_local static work_stealing_queue *
+  //    m_pLQueue;
+  std::atomic<bool> m_bAllThreadsQuit;
+  static runtime_ptr s_pInstance;
+  static std::once_flag s_oOnce;
+  std::atomic_bool m_b_is_active;
+  std::mutex m_wakeup_mutex;
+  std::condition_variable m_wakeup;
+};  // end class runtime
 
-        thrd_id_t	get_idle();
-        std::tuple<uint64_t, uint64_t> current_task_counter();
+class runtime_deletor {
+ public:
+  runtime_deletor(runtime *pRT) : m_pRT(pRT){};
+  ~runtime_deletor() { delete m_pRT; };
+  static std::shared_ptr<runtime_deletor> s_pInstance;
 
-      protected:
-        void			thread_run();
-        static void			init();
+ protected:
+  runtime *m_pRT;
+};
 
-      protected:
-        std::unique_ptr<threadpool> 		m_pTP;
-        std::vector<std::unique_ptr<work_stealing_queue> >	m_oQueues;
-        typedef simo_queue<task_base_ptr, 8> simo_queue_t;
-        std::vector<std::unique_ptr<simo_queue_t> > m_oWQueues;
-        //    thread_local static work_stealing_queue *				m_pLQueue;
-        std::atomic< bool>  				m_bAllThreadsQuit;
-        static runtime_ptr s_pInstance;
-        static std::once_flag			s_oOnce;
-    };//end class runtime
+//! Get the number of exe_over_tasks and scheduled_tasks
+inline std::tuple<uint64_t, uint64_t> current_task_counter() {
+  static runtime_ptr r = runtime::instance();
+  return r->current_task_counter();
+}
 
+void schedule(task_base_ptr p);
 
-  class runtime_deletor
-    {
-      public:
-        runtime_deletor(runtime *pRT): m_pRT(pRT) {};
-        ~runtime_deletor() {
-          delete m_pRT;
-        };
-        static std::shared_ptr<runtime_deletor> s_pInstance;
-      protected:
-        runtime *	m_pRT;
-    };
+template <class Func>
+void yield_and_ret_until(Func &&f) {
+  int cur_id = get_thrd_id();
+  runtime_ptr r = runtime::instance();
+  bool b = f();
+  task_base_ptr pTask;
 
-    //!Get the number of exe_over_tasks and scheduled_tasks
-    inline std::tuple<uint64_t, uint64_t> current_task_counter()
-    {
-      static runtime_ptr r = runtime::instance();
-      return r->current_task_counter();
+  while (!b) {
+    if (r->take_one_task(pTask)) {
+      r->run_task(pTask);
+    } else {
+      yield();
     }
+    b = f();
+  }
+}
+}  // end namespace rt
 
-    void	schedule(task_base_ptr p);
-
-    template <class Func>
-      void 	yield_and_ret_until(Func && f)
-      {
-        int cur_id = get_thrd_id();
-        runtime_ptr r = runtime::instance();
-        bool b = f();
-        task_base_ptr pTask;
-
-        while(!b)
-        {
-          if(r->take_one_task(pTask))
-          {
-            r->run_task(pTask);
-          }
-          else {
-              yield();
-          }
-          b = f();
-        }
-      }
-  }//end namespace rt
-}//end namespace ff
+inline void active_runtime() { rt::runtime::instance()->active(); }
+inline void pause_runtime() { rt::runtime::instance()->pause(); }
+}  // end namespace ff
 #endif

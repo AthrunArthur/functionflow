@@ -27,95 +27,93 @@ THE SOFTWARE.
 #include "common/common.h"
 #include "runtime/rtcmn.h"
 
+namespace ff {
+namespace rt {
 
-namespace ff{
-namespace rt{
-
-//N, 2^N.
+// N, 2^N.
 template <class T, size_t N>
-class cpp_work_stealing_queue
-{
-    const static int64_t INITIAL_SIZE=1<<N;
-    const static int64_t MASK = (1<<N) - 1;
-public:
-    cpp_work_stealing_queue()
-      : head(0)
-      , tail(0)
-      , array(new T[1<<N])
-        {
-        if(array == nullptr)
-        {
-          assert(false && "Allocation Failed!");
-          exit(-1);
-        }
-      }
+class default_work_stealing_queue {
+  const static int64_t INITIAL_SIZE = 1 << N;
+  const static int64_t MASK = (1 << N) - 1;
 
-    ~cpp_work_stealing_queue()
-    {
-      if(array != nullptr)
-      {
-        delete[] array;
-        array = nullptr;
-      }
+ public:
+  default_work_stealing_queue() : head(0), tail(0), array(new T[1 << N]) {
+    if (array == nullptr) {
+      assert(false && "Allocation Failed!");
+      exit(-1);
     }
+  }
 
-    bool push_back(const T & val)
-    {
-      auto h = head;
-      if(h - tail.load(std::memory_order_relaxed) == MASK) return false;
-      array[h & MASK] = val;
-      head = h + 1;
-      return true;
+  ~default_work_stealing_queue() {
+    if (array != nullptr) {
+      delete[] array;
+      array = nullptr;
     }
-    bool pop(T & val)
-    {
-      auto h = head;
-      if(h <= tail.load(std::memory_order_relaxed)) {head = tail.load(std::memory_order_relaxed); return false;}
+  }
 
-      head = h -1;
-      h = head;
-      std::atomic_thread_fence(std::memory_order_seq_cst);
-      //;__sync_synchronize(); //This two lines are the magic
-      auto t = tail.load(std::memory_order_relaxed);
-
-      if(h<t)
-      {
-        head = tail.load(std::memory_order_relaxed);
-        return false;
-      }
-      val = array[h&MASK];
-      if(h > t) return true;
-      bool res = true;
-      if(!std::atomic_compare_exchange_strong_explicit(&tail, &h, h+1, std::memory_order_relaxed, std::memory_order_relaxed)) res = false;
+  bool push_back(const T& val) {
+    auto h = head;
+    if (h - tail.load(std::memory_order_relaxed) == MASK) return false;
+    array[h & MASK] = val;
+    head = h + 1;
+    return true;
+  }
+  bool pop(T& val) {
+    auto h = head;
+    if (h <= tail.load(std::memory_order_relaxed)) {
       head = tail.load(std::memory_order_relaxed);
-      return res;
+      return false;
     }
 
-    bool steal(T & val)
-    {
-      int64_t t = tail.load(std::memory_order_relaxed);
-      int s = head - t;
-      if ( s <= 0){
-        return false;
-      }
-      val = array[t&MASK];
-      if(!std::atomic_compare_exchange_strong_explicit(&tail, &t, t+1, std::memory_order_relaxed, std::memory_order_relaxed)) return false;
-      return true;
-    }
+    head = h - 1;
+    h = head;
+    std::atomic_thread_fence(std::memory_order_seq_cst);
+    //;__sync_synchronize(); //This two lines are the magic
+    auto t = tail.load(std::memory_order_relaxed);
 
-    inline int64_t size()
-    {
-      return (head - tail.load(std::memory_order_relaxed));
+    if (h < t) {
+      head = tail.load(std::memory_order_relaxed);
+      return false;
     }
-    inline int64_t  get_head() const {return head;}
-    inline int64_t  get_tail() const {return tail.load(std::memory_order_relaxed);}
-protected:
-    int64_t head;
-    std::atomic<int64_t> tail;
-    T *       array;
-};//end class classical_work_stealing_queue
+    val = array[h & MASK];
+    if (h > t) return true;
+    bool res = true;
+    if (!std::atomic_compare_exchange_strong_explicit(
+            &tail, &h, h + 1, std::memory_order_relaxed,
+            std::memory_order_relaxed))
+      res = false;
+    head = tail.load(std::memory_order_relaxed);
+    return res;
+  }
 
-}//end namespace rt
-}//end namespace ff
+  bool steal(T& val) {
+    int64_t t = tail.load(std::memory_order_relaxed);
+    int s = head - t;
+    if (s <= 0) {
+      return false;
+    }
+    val = array[t & MASK];
+    if (!std::atomic_compare_exchange_strong_explicit(
+            &tail, &t, t + 1, std::memory_order_relaxed,
+            std::memory_order_relaxed))
+      return false;
+    return true;
+  }
+
+  inline int64_t size() {
+    return (head - tail.load(std::memory_order_relaxed));
+  }
+  inline int64_t get_head() const { return head; }
+  inline int64_t get_tail() const {
+    return tail.load(std::memory_order_relaxed);
+  }
+
+ protected:
+  int64_t head;
+  std::atomic<int64_t> tail;
+  T* array;
+};  // end class default_work_stealing_queue
+
+}  // end namespace rt
+}  // end namespace ff
 #endif
-

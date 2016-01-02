@@ -25,47 +25,44 @@
 #define FF_RUNTIME_RTCMN_H_
 #include "common/common.h"
 namespace ff {
-    extern bool g_initialized_flag;
-    inline bool is_initialized(){ return g_initialized_flag;}
-  namespace rt {
+extern bool g_initialized_flag;
+inline bool is_initialized() { return g_initialized_flag; }
+namespace rt {
 
-    extern size_t s_hardware_concurrency;
-    extern size_t s_current_concurrency;
+extern size_t s_hardware_concurrency;
+extern size_t s_current_concurrency;
 
-    inline size_t  hardware_concurrency(){
-      return s_hardware_concurrency;
+inline size_t hardware_concurrency() { return s_hardware_concurrency; }
+
+extern size_t max_concurrency;
+
+inline bool set_concurrency(size_t c = 0) {
+  if (s_current_concurrency == 0) {
+    if (c == 0) {
+      s_current_concurrency = max_concurrency;
+      return true;
     }
+    s_current_concurrency = c;
+    return true;
+  } else {
+    return false;
+  }
+}
+inline size_t concurrency() {
+  if (s_current_concurrency)
+    return s_current_concurrency;
+  else
+    return s_hardware_concurrency;
+}
 
-    extern size_t max_concurrency;
+extern thread_local thrd_id_t s_id;
+inline thrd_id_t get_thrd_id() { return s_id; }
 
-    inline bool set_concurrency(size_t c = 0){
-      if(s_current_concurrency == 0){
-        if (c == 0) {
-          s_current_concurrency = max_concurrency;
-          return true;
-        }
-        s_current_concurrency = c;
-        return true;
-      }else{return false;}
-    }
-    inline size_t concurrency()
-    {
-      if(s_current_concurrency)
-        return s_current_concurrency;
-      else
-        return s_hardware_concurrency;
-    }
+bool set_local_thrd_id(thrd_id_t i);
 
-    extern thread_local thrd_id_t s_id;
-    inline thrd_id_t get_thrd_id(){
-    return s_id;
-    }
+// Give other tasks opportunities to run!
+void yield();
+}  // end namespace rt
 
-    bool set_local_thrd_id(thrd_id_t i);
-
-    //Give other tasks opportunities to run!
-    void yield();
-  }//end namespace rt
-
-}//end namespace ff
+}  // end namespace ff
 #endif

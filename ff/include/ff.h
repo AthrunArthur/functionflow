@@ -38,19 +38,16 @@ THE SOFTWARE.
 #include "utilities/spin_lock.h"
 #include "utilities/thread_local_var.h"
 
+namespace ff {
 
-namespace ff{
-
-template<class W>
-void ff_wait(W && wexpr)
-{
-	(wexpr).then([](){});
-}//end wait
-template<class RT>
-void ff_wait(para<RT> & sexpr)
-{
-	ff_wait(sexpr && sexpr);
+template <class W>
+void ff_wait(W&& wexpr) {
+  (wexpr).then([]() {});
+}  // end wait
+template <class RT>
+void ff_wait(para<RT>& sexpr) {
+  ff_wait(sexpr && sexpr);
 }
-}//end namespace ff
+}  // end namespace ff
 
 #endif

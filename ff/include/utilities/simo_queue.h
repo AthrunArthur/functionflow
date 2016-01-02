@@ -25,47 +25,46 @@
 #define FF_RUNTIME_SIMO_QUEUE_H_
 
 #include "common/common.h"
-namespace ff{
-  namespace rt{
-    //N, 2^N
-    //! This queue is for single-thread's push, and multiple-threads' pop.
-    //! This queue is capability-fixed
-    template<class T, size_t N>
-      class simo_queue{
-        const static int64_t MASK = (1<<N) - 1;
-        public:
-        simo_queue():array(nullptr),cap(0), head(0), tail(0){
-          array=new T[1<<N];
-          cap = 1<<N;
-        }
+namespace ff {
+namespace rt {
+// N, 2^N
+//! This queue is for single-thread's push, and multiple-threads' pop.
+//! This queue is capability-fixed
+template <class T, size_t N>
+class simo_queue {
+  const static int64_t MASK = (1 << N) - 1;
 
-        bool push(const T & val)
-        {
-          if(head - tail >= MASK)
-            return false;
-          array[head&MASK] = val;
-          head ++;
-          return true;
-        }
-        bool pop(T & val){
-          auto t = tail;
-          if(t == head) return false;
-          val = array[t&MASK];
-          while(!__sync_bool_compare_and_swap(&tail, t, t+1))
-          {
-            t = tail;
-            if(t == head) return false;
-            val = array[t&MASK];
-          }
-          return true;
-        }
-        size_t size() const {return head - tail;}
-        protected:
-        T * array;
-        int64_t cap;
-        int64_t head;
-        int64_t tail;
-      };//end class simo_queue;
+ public:
+  simo_queue() : array(nullptr), cap(0), head(0), tail(0) {
+    array = new T[1 << N];
+    cap = 1 << N;
   }
-}//end namespace ff
+
+  bool push(const T& val) {
+    if (head - tail >= MASK) return false;
+    array[head & MASK] = val;
+    head++;
+    return true;
+  }
+  bool pop(T& val) {
+    auto t = tail;
+    if (t == head) return false;
+    val = array[t & MASK];
+    while (!__sync_bool_compare_and_swap(&tail, t, t + 1)) {
+      t = tail;
+      if (t == head) return false;
+      val = array[t & MASK];
+    }
+    return true;
+  }
+  size_t size() const { return head - tail; }
+
+ protected:
+  T* array;
+  int64_t cap;
+  int64_t head;
+  int64_t tail;
+};  // end class simo_queue;
+}
+}  // end namespace ff
 #endif

@@ -26,15 +26,22 @@ THE SOFTWARE.
 
 #include "runtime/taskbase.h"
 
+#ifndef USING_WORK_STEALING_QUEUE
+#define USING_WORK_STEALING_QUEUE
+#endif
+
 #ifdef USING_MUTEX_STEAL_QUEUE
+#undef USING_WORK_STEALING_QUEUE
 #include "runtime/mutex_steal_queue.h"
 #endif
 
 #ifdef USING_SPIN_STEAL_QUEUE
+#undef USING_WORK_STEALING_QUEUE
 #include "runtime/spin_steal_queue.h"
 #endif
 
 #ifdef USING_GCC_WORK_STEALING_QUEUE
+#undef USING_WORK_STEALING_QUEUE
 #include "runtime/gtwsq_fixed.h"
 #endif
 
@@ -58,13 +65,10 @@ typedef spin_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 typedef gcc_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
-
 #ifdef USING_WORK_STEALING_QUEUE
-typedef cpp_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
+typedef default_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
-typedef work_stealing_queue * work_stealing_queue_ptr;
-
-}//end namespace rt
-}//end namespace ff
+}  // end namespace rt
+}  // end namespace ff
 #endif

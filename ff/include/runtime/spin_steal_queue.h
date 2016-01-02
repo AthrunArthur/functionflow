@@ -26,74 +26,63 @@ THE SOFTWARE.
 #include "common/common.h"
 #include "utilities/spin_lock.h"
 #include "utilities/scope_guard.h"
-namespace ff
-{
-namespace rt
-{
+namespace ff {
+namespace rt {
 template <class T, size_t N>
-class spin_stealing_queue
-{
-    const static uint64_t INITIAL_SIZE=1<<N;
-    const static int64_t mask = (1<<N) - 1;
-public:
-    spin_stealing_queue()
-        : array(new T[1<<N])
-        , head(0)
-        , tail(0)
-	, steal_lock()
-    {
-    }
-    ~spin_stealing_queue()
-    {
-        if(array != nullptr)
-        {
-            delete[] array;
-        }
-    }
+class spin_stealing_queue {
+  const static uint64_t INITIAL_SIZE = 1 << N;
+  const static int64_t mask = (1 << N) - 1;
 
-    bool push_back(const T & val)
-    {
-      std::lock_guard<ff::spinlock> __l(steal_lock);
-      if(head - tail == mask) return false;
-      array[head & mask] = val;
-      head ++;
-      return true;
+ public:
+  spin_stealing_queue()
+      : array(new T[1 << N]), head(0), tail(0), steal_lock() {}
+  ~spin_stealing_queue() {
+    if (array != nullptr) {
+      delete[] array;
+    }
+  }
+
+  bool push_back(const T& val) {
+    std::lock_guard<ff::spinlock> __l(steal_lock);
+    if (head - tail == mask) return false;
+    array[head & mask] = val;
+    head++;
+    return true;
+  }
+
+  bool pop(T& val) {
+    std::lock_guard<ff::spinlock> __l(steal_lock);
+    if (head == tail) {
+      return false;
     }
 
-    bool pop(T & val)
-    {
-      std::lock_guard<ff::spinlock> __l(steal_lock);
-      if(head == tail) {return false;}
+    head--;
+    val = array[head & mask];
+    return true;
+  }
 
-      head --;
-      val = array[head&mask];
-      return true;
-    }
+  bool steal(T& val) {
+    std::lock_guard<ff::spinlock> __l(steal_lock);
+    if (tail == head) return false;
+    val = array[tail & mask];
+    tail++;
+    return true;
+  }
 
-    bool steal(T & val)
-    {
-      std::lock_guard<ff::spinlock> __l(steal_lock);
-      if(tail == head)
-        return false;
-      val = array[tail&mask];
-      tail ++;
-      return true;
-    }
+  uint64_t size() {
+    scope_guard __l([this]() { steal_lock.lock(); },
+                    [this]() { steal_lock.unlock(); });
+    return head - tail;
+  }
 
-    uint64_t	size()
-    {
-      scope_guard __l([this]() {steal_lock.lock();}, [this]() {steal_lock.unlock();});
-      return head - tail;
-    }
-protected:
-    T * array;
-    int64_t head;
-    int64_t tail;
-    ff::spinlock		steal_lock;
-};//end class nonblocking_stealing_queue
+ protected:
+  T* array;
+  int64_t head;
+  int64_t tail;
+  ff::spinlock steal_lock;
+};  // end class nonblocking_stealing_queue
 
-
-}//end namespace rt;
-}//end namespace ff
+}  // end namespace rt;
+}  // end namespace ff
 
 #endif

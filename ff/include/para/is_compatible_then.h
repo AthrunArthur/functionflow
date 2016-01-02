@@ -29,48 +29,52 @@ THE SOFTWARE.
 #include "common/func_type_checker.h"
 #include "common/is_callable.h"
 
-namespace ff{
-namespace internal
-{
+namespace ff {
+namespace internal {
 
-template<class F, class RT1, class RT2>
-struct is_compatible_then
-{
-    const static bool is_cpt_with_and = ::ff::utils::is_callable<F>::value &&
+template <class F, class RT1, class RT2>
+struct is_compatible_then {
+  const static bool is_cpt_with_and =
+      ::ff::utils::is_callable<F>::value &&
       ::ff::utils::is_function_with_two_arg_type<F, RT1, RT2>::value;
 
-    const static bool is_cpt_with_or = ::ff::utils::is_callable<F>::value &&
-      ::ff::utils::is_function_with_two_arg_type<F, int, std::tuple<RT1, RT2> >::value;
+  const static bool is_cpt_with_or =
+      ::ff::utils::is_callable<F>::value &&
+      ::ff::utils::is_function_with_two_arg_type<F, int,
+                                                 std::tuple<RT1, RT2> >::value;
 };
 
-template<class F, class RT1>
-struct is_compatible_then<F, RT1, void>
-{
-  const static bool is_cpt_with_and = ::ff::utils::is_callable<F>::value &&
+template <class F, class RT1>
+struct is_compatible_then<F, RT1, void> {
+  const static bool is_cpt_with_and =
+      ::ff::utils::is_callable<F>::value &&
       ::ff::utils::is_function_with_two_arg_type<F, RT1, void>::value;
-  const static bool is_cpt_with_or = ::ff::utils::is_callable<F>::value &&
+  const static bool is_cpt_with_or =
+      ::ff::utils::is_callable<F>::value &&
       ::ff::utils::is_function_with_two_arg_type<F, bool, RT1>::value;
 };
 
-template<class F, class RT1>
-struct is_compatible_then<F, void, RT1>
-{
-  const static bool is_cpt_with_and = ::ff::utils::is_callable<F>::value &&
+template <class F, class RT1>
+struct is_compatible_then<F, void, RT1> {
+  const static bool is_cpt_with_and =
+      ::ff::utils::is_callable<F>::value &&
       ::ff::utils::is_function_with_two_arg_type<F, RT1, void>::value;
-  const static bool is_cpt_with_or = ::ff::utils::is_callable<F>::value &&
+  const static bool is_cpt_with_or =
+      ::ff::utils::is_callable<F>::value &&
       ::ff::utils::is_function_with_two_arg_type<F, bool, RT1>::value;
 };
 
-template<class F>
-struct is_compatible_then<F, void, void>
-{
-  const static bool is_cpt_with_and = ::ff::utils::is_callable<F>::value &&
-        ::ff::utils::is_function_with_two_arg_type<F, void, void>::value;
-  const static bool is_cpt_with_or = ::ff::utils::is_callable<F>::value &&
-        ::ff::utils::is_function_with_two_arg_type<F, void, void>::value;
+template <class F>
+struct is_compatible_then<F, void, void> {
+  const static bool is_cpt_with_and =
+      ::ff::utils::is_callable<F>::value &&
+      ::ff::utils::is_function_with_two_arg_type<F, void, void>::value;
+  const static bool is_cpt_with_or =
+      ::ff::utils::is_callable<F>::value &&
+      ::ff::utils::is_function_with_two_arg_type<F, void, void>::value;
 };
 
-}//end namespace internal
-}//end namespace ff
+}  // end namespace internal
+}  // end namespace ff
 
 #endif

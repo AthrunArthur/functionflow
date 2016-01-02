@@ -27,180 +27,188 @@
 #include "para/is_compatible_then.h"
 #include <tuple>
 
-
 namespace ff {
-  template<class RT>
-    class para;
-  namespace internal
-  {
-    template <class RT1, class RT2>
-      struct bin_wait_func_deducer {
-        typedef std::tuple<RT1, RT2> pair;
-        typedef pair and_type;
-        typedef std::tuple<int, pair> or_type;
+template <class RT>
+class para;
+namespace internal {
+template <class RT1, class RT2>
+struct bin_wait_func_deducer {
+  typedef std::tuple<RT1, RT2> pair;
+  typedef pair and_type;
+  typedef std::tuple<int, pair> or_type;
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_and( FT && f, T1 && t1, T2 && t2) {
-            f(t1.get(), t2.get());
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {return f(t1.get(), t2.get());}
+  template <class FT, class T1, class T2>
+  static void void_func_and(FT&& f, T1&& t1, T2&& t2) {
+    f(t1.get(), t2.get());
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_and(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    return f(t1.get(), t2.get());
+  }
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_or( FT && f, T1 && t1, T2 && t2) {
-            int i = 0;
-            if(t1.get_state() == exe_state::exe_over) i = 0;
-            else if(t2.get_state() == exe_state::exe_over) i = 1;
-            f(i, std::make_tuple(t1.get(), t2.get()));
-          }
+  template <class FT, class T1, class T2>
+  static void void_func_or(FT&& f, T1&& t1, T2&& t2) {
+    int i = 0;
+    if (t1.get_state() == exe_state::exe_over)
+      i = 0;
+    else if (t2.get_state() == exe_state::exe_over)
+      i = 1;
+    f(i, std::make_tuple(t1.get(), t2.get()));
+  }
 
-        template<class FT, class T1, class T2>
-          static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {
-            int i = 0;
-            if(t1.get_state() == exe_state::exe_over) i = 0;
-            else if(t2.get_state() == exe_state::exe_over) i = 1;
-            return f(i, std::make_tuple(t1.get(), t2.get()));
-          }
+  template <class FT, class T1, class T2>
+  static auto ret_func_or(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    int i = 0;
+    if (t1.get_state() == exe_state::exe_over)
+      i = 0;
+    else if (t2.get_state() == exe_state::exe_over)
+      i = 1;
+    return f(i, std::make_tuple(t1.get(), t2.get()));
+  }
 
-        template<class T1, class T2>
-          static and_type  wrap_ret_for_and(T1 && t1, T2 && t2)
-          {
-            return pair(t1.get(), t2.get());
-          }
+  template <class T1, class T2>
+  static and_type wrap_ret_for_and(T1&& t1, T2&& t2) {
+    return pair(t1.get(), t2.get());
+  }
 
-        template<class T1, class T2>
-          static or_type  wrap_ret_for_or(T1 && t1, T2 && t2)
-          {
-            int i = 0;
-            if(t1.get_state() == exe_state::exe_over) i = 0;
-            else if(t2.get_state() == exe_state::exe_over) i = 1;
-            return std::make_tuple(i, std::make_tuple(t1.get(), t2.get()));
-          }
+  template <class T1, class T2>
+  static or_type wrap_ret_for_or(T1&& t1, T2&& t2) {
+    int i = 0;
+    if (t1.get_state() == exe_state::exe_over)
+      i = 0;
+    else if (t2.get_state() == exe_state::exe_over)
+      i = 1;
+    return std::make_tuple(i, std::make_tuple(t1.get(), t2.get()));
+  }
 
-      };//end struct bin_wait_func_deducer;
-    template < class RT2>
-      struct bin_wait_func_deducer<void, RT2> {
-        typedef RT2 pair;
-        typedef pair and_type;
-        typedef std::tuple<bool, RT2 > or_type;
-        template<class FT, class T1, class T2>
-          static void 	void_func_and( FT && f, T1 && t1, T2 && t2) {
-            f(t2.get());
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {return f(t2.get());}
+};  // end struct bin_wait_func_deducer;
+template <class RT2>
+struct bin_wait_func_deducer<void, RT2> {
+  typedef RT2 pair;
+  typedef pair and_type;
+  typedef std::tuple<bool, RT2> or_type;
+  template <class FT, class T1, class T2>
+  static void void_func_and(FT&& f, T1&& t1, T2&& t2) {
+    f(t2.get());
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_and(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    return f(t2.get());
+  }
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_or(FT && f, T1 && t1, T2 && t2) {
-            int i = 0;
-            if(t2.get_state() == exe_state::exe_over) i = 1;
-            f(i == 1, t2.get());
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {
-            int i = 0;
-            if(t2.get_state() == exe_state::exe_over) i = 1;
-            return f(i == 1, t2.get());
+  template <class FT, class T1, class T2>
+  static void void_func_or(FT&& f, T1&& t1, T2&& t2) {
+    int i = 0;
+    if (t2.get_state() == exe_state::exe_over) i = 1;
+    f(i == 1, t2.get());
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_or(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    int i = 0;
+    if (t2.get_state() == exe_state::exe_over) i = 1;
+    return f(i == 1, t2.get());
+  }
 
-          }
+  template <class T1, class T2>
+  static and_type wrap_ret_for_and(T1&& t1, T2&& t2) {
+    return pair(t2.get());
+  }
 
-        template <class T1, class T2>
-          static and_type  wrap_ret_for_and(T1 && t1, T2 && t2)
-          {
-            return pair(t2.get());
-          }
+  template <class T1, class T2>
+  static or_type wrap_ret_for_or(T1&& t1, T2&& t2) {
+    int i = 0;
+    if (t2.get_state() == exe_state::exe_over) i = 1;
+    return std::make_tuple(i == 1, t2.get());
+  }
+};  // end struct bin_wait_func_deducer;
+template <class RT1>
+struct bin_wait_func_deducer<RT1, void> {
+  typedef RT1 pair;
+  typedef pair and_type;
+  typedef std::tuple<bool, RT1> or_type;
 
-        template<class T1, class T2>
-          static or_type  wrap_ret_for_or(T1 && t1, T2 && t2)
-          {
-            int i = 0;
-            if(t2.get_state() == exe_state::exe_over) i = 1;
-            return std::make_tuple(i==1,  t2.get());
-          }
-      };//end struct bin_wait_func_deducer;
-    template <class RT1>
-      struct bin_wait_func_deducer<RT1, void> {
-        typedef RT1 pair;
-        typedef pair and_type;
-        typedef std::tuple<bool, RT1> or_type;
+  template <class FT, class T1, class T2>
+  static void void_func_and(FT&& f, T1&& t1, T2&& t2) {
+    f(t1.get());
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_and(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    return f(t1.get());
+  }
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_and( FT && f, T1 && t1, T2 && t2) {
-            f(t1.get());
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {return f(t1.get());}
+  template <class FT, class T1, class T2>
+  static void void_func_or(FT&& f, T1&& t1, T2&& t2) {
+    int i = 0;
+    if (t1.get_state() == exe_state::exe_over) i = 1;
+    f(i == 1, t1.get());
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_or(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    int i = 0;
+    if (t1.get_state() == exe_state::exe_over) i = 1;
+    return f(i == 1, t1.get());
+  }
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_or( FT && f, T1 && t1, T2 && t2) {
-            int i = 0;
-            if(t1.get_state() == exe_state::exe_over) i = 1;
-            f(i == 1, t1.get());
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {
-            int i = 0;
-            if(t1.get_state() == exe_state::exe_over) i = 1;
-            return f(i == 1, t1.get());}
+  template <class T1, class T2>
+  static and_type wrap_ret_for_and(T1&& t1, T2&& t2) {
+    return pair(t1.get());
+  }
 
-        template <class T1, class T2>
-          static and_type  wrap_ret_for_and(T1 && t1, T2 && t2)
-          {
-            return pair(t1.get());
-          }
+  template <class T1, class T2>
+  static or_type wrap_ret_for_or(T1&& t1, T2&& t2) {
+    int i = 0;
+    if (t1.get_state() == exe_state::exe_over) i = 1;
+    return std::make_tuple(i == 1, t1.get());
+  }
+};  // end struct bin_wait_func_deducer;
 
-        template<class T1, class T2>
-          static or_type  wrap_ret_for_or(T1 && t1, T2 && t2)
-          {
-            int i = 0;
-            if(t1.get_state() == exe_state::exe_over) i = 1;
-            return std::make_tuple(i==1,  t1.get());
-          }
-      };//end struct bin_wait_func_deducer;
+template <>
+struct bin_wait_func_deducer<void, void> {
+  typedef void pair;
+  typedef pair and_type;
+  typedef pair or_type;
 
-    template <>
-      struct bin_wait_func_deducer<void, void> {
-        typedef void pair;
-        typedef pair and_type;
-        typedef pair or_type;
+  template <class FT, class T1, class T2>
+  static void void_func_and(FT&& f, T1&& t1, T2&& t2) {
+    f();
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_and(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    return f();
+  }
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_and(FT && f, T1 && t1, T2 && t2) {
-            f();
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_and(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {return f();}
+  template <class FT, class T1, class T2>
+  static void void_func_or(FT&& f, T1&& t1, T2&& t2) {
+    f();
+  }
+  template <class FT, class T1, class T2>
+  static auto ret_func_or(FT&& f, T1&& t1, T2&& t2) ->
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type {
+    return f();
+  }
 
-        template<class FT, class T1, class T2>
-          static void 	void_func_or(FT && f, T1 && t1, T2 && t2) {
-            f();
-          }
-        template<class FT, class T1, class T2>
-          static auto	ret_func_or(FT && f, T1 && t1, T2 && t2)
-          -> typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-          {return f();}
+  template <class T1, class T2>
+  static and_type wrap_ret_for_and(T1&& t1, T2&& t2) {}
 
-        template <class T1, class T2>
-          static and_type  wrap_ret_for_and(T1 && t1, T2 && t2){}
+  template <class T1, class T2>
+  static or_type wrap_ret_for_or(T1&& t1, T2&& t2) {}
+};  // end struct bin_wait_func_deducer;
 
-        template<class T1, class T2>
-          static or_type  wrap_ret_for_or(T1 && t1, T2 && t2){}
-      };//end struct bin_wait_func_deducer;
-
-  }//end namespace internal
-}//end namespace ff
+}  // end namespace internal
+}  // end namespace ff
 #endif

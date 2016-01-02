@@ -25,55 +25,55 @@ THE SOFTWARE.
 #define FF_COMMON_IS_CALLABLE_H_
 #include "common/common.h"
 
-namespace ff{
-namespace utils{
+namespace ff {
+namespace utils {
 
-template<typename T>
-struct is_callable_object
-{
-private:
+template <typename T>
+struct is_callable_object {
+ private:
   typedef char(&yes)[1];
   typedef char(&no)[2];
 
-  struct Fallback { void operator()(); };
-  struct Derived : T, Fallback { };
+  struct Fallback {
+    void operator()();
+  };
+  struct Derived : T, Fallback {};
 
-  template<typename U, U> struct Check;
+  template <typename U, U>
+  struct Check;
 
-  template<typename>
+  template <typename>
   static yes test(...);
 
-  template<typename C>
+  template <typename C>
   static no test(Check<void (Fallback::*)(), &C::operator()>*);
 
-public:
+ public:
   static const bool value = sizeof(test<Derived>(0)) == sizeof(yes);
 };
 
-template<typename T>
-struct is_callable_base : public std::false_type{};
+template <typename T>
+struct is_callable_base : public std::false_type {};
 
 template <class Ret, class C, class... Args>
-struct is_callable_base<Ret (C::*)(Args...) const> 
-        : public std::true_type{};
+struct is_callable_base<Ret (C::*)(Args...) const> : public std::true_type {};
 
 template <class Ret, class C, class... Args>
-struct is_callable_base<Ret (C::*)(Args...)> 
-        : public std::true_type{};
+struct is_callable_base<Ret (C::*)(Args...)> : public std::true_type {};
 
 template <class Ret, class... Args>
-struct is_callable_base<Ret (Args...)>
-        : public std::true_type{};
+struct is_callable_base<Ret(Args...)> : public std::true_type {};
 
 template <class Ret, class... Args>
-struct is_callable_base<Ret (*)(Args...)>
-        : public std::true_type{};
+struct is_callable_base<Ret (*)(Args...)> : public std::true_type {};
 
-template<class T>
-struct is_callable : std::conditional<std::is_class<typename std::remove_reference<T>::type>::value,
-                                    is_callable_object<typename std::remove_reference<T>::type>,
-                                    is_callable_base<typename std::remove_reference<T>::type> >::type{};
-}//end namespace utils
-}//end namespace ff
+template <class T>
+struct is_callable
+    : std::conditional<
+          std::is_class<typename std::remove_reference<T>::type>::value,
+          is_callable_object<typename std::remove_reference<T>::type>,
+          is_callable_base<typename std::remove_reference<T>::type> >::type {};
+}  // end namespace utils
+}  // end namespace ff
 
 #endif
