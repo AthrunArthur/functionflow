@@ -2,12 +2,12 @@ TSUIT:=tbb
 export TSUIT
 
 UNAME_S := $(shell uname -s)
-
+#canny_tbb  should be in linux
 ifeq ($(UNAME_S),Darwin)
 tbb: fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb quad_tbb treesum_tbb
 endif
 ifeq ($(UNAME_S),Linux)
-tbb: canny_tbb fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb quad_tbb treesum_tbb
+tbb: fib_tbb kmeans_tbb lu_tbb nqueen_tbb qsort_tbb quad_tbb treesum_tbb
 endif
 
 include Makefile.base

@@ -1,0 +1,9 @@
+mkdir build
+cd build
+cmake ..
+make FF
+make OPENMP
+export THRD_NUM=16
+cp ../makefiles/* ./
+make -f Makefile.ff
+make -f Makefile.openmp

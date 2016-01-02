@@ -3,11 +3,12 @@ export TSUIT
 
 UNAME_S := $(shell uname -s)
 
+#canny_openmp should be in linux
 ifeq ($(UNAME_S),Darwin)
-openmp: fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_openmp scluster_openmp
+openmp: fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_openmp
 endif
 ifeq ($(UNAME_S),Linux)
-openmp: canny_openmp fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_openmp scluster_openmp
+openmp: fib_openmp kmeans_openmp lu_openmp nqueen_openmp qsort_openmp
 endif
 
 include Makefile.base
