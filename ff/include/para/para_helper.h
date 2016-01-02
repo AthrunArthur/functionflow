@@ -30,129 +30,133 @@ THE SOFTWARE.
 #include "para/para_impl.h"
 
 namespace ff {
-template<class RT> class para;
+template <class RT>
+class para;
 
 namespace internal {
 using namespace ff::utils;
-template<class RT> class para_impl;
+template <class RT>
+class para_impl;
 
-
-template<class PT, class RT>
+template <class PT, class RT>
 class para_accepted_call {
-public:
-    para_accepted_call(PT& p)
-        : m_refP(p) {}
+ public:
+  para_accepted_call(PT& p) : m_refP(p) {}
 
-    template<class FT>
-    auto  then(FT && f)
-    -> typename std::enable_if<
-        std::is_void<typename function_res_traits<FT>::ret_type>::value && 
-        is_function_with_arg_type<FT, RT>::value, 
-       void>::type
-    {
-        if(!m_refP.check_if_over())
-            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
-        f(m_refP.get());
-    }
+  template <class FT>
+  auto then(FT&& f) -> typename std::enable_if<
+      std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+          is_function_with_arg_type<FT, RT>::value,
+      void>::type {
+    if (!m_refP.check_if_over())
+      ::ff::rt::yield_and_ret_until(
+          [this]() { return m_refP.check_if_over(); });
+    f(m_refP.get());
+  }
 
-    template<class FT>
-    auto  then(FT && f ) ->
-    typename std::enable_if<is_function_with_arg_type<FT, RT>::value, 
-                typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type &&>::type
-    {
-        if(!m_refP.check_if_over())
-            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
-        return std::move(f(m_refP.get()));
-    }
+  template <class FT>
+  auto then(FT&& f) -> typename std::enable_if<
+      is_function_with_arg_type<FT, RT>::value,
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type&&>::type {
+    if (!m_refP.check_if_over())
+      ::ff::rt::yield_and_ret_until(
+          [this]() { return m_refP.check_if_over(); });
+    return std::move(f(m_refP.get()));
+  }
 
-    template<class FT>
-    auto then(FT && f) ->
-    typename std::enable_if<is_callable<FT>::value && !is_function_with_arg_type<FT, RT>::value, void>::type
-    {
-      static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_WITH_TYPE_MISMATCH);
-    }
+  template <class FT>
+  auto then(FT&& f) ->
+      typename std::enable_if<is_callable<FT>::value &&
+                                  !is_function_with_arg_type<FT, RT>::value,
+                              void>::type {
+    static_assert(Please_Check_The_Assert_Msg<FT>::value,
+                  FF_EM_THEN_WITH_TYPE_MISMATCH);
+  }
 
-    template<class FT>
-    auto then(FT && f) ->
-    typename std::enable_if<!is_callable<FT>::value, void>::type
-    {
-      static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_WITH_NON_FUNC_TYPE);
-    }
+  template <class FT>
+  auto then(FT&& f) ->
+      typename std::enable_if<!is_callable<FT>::value, void>::type {
+    static_assert(Please_Check_The_Assert_Msg<FT>::value,
+                  FF_EM_THEN_WITH_NON_FUNC_TYPE);
+  }
 
-    template<class T>
-    void operator [](T && t)
-    {
-      static_assert(Please_Check_The_Assert_Msg<T>::value, FF_EM_CALL_SQPAREN_AFTER_PAREN);
-    }
+  template <class T>
+  void operator[](T&& t) {
+    static_assert(Please_Check_The_Assert_Msg<T>::value,
+                  FF_EM_CALL_SQPAREN_AFTER_PAREN);
+  }
 
-    template<class T>
-    void operator ()(T && t)
-    {
-      static_assert(Please_Check_The_Assert_Msg<T>::value, FF_EM_CALL_PAREN_AFTER_PAREN);
-    }
+  template <class T>
+  void operator()(T&& t) {
+    static_assert(Please_Check_The_Assert_Msg<T>::value,
+                  FF_EM_CALL_PAREN_AFTER_PAREN);
+  }
 
-protected:
-    PT& m_refP;
-};//end class para_accepted_call
+ protected:
+  PT& m_refP;
+};  // end class para_accepted_call
 
-template<class PT>
+template <class PT>
 class para_accepted_call<PT, void> {
-public:
-    para_accepted_call(PT& p)
-        : m_refP(p) {}
+ public:
+  para_accepted_call(PT& p) : m_refP(p) {}
 
-    template<class FT>
-    auto  then(FT && f)
-    -> typename std::enable_if<std::is_void<typename function_res_traits<FT>::ret_type>::value &&
-                               is_function_with_arg_type<FT, void>::value, void>::type
-    {
-        if(!m_refP.check_if_over())
-            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
-        f();
-    }
+  template <class FT>
+  auto then(FT&& f) -> typename std::enable_if<
+      std::is_void<typename function_res_traits<FT>::ret_type>::value &&
+          is_function_with_arg_type<FT, void>::value,
+      void>::type {
+    if (!m_refP.check_if_over())
+      ::ff::rt::yield_and_ret_until(
+          [this]() { return m_refP.check_if_over(); });
+    f();
+  }
 
-    template<class FT>
-    auto  then(FT && f ) ->
-    typename std::enable_if<is_function_with_arg_type<FT, void>::value && 
-         !std::is_void<typename function_res_traits<FT>::ret_type>::value,
-            typename std::remove_reference<typename function_res_traits<FT>::ret_type>::type
-            >::type 
-    {
-        if(!m_refP.check_if_over())
-            ::ff::rt::yield_and_ret_until([this](){return m_refP.check_if_over();});
-        return f();
-    }
+  template <class FT>
+  auto then(FT&& f) -> typename std::enable_if<
+      is_function_with_arg_type<FT, void>::value &&
+          !std::is_void<typename function_res_traits<FT>::ret_type>::value,
+      typename std::remove_reference<
+          typename function_res_traits<FT>::ret_type>::type>::type {
+    if (!m_refP.check_if_over())
+      ::ff::rt::yield_and_ret_until(
+          [this]() { return m_refP.check_if_over(); });
+    return f();
+  }
 
-    template<class FT>
-    auto then(FT && f) ->
-    typename std::enable_if<is_callable<FT>::value && !is_function_with_arg_type<FT, void>::value, void>::type
-    {
-      static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_WITH_TYPE_MISMATCH);
-    }
+  template <class FT>
+  auto then(FT&& f) ->
+      typename std::enable_if<is_callable<FT>::value &&
+                                  !is_function_with_arg_type<FT, void>::value,
+                              void>::type {
+    static_assert(Please_Check_The_Assert_Msg<FT>::value,
+                  FF_EM_THEN_WITH_TYPE_MISMATCH);
+  }
 
-    template<class FT>
-    auto then(FT && f) ->
-    typename std::enable_if<!is_callable<FT>::value, void>::type
-    {
-      static_assert(Please_Check_The_Assert_Msg<FT>::value, FF_EM_THEN_WITH_NON_FUNC_TYPE);
-    }
+  template <class FT>
+  auto then(FT&& f) ->
+      typename std::enable_if<!is_callable<FT>::value, void>::type {
+    static_assert(Please_Check_The_Assert_Msg<FT>::value,
+                  FF_EM_THEN_WITH_NON_FUNC_TYPE);
+  }
 
-    template<class T>
-    void operator [](T && t)
-    {
-      static_assert(Please_Check_The_Assert_Msg<T>::value, FF_EM_CALL_SQPAREN_AFTER_PAREN);
-    }
+  template <class T>
+  void operator[](T&& t) {
+    static_assert(Please_Check_The_Assert_Msg<T>::value,
+                  FF_EM_CALL_SQPAREN_AFTER_PAREN);
+  }
 
-    template<class T>
-    void operator ()(T && t)
-    {
-      static_assert(Please_Check_The_Assert_Msg<T>::value, FF_EM_CALL_PAREN_AFTER_PAREN);
-    }
-protected:
-    PT& m_refP;
-};//end class para_accepted_call
+  template <class T>
+  void operator()(T&& t) {
+    static_assert(Please_Check_The_Assert_Msg<T>::value,
+                  FF_EM_CALL_PAREN_AFTER_PAREN);
+  }
 
+ protected:
+  PT& m_refP;
+};  // end class para_accepted_call
 
-}//end namespace internal;
-}//end namespace ff
+}  // end namespace internal;
+}  // end namespace ff
 #endif

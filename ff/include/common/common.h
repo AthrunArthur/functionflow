@@ -31,26 +31,27 @@
 #include <type_traits>
 #include <iterator>
 #include <cassert>
+#include <mutex>
+#include <condition_variable>
 #include "common/error_msg.h"
 
 #define CACHE_LINE_SIZE 64
-#define FF_DEFAULT_PARTITIONER simple_partitioner //or auto_partitioner
-
+#define FF_DEFAULT_PARTITIONER simple_partitioner  // or auto_partitioner
 
 namespace ff {
-  enum exe_state {
-    exe_empty = 1,
-    exe_init,
-    exe_wait,
-    exe_over,
-    exe_run,
-  };
-  exe_state exe_state_and(exe_state e1, exe_state  e2);
-  exe_state exe_state_or(exe_state e1, exe_state e2);
+enum exe_state {
+  exe_empty = 1,
+  exe_init,
+  exe_wait,
+  exe_over,
+  exe_run,
+};
+exe_state exe_state_and(exe_state e1, exe_state e2);
+exe_state exe_state_or(exe_state e1, exe_state e2);
 
-  typedef int32_t thrd_id_t;
-  const thrd_id_t invalid_thrd_id = -1;
+typedef int32_t thrd_id_t;
+const thrd_id_t invalid_thrd_id = -1;
 
-}//end namespace ff
+}  // end namespace ff
 
 #endif

@@ -26,45 +26,47 @@
 
 #include "common/common.h"
 
+namespace ff {
+namespace internal {
+class any_base {};
 
-namespace ff{
-  namespace internal{
-    class any_base{};
+template <class T>
+class any_impl : public any_base {
+ public:
+  any_impl(const T &t) : m_val(t){};
+  T &get() { return m_val; }
+  const T &get() const { return m_val; }
 
-    template <class T>
-      class any_impl : public any_base{
-        public:
-          any_impl(const T & t)
-            : m_val(t){};
-          T &  get(){return m_val;}
-          const T & get() const {return m_val;}
+ protected:
+  T m_val;
+};
+}  // end namespace internal
 
-        protected:
-          T   m_val;
-      };
-  }//end namespace internal
-
-  class any_value
-  {
-    public:
-      template <class T> any_value(const T & t)
-        : m_pVal(nullptr)
-      {m_pVal = std::shared_ptr<internal::any_base>(new internal::any_impl<T>(t));};
-
-      template <class T>
-        T & get(){
-          internal::any_impl<T> * p = static_cast<internal::any_impl<T> *>(m_pVal.get());
-          return p->get();
-        };
-
-      template <class T>
-        const T & get() const {
-          const internal::any_impl<T> * p = static_cast<const internal::any_impl<T> * >(m_pVal.get());
-          return p->get();
-        };
-    protected:
-      std::shared_ptr<internal::any_base>  m_pVal;
+class any_value {
+ public:
+  template <class T>
+  any_value(const T &t)
+      : m_pVal(nullptr) {
+    m_pVal = std::shared_ptr<internal::any_base>(new internal::any_impl<T>(t));
   };
-}//end namespace ff
+
+  template <class T>
+  T &get() {
+    internal::any_impl<T> *p =
+        static_cast<internal::any_impl<T> *>(m_pVal.get());
+    return p->get();
+  };
+
+  template <class T>
+  const T &get() const {
+    const internal::any_impl<T> *p =
+        static_cast<const internal::any_impl<T> *>(m_pVal.get());
+    return p->get();
+  };
+
+ protected:
+  std::shared_ptr<internal::any_base> m_pVal;
+};
+}  // end namespace ff
 
 #endif

@@ -34,53 +34,50 @@ THE SOFTWARE.
 
 namespace ff {
 
-template<class T1, class T2>
-auto operator &&(T1 && t1, T2 && t2)
-->typename std::enable_if< is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-is_para_or_wait<typename std::remove_reference<T2>::type>::value,
-                internal::wait_and<T1, T2> >::type
-{
-    return internal::wait_and<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
+template <class T1, class T2>
+auto operator&&(T1&& t1, T2&& t2) -> typename std::enable_if<
+    is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+        is_para_or_wait<typename std::remove_reference<T2>::type>::value,
+    internal::wait_and<T1, T2>>::type {
+  return internal::wait_and<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
 }
 
-template<class T1, class T2>
-auto operator ||(T1 && t1, T2 && t2)
-->typename std::enable_if< is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-is_para_or_wait<typename std::remove_reference<T2>::type>::value,
-                internal::wait_or<T1, T2> >::type
-{
-    return internal::wait_or<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
+template <class T1, class T2>
+auto operator||(T1&& t1, T2&& t2) -> typename std::enable_if<
+    is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+        is_para_or_wait<typename std::remove_reference<T2>::type>::value,
+    internal::wait_or<T1, T2>>::type {
+  return internal::wait_or<T1, T2>(std::forward<T1>(t1), std::forward<T2>(t2));
 }
 
-template<class T1, class T2>
-auto operator &&(T1 && t1, T2 && t2)
-->typename std::enable_if< (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) ||
-                           (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-                            !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
-                internal::wait_and<para<void>, para<void>>>::type
-{
-    static_assert(Please_Check_The_Assert_Msg<T1>::value, FF_EM_COMBINE_PARA_AND_OTHER);
+template <class T1, class T2>
+auto operator&&(T1&& t1, T2&& t2) -> typename std::enable_if<
+    (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+     is_para_or_wait<typename std::remove_reference<T2>::type>::value) ||
+        (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+         !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
+    internal::wait_and<para<void>, para<void>>>::type {
+  static_assert(Please_Check_The_Assert_Msg<T1>::value,
+                FF_EM_COMBINE_PARA_AND_OTHER);
 }
 
-template<class T1, class T2>
-auto operator ||(T1 && t1, T2 && t2)
-->typename std::enable_if< (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-                            is_para_or_wait<typename std::remove_reference<T2>::type>::value) ||
-                           (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
-                            !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
-                internal::wait_or<para<void>, para<void>>>::type
-{
-    static_assert(Please_Check_The_Assert_Msg<T1>::value, FF_EM_COMBINE_PARA_AND_OTHER);
+template <class T1, class T2>
+auto operator||(T1&& t1, T2&& t2) -> typename std::enable_if<
+    (!is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+     is_para_or_wait<typename std::remove_reference<T2>::type>::value) ||
+        (is_para_or_wait<typename std::remove_reference<T1>::type>::value &&
+         !is_para_or_wait<typename std::remove_reference<T2>::type>::value),
+    internal::wait_or<para<void>, para<void>>>::type {
+  static_assert(Please_Check_The_Assert_Msg<T1>::value,
+                FF_EM_COMBINE_PARA_AND_OTHER);
 }
 
+auto all(paragroup& pg) -> internal::wait_all;
+auto any(paragroup& pg) -> internal::wait_any;
 
-auto all(paragroup & pg) -> internal::wait_all;
-auto any(paragroup & pg) -> internal::wait_any;
+auto all(paracontainer& pc) -> internal::wait_all;
+auto any(paracontainer& pc) -> internal::wait_any;
 
-auto all(paracontainer & pc) -> internal::wait_all;
-auto any(paracontainer & pc) -> internal::wait_any;
-
-}//end namespace ff
+}  // end namespace ff
 
 #endif

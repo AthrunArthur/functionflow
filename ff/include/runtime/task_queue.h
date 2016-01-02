@@ -53,8 +53,8 @@ typedef spin_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 typedef gcc_work_stealing_queue<task_base_ptr, 8> work_stealing_queue;
 #endif
 
-typedef work_stealing_queue * work_stealing_queue_ptr;
+typedef work_stealing_queue* work_stealing_queue_ptr;
 
-}//end namespace rt
-}//end namespace ff
+}  // end namespace rt
+}  // end namespace ff
 #endif

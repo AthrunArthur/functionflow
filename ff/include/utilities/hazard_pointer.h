@@ -32,64 +32,51 @@
 
 //! This hazard pointer is specifical for FF!!
 namespace ff {
-  namespace rt
-  {
-    template<class T>
-      class hp_owner
-      {
-        public:
-          hp_owner()
-            : m_oflag(){
+namespace rt {
+template <class T>
+class hp_owner {
+ public:
+  hp_owner() : m_oflag() {
 #ifdef CLANG_LLVM
-              m_pPointers = new std::atomic<T *>[ff::rt::concurrency()];
+    m_pPointers = new std::atomic<T *>[ff::rt::concurrency()];
 #else
-              std::call_once(m_oflag, [this]() {
-                  m_pPointers = new std::atomic<T *>[ff::rt::concurrency()];
-                  });
+    std::call_once(m_oflag, [this]() {
+      m_pPointers = new std::atomic<T *>[ff::rt::concurrency()];
+    });
 #endif
-            }
+  }
 
-          ~hp_owner(){
-            delete [] m_pPointers;
-          }
+  ~hp_owner() { delete[] m_pPointers; }
 
-          std::atomic<T *> & get_hazard_pointer() {
-            return m_pPointers[ff::rt::get_thrd_id()];
-          }
+  std::atomic<T *> &get_hazard_pointer() {
+    return m_pPointers[ff::rt::get_thrd_id()];
+  }
 
-          //! return true if other thread had it.
-          bool  outstanding_hazard_pointer_for(T * p)
-          {
-            thread_local static thrd_id_t id = ff::rt::get_thrd_id();
-            if(!p)
-              return false;
-            for(int i = 0; i < ff::rt::concurrency(); i++)
-            {
-              if(i == id)
-                continue;
-              if(m_pPointers[i].load(std::memory_order_acquire) == p)
-                return true;
-            }
-            return false;
-          }
+  //! return true if other thread had it.
+  bool outstanding_hazard_pointer_for(T *p) {
+    thread_local static thrd_id_t id = ff::rt::get_thrd_id();
+    if (!p) return false;
+    for (int i = 0; i < ff::rt::concurrency(); i++) {
+      if (i == id) continue;
+      if (m_pPointers[i].load(std::memory_order_acquire) == p) return true;
+    }
+    return false;
+  }
 #ifdef FUNCTION_FLOW_DEBUG
-          std::string	str()
-          {
-            std::stringstream ss;
-            for(int i = 0; i < ff::rt::concurrency(); ++i)
-            {
-              ss<<i<<":"<<m_pPointers[i].load()<<";";
-            }
-            return ss.str();
-          }
+  std::string str() {
+    std::stringstream ss;
+    for (int i = 0; i < ff::rt::concurrency(); ++i) {
+      ss << i << ":" << m_pPointers[i].load() << ";";
+    }
+    return ss.str();
+  }
 #endif
-        protected:
-          std::once_flag m_oflag;
-          std::atomic<T *>*  m_pPointers;
-      };//end class hp_owner
+ protected:
+  std::once_flag m_oflag;
+  std::atomic<T *> *m_pPointers;
+};  // end class hp_owner
 
-  }//end namespace rt
-}//end namespace ff
-
+}  // end namespace rt
+}  // end namespace ff
 
 #endif

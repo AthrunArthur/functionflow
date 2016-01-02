@@ -28,39 +28,43 @@
 #include "para/is_compatible_then.h"
 
 namespace ff {
-  //forward declaration
-  template <class RT> class para;
-  namespace internal {
-    template <class RT1, class RT2> class wait_and;
-    template <class RT1, class RT2> class wait_or;
+// forward declaration
+template <class RT>
+class para;
+namespace internal {
+template <class RT1, class RT2>
+class wait_and;
+template <class RT1, class RT2>
+class wait_or;
 
-    template<class WT, class F>
-      struct is_wait_compatible_with_func {
-        const static bool value = false;
-      };
+template <class WT, class F>
+struct is_wait_compatible_with_func {
+  const static bool value = false;
+};
 
-    template<class T1, class T2, class F>
-      struct is_wait_compatible_with_func< wait_and<T1, T2>, F>{
-        typedef typename std::remove_reference<T1>::type T1_t;
-        typedef typename std::remove_reference<T2>::type T2_t;
-        typedef typename T1_t::ret_type RT1_t;
-        typedef typename T2_t::ret_type RT2_t;
-        const static bool value = is_compatible_then<F, RT1_t, RT2_t>::is_cpt_with_and;
-      };
+template <class T1, class T2, class F>
+struct is_wait_compatible_with_func<wait_and<T1, T2>, F> {
+  typedef typename std::remove_reference<T1>::type T1_t;
+  typedef typename std::remove_reference<T2>::type T2_t;
+  typedef typename T1_t::ret_type RT1_t;
+  typedef typename T2_t::ret_type RT2_t;
+  const static bool value =
+      is_compatible_then<F, RT1_t, RT2_t>::is_cpt_with_and;
+};
 
-    template<class T1, class T2, class F>
-      struct is_wait_compatible_with_func< wait_or<T1, T2>, F>{
-        typedef typename std::remove_reference<T1>::type T1_t;
-        typedef typename std::remove_reference<T2>::type T2_t;
-        typedef typename T1_t::ret_type RT1_t;
-        typedef typename T2_t::ret_type RT2_t;
-        const static bool value = is_compatible_then<F, RT1_t, RT2_t>::is_cpt_with_or;
-      };
+template <class T1, class T2, class F>
+struct is_wait_compatible_with_func<wait_or<T1, T2>, F> {
+  typedef typename std::remove_reference<T1>::type T1_t;
+  typedef typename std::remove_reference<T2>::type T2_t;
+  typedef typename T1_t::ret_type RT1_t;
+  typedef typename T2_t::ret_type RT2_t;
+  const static bool value = is_compatible_then<F, RT1_t, RT2_t>::is_cpt_with_or;
+};
 
-    template<class RT, class F>
-      struct is_wait_compatible_with_func<para<RT>, F>{
-        const static bool value = utils::is_function_with_arg_type<F, RT>::value;
-      };
-  }//end namespace internal
-}//end namespace ff
-#endif //FUNCTIONFLOW_IS_WAIT_COMPATIBLE_WITH_THEN_H
+template <class RT, class F>
+struct is_wait_compatible_with_func<para<RT>, F> {
+  const static bool value = utils::is_function_with_arg_type<F, RT>::value;
+};
+}  // end namespace internal
+}  // end namespace ff
+#endif  // FUNCTIONFLOW_IS_WAIT_COMPATIBLE_WITH_THEN_H

@@ -24,36 +24,36 @@ THE SOFTWARE.
 #ifndef FF_PARA_PARA_WAIT_TRAITS_H_
 #define FF_PARA_PARA_WAIT_TRAITS_H_
 #include "common/common.h"
-namespace ff{
+namespace ff {
 template <class RT>
 class para;
-namespace internal{
-  template<class T1, class T2>
-  class wait_and;
-  template<class T1, class T2>
-  class wait_or;
+namespace internal {
+template <class T1, class T2>
+class wait_and;
+template <class T1, class T2>
+class wait_or;
 
-  class wait_all;
-  class wait_any;
-}//end namespace internal
+class wait_all;
+class wait_any;
+}  // end namespace internal
 
-template<class T>
-struct is_para_or_wait: public std::false_type {};
+template <class T>
+struct is_para_or_wait : public std::false_type {};
 
-template<class T>
-struct is_para_or_wait<para <T> > : public std::true_type {};
+template <class T>
+struct is_para_or_wait<para<T> > : public std::true_type {};
 
-template<class T1, class T2>
+template <class T1, class T2>
 struct is_para_or_wait<internal::wait_and<T1, T2> > : public std::true_type {};
 
-template<class T1, class T2>
+template <class T1, class T2>
 struct is_para_or_wait<internal::wait_or<T1, T2> > : public std::true_type {};
 
-template<>
+template <>
 struct is_para_or_wait<internal::wait_all> : public std::true_type {};
 
-template<>
+template <>
 struct is_para_or_wait<internal::wait_any> : public std::true_type {};
-}//end namespace ff
+}  // end namespace ff
 
 #endif

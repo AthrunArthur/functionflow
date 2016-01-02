@@ -24,24 +24,21 @@
 #include "common/common.h"
 #include "para/exception.h"
 
-namespace ff{
+namespace ff {
 
-  exe_state exe_state_and(exe_state e1, exe_state e2)
-  {
-    if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
-      throw empty_para_exception();
-    if(e1 == e2)
-      return e1;
-    return exe_state::exe_wait;
-  }
+exe_state exe_state_and(exe_state e1, exe_state e2) {
+  if (e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
+    throw empty_para_exception();
+  if (e1 == e2)
+    return e1;
+  return exe_state::exe_wait;
+}
 
-  exe_state exe_state_or(exe_state e1, exe_state e2)
-  {
-    if(e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
-      throw empty_para_exception();
-    if(e1 == exe_state::exe_over ||
-        e2 == exe_state::exe_over)
-      return exe_state::exe_over;
-    return exe_state::exe_wait;
-  }
-}//end namespace ff
+exe_state exe_state_or(exe_state e1, exe_state e2) {
+  if (e1 == exe_state::exe_empty || e2 == exe_state::exe_empty)
+    throw empty_para_exception();
+  if (e1 == exe_state::exe_over || e2 == exe_state::exe_over)
+    return exe_state::exe_over;
+  return exe_state::exe_wait;
+}
+} // end namespace ff

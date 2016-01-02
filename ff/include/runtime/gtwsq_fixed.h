@@ -26,95 +26,82 @@ THE SOFTWARE.
 #define FF_RUNTIME_GTWSQ_FIXED_H_
 #include <cassert>
 
+namespace ff {
+namespace rt {
 
-namespace ff{
-namespace rt{
-
-//N, 2^N.
+// N, 2^N.
 template <class T, size_t N>
-class gcc_work_stealing_queue
-{
-    const static int64_t INITIAL_SIZE=1<<N;
-    const static int64_t mask = (1<<N) - 1;
-public:
-    gcc_work_stealing_queue()
-      : head(0)
-      , tail(0)
-      , array(new T[1<<N])
-        {
-        if(array == nullptr)
-        {
-          assert(false && "Allocation Failed!");
-          exit(-1);
-        }
-      }
+class gcc_work_stealing_queue {
+  const static int64_t INITIAL_SIZE = 1 << N;
+  const static int64_t mask = (1 << N) - 1;
 
-    ~gcc_work_stealing_queue()
-    {
-      //std::cout<<p1<<", "<<p2<<", "<<p3<<", "<<p4<<std::endl;
-      if(array != nullptr)
-      {
-        delete[] array;
-        array = nullptr;
-      }
+ public:
+  gcc_work_stealing_queue() : head(0), tail(0), array(new T[1 << N]) {
+    if (array == nullptr) {
+      assert(false && "Allocation Failed!");
+      exit(-1);
     }
+  }
 
-    bool push_back(const T & val)
-    {
-      auto h = head;
-      if(h - tail == mask) return false;
-      array[h & mask] = val;
-      head = h + 1;
-      return true;
+  ~gcc_work_stealing_queue() {
+    // std::cout<<p1<<", "<<p2<<", "<<p3<<", "<<p4<<std::endl;
+    if (array != nullptr) {
+      delete[] array;
+      array = nullptr;
     }
+  }
 
-    bool pop(T & val)
-    {
-      if(head <= tail) {head = tail; return false;}
+  bool push_back(const T& val) {
+    auto h = head;
+    if (h - tail == mask) return false;
+    array[h & mask] = val;
+    head = h + 1;
+    return true;
+  }
 
-      head --;
-      //if(head -tail < 100)
-        __sync_synchronize(); //This two lines are the magic
-      auto t = tail;
-      if(head<t)
-      {
-        head= tail;
-        return false;
-      }
-      val = array[head&mask];
-      if(head > t) return true;
-      bool res = true;
-      if(!__sync_bool_compare_and_swap(&tail, head, head+1)) res = false;
+  bool pop(T& val) {
+    if (head <= tail) {
       head = tail;
-      return res;
+      return false;
     }
 
-    bool steal(T & val)
-    {
-      int64_t t = tail;
-      int s = head - t;
-      if ( s <= 0){
-        return false;
-      }
-      val = array[t&mask];
-      if(!__sync_bool_compare_and_swap(&tail, t, t+1)) return false;
-      return true;
+    head--;
+    // if(head -tail < 100)
+    __sync_synchronize();  // This two lines are the magic
+    auto t = tail;
+    if (head < t) {
+      head = tail;
+      return false;
     }
+    val = array[head & mask];
+    if (head > t) return true;
+    bool res = true;
+    if (!__sync_bool_compare_and_swap(&tail, head, head + 1)) res = false;
+    head = tail;
+    return res;
+  }
 
-
-    int64_t size()
-    {
-      return (head- tail);
+  bool steal(T& val) {
+    int64_t t = tail;
+    int s = head - t;
+    if (s <= 0) {
+      return false;
     }
-    int64_t  get_head() const {return head;}
-    int64_t  get_tail() const {return tail;}
-protected:
-    int64_t head;
-    int64_t tail;
-    T *       array;
-};//end class classical_work_stealing_queue
+    val = array[t & mask];
+    if (!__sync_bool_compare_and_swap(&tail, t, t + 1)) return false;
+    return true;
+  }
 
-}//end namespace rt
-}//end namespace ff
+  int64_t size() { return (head - tail); }
+  int64_t get_head() const { return head; }
+  int64_t get_tail() const { return tail; }
+
+ protected:
+  int64_t head;
+  int64_t tail;
+  T* array;
+};  // end class classical_work_stealing_queue
+
+}  // end namespace rt
+}  // end namespace ff
 #endif
-

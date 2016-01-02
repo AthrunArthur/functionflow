@@ -30,67 +30,60 @@
 #include "runtime/rtcmn.h"
 #include <cmath>
 
-namespace ff{
+namespace ff {
 
-  namespace internal {
-    class wait_all;
-    class wait_any;
+namespace internal {
+class wait_all;
+class wait_any;
 
-  }//end namespace internal
+}  // end namespace internal
 
-  class paracontainer {
-    public:
-      typedef void ret_type;
-    public:
-      paracontainer()
-        : m_pEntities(new internal::paras_with_lock()){}
+class paracontainer {
+ public:
+  typedef void ret_type;
 
-      para<void> &  operator [](int index)
-      {
-        std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
-          return (*m_pEntities).entities[index];
-      }
-      size_t 	size() const
-      {
-        std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
-        return m_pEntities->entities.size();
-      }
-      ~paracontainer()
-      {
-      }
+ public:
+  paracontainer() : m_pEntities(new internal::paras_with_lock()) {}
 
-      template<typename Func_t>
-        void add(const Func_t & f)
-        {
-          para<void> p;
-          p(f);
-          add(p);
-        }
+  para<void>& operator[](int index) {
+    std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
+    return (*m_pEntities).entities[index];
+  }
+  size_t size() const {
+    std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
+    return m_pEntities->entities.size();
+  }
+  ~paracontainer() {}
 
-      void add(const para< void >&  p)
-      {
-        std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
-        m_pEntities->entities.push_back(p);
-      }
+  template <typename Func_t>
+  void add(const Func_t& f) {
+    para<void> p;
+    p(f);
+    add(p);
+  }
 
-      void clear()
-      {
-        std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
-        m_pEntities->entities.clear();
-      }
-    protected:
+  void add(const para<void>& p) {
+    std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
+    m_pEntities->entities.push_back(p);
+  }
 
-      typedef std::shared_ptr<internal::paras_with_lock > Entities_t;
+  void clear() {
+    std::lock_guard<ff::spinlock> _l(m_pEntities->lock);
+    m_pEntities->entities.clear();
+  }
 
-      friend internal::wait_all all(paracontainer & pg);
-      friend internal::wait_any any(paracontainer & pg);
-      std::shared_ptr<internal::paras_with_lock> & all_entities() {
-        return m_pEntities;
-      };
+ protected:
+  typedef std::shared_ptr<internal::paras_with_lock> Entities_t;
 
-      std::shared_ptr<internal::paras_with_lock >	m_pEntities;
-  };//end class paracontainer
+  friend internal::wait_all all(paracontainer& pg);
+  friend internal::wait_any any(paracontainer& pg);
+  std::shared_ptr<internal::paras_with_lock>& all_entities() {
+    return m_pEntities;
+  };
 
-}//end namespace ff
+  std::shared_ptr<internal::paras_with_lock> m_pEntities;
+};  // end class paracontainer
+
+}  // end namespace ff
 
 #endif
