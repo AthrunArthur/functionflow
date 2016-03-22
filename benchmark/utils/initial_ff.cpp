@@ -5,7 +5,7 @@
 
 void initial_para_env(int thrd_num)
 {
-  ff::rt::set_concurrency(thrd_num);//Set concurrency
+  ff::initialize(thrd_num);//Set concurrency
 #ifdef COUNT_TIME
   ff::init_timer();
 #endif

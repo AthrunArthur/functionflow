@@ -78,6 +78,7 @@ class runtime {
   std::atomic_bool m_b_is_active;
   std::mutex m_wakeup_mutex;
   std::condition_variable m_wakeup;
+  std::atomic<int> m_last_schedule_thrd_id;
 };  // end class runtime
 
 class runtime_deletor {

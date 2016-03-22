@@ -55,7 +55,8 @@ int main(int argc, char *argv[])
   RRecord rr("time.json", "nqueen");
   ParamParser pp;
   pp.parse(argc, argv);
-  int thrd_num = pp.get<int>("thrd-num");
+  //int thrd_num = pp.get<int>("thrd-num");
+  int thrd_num = 16;
   rr.put("thrd-num", thrd_num);
   bool bIsPara = (thrd_num > 0);
   if(thrd_num > 0)

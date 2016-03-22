@@ -48,7 +48,6 @@ int queen_para(const int* x,int t) {
             queen_para(xx,t+1);
             });
         pp.add(p);
-
       }
     }
     ff_wait(all(pp));

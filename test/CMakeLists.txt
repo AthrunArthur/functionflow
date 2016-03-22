@@ -38,7 +38,7 @@ set(src_list main.cpp
   test_compatible.cpp
   test_fib.cpp
   test_func_with_type.cpp
-  test_gtwsq.cpp
+  #test_gtwsq.cpp
   test_interface.cpp
   test_paracontainer.cpp
   test_paragroup.cpp

@@ -29,6 +29,7 @@ extern bool g_initialized_flag;
 void initialize(size_t concurrency) {
   rt::set_concurrency(concurrency);
   rt::runtime::instance();
+  g_initialized_flag = true;
 }
 
 namespace rt {
@@ -43,7 +44,9 @@ void schedule(task_base_ptr p) {
 void yield() { std::this_thread::yield(); }
 
 runtime::runtime()
-    : m_pTP(new threadpool()), m_oQueues(), m_bAllThreadsQuit(false){};
+  : m_pTP(new threadpool()), m_oQueues(), m_bAllThreadsQuit(false){
+    m_last_schedule_thrd_id.store(0);
+  };
 
 runtime::~runtime() {
   m_bAllThreadsQuit = true;
@@ -99,6 +102,8 @@ void runtime::schedule(task_base_ptr p) {
   thread_local static int i = get_thrd_id();
   if (!m_oQueues[i]->push_back(p)) {
     run_task(p);
+  }else{
+    m_last_schedule_thrd_id.store(i, std::memory_order_release);
   }
 }
 
@@ -155,15 +160,21 @@ void runtime::thread_run() {
 
 bool runtime::steal_one_task(task_base_ptr &pTask) {
   thread_local static int cur_id = get_thrd_id();
-  size_t dis = 1;
   size_t ts = m_oQueues.size();
-  while ((cur_id + dis) % ts != cur_id) {
-    if (m_oQueues[(cur_id + dis) % ts]->steal(pTask)) {
+  size_t from = static_cast<size_t>(m_last_schedule_thrd_id.load( std::memory_order_acquire ));
+  size_t cur_pos = from;
+
+  while (cur_pos - from != ts) {
+    if(cur_pos % ts == cur_id){
+       cur_pos ++;
+       continue;
+    }
+    if (m_oQueues[cur_pos % ts]->steal(pTask)) {
       return true;
-    } else if (m_oWQueues[(cur_id + dis) % ts]->pop(pTask)) {
+    } else if (m_oWQueues[cur_pos % ts]->pop(pTask)) {
       return true;
     }
-    dis++;
+    cur_pos ++;
   }
   return false;
 }
