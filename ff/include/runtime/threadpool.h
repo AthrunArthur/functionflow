@@ -28,6 +28,9 @@ THE SOFTWARE.
 #include <memory>
 #include <functional>
 #include <iostream>
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <sched.h>
 
 namespace ff {
 namespace rt {
@@ -42,6 +45,14 @@ class threadpool {
     }
   }
 
+  template <class F>
+  void run(F&& func, int cpu_id) {
+    m_oThreads.push_back(std::thread(func));
+      ::cpu_set_t cpuset;
+      CPU_ZERO(&cpuset);
+      CPU_SET(cpu_id, &cpuset);
+      auto s = pthread_setaffinity_np(m_oThreads[m_oThreads.size()-1].native_handle(), sizeof(cpu_set_t), &cpuset);
+  }
   template <class F>
   void run(F&& func) {
     m_oThreads.push_back(std::thread(func));

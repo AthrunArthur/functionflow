@@ -23,6 +23,9 @@
  *************************************************/
 #include "runtime/rtcmn.h"
 #include "runtime/runtime.h"
+#define _GNU_SOURCE
+#include <pthread.h>
+#include <sched.h>
 
 namespace ff {
 extern bool g_initialized_flag;
@@ -85,12 +88,17 @@ void runtime::init() {
 
   set_local_thrd_id(0);
 
+  cpu_set_t cpuset;
+  CPU_ZERO(&cpuset);
+  CPU_SET(0, &cpuset);
+  auto s = pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &cpuset);
+
   for (int i = 1; i < thrd_num; ++i) {
     s_pInstance->m_pTP->run([i]() {
       auto r = runtime::instance();
       set_local_thrd_id(i);
       r->thread_run();
-    });
+    }, i);
   }
   g_initialized_flag = true;
 }
