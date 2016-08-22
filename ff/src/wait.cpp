@@ -58,10 +58,14 @@ exe_state wait_any::get_state() {
   if (!all_ps) m_iES = exe_state::exe_over;
 
   if (m_iES != exe_state::exe_over) {
-    m_iES = exe_state::exe_over;
+    m_iES = exe_state::exe_wait;
     all_ps->lock.lock();
-    for (auto p = all_ps->entities.begin(); p != all_ps->entities.end(); ++p)
-      m_iES = exe_state_or(m_iES, p->get_state());
+    if(all_ps->entities.size() == 0){
+      m_iES = exe_state::exe_over;
+    }else{
+      for (auto p = all_ps->entities.begin(); p != all_ps->entities.end(); ++p)
+        m_iES = exe_state_or(m_iES, p->get_state());
+    }
     all_ps->lock.unlock();
   }
   return m_iES;
